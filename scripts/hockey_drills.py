@@ -13,8 +13,8 @@ import os
 import traceback
 
 CHROME_DRIVER_PATH = "/opt/homebrew/bin/chromedriver"
-OUTPUT_CSV = "hockey_canada_drills_all.csv"
-OUTPUT_JSON = "hockey_canada_drills_all.json"
+OUTPUT_CSV = "source_data_drills_all.csv"
+OUTPUT_JSON = "source_data_drills_all.json"
 
 options = Options()
 # Show the browser (headless often fails)

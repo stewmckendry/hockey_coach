@@ -9,9 +9,9 @@ from pathlib import Path
 
 # === CONFIG ===
 SCRIPT_DIR = Path(__file__).resolve().parent
-INPUT_PATH = SCRIPT_DIR.parent / "hockey_canada" / "hockey_canada_drills_all.json"
-JSON_OUT_PATH = SCRIPT_DIR.parent / "hockey_canada" / "drills_classified_sample.json"
-CSV_OUT_PATH = SCRIPT_DIR.parent / "hockey_canada" / "drills_classified_sample.csv"
+INPUT_PATH = SCRIPT_DIR.parent / "source_data" / "source_data_drills_all.json"
+JSON_OUT_PATH = SCRIPT_DIR.parent / "source_data" / "drills_classified_sample.json"
+CSV_OUT_PATH = SCRIPT_DIR.parent / "source_data" / "drills_classified_sample.csv"
 MODEL = "gpt-3.5-turbo"
 SAMPLE_SIZE = 5
 DELAY = 1.0  # polite pause between calls
