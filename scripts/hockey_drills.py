@@ -33,7 +33,7 @@ while True:
     try:
         if page == 1:
             print("🌐 Loading initial Drill Hub page")
-            driver.get("https://www.hockeycanada.ca/en-ca/hockey-programs/drill-hub")
+            driver.get("<site_url_here>")  # Replace with the actual URL
             time.sleep(3)
 
         print("🧩 STEP 1: Load and scroll page")
