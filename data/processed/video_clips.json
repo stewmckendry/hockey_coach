@@ -1,198 +1,243 @@
 [
   {
-    "title": "Sample Hockey Clip",
-    "video_url": "https://www.youtube.com/watch?v=example",
-    "source": "SampleChannel",
-    "summary": "How to improve your wrist shot with proper weight transfer.",
-    "teaching_points": [
-      "Knees bent",
-      "Transfer weight from back foot"
-    ],
-    "visual_prompt": "Player demonstrating wrist shot with bent knees",
-    "hockey_skills": [
-      "Shooting"
-    ],
-    "position": [
-      "Forward"
-    ],
-    "complexity": "Beginner"
-  },
-  {
+    "segment_number": 1,
     "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=0",
     "source": "Hockey Training",
-    "summary": "This segment introduces crossover skating drills, emphasizing technique and rhythm in executing crossovers with subsequent pushes.",
+    "start_time": 0.0,
+    "end_time": 31.119999999999997,
+    "summary": "This segment introduces drills focusing on mastering crossovers, emphasizing movement and pushing technique.",
     "teaching_points": [
-      "Focus on clean crossovers.",
-      "Incorporate pushes after each crossover.",
-      "Maintain balance and control during transitions."
+      "Focus on crossovers during skating.",
+      "Incorporate movements such as going down low to maintain balance.",
+      "Ensure solid pushing technique from the side."
     ],
-    "visual_prompt": "An athlete demonstrating crossover technique, showing clear, rhythmic transitions and providing a slow-motion close-up of footwork during pushes.",
+    "visual_prompt": "Show a player performing crossovers on the ice, emphasizing low stance and side pushes.",
     "hockey_skills": [
-      "Skating",
-      "Crossover Technique",
-      "Balance"
+      "Crossovers",
+      "Balance",
+      "Pushing Technique"
     ],
     "position": null,
-    "complexity": "Intermediate"
+    "complexity": "Intermediate",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Skating Coaches",
+    "play_or_skill_focus": "Crossovers",
+    "duration": 31.12
   },
   {
+    "segment_number": 2,
     "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=31",
     "source": "Hockey Training",
-    "summary": "The video segment focuses on drills for transitioning backwards to forwards with knee hops and practicing crossovers. It also includes a puck protection drill requiring quick footwork adjustments and maintaining control while protecting the puck.",
+    "start_time": 31.119999999999997,
+    "end_time": 73.68,
+    "summary": "The segment focuses on backward skating, crossovers, transitions, and puck protection, emphasizing agility and control through specific drills designed by the Florida Panthers skills coach.",
     "teaching_points": [
-      "Practice backward skating with knee hops to improve agility.",
-      "Perform crossovers smoothly when transitioning between skating directions.",
-      "Practice forward and backward transitions using 'daggers' to enhance quick direction changes.",
-      "Focus on puck protection by using quick foot adjustments and maintaining control while shielding the puck."
+      "Start with backward skating using right knee hops for agility.",
+      "Practice transitioning seamlessly from forward to backward skating using 'daggers.'",
+      "Develop crossovers effectively by maintaining balance through transitions.",
+      "Improve puck protection by pulling the puck back and opening your feet to maintain control."
     ],
-    "visual_prompt": "Show a player performing crossovers on ice while moving backward, then quickly transitioning to forward skating. Include close-ups of feet during puck protection drills, emphasizing the quick hops and foot positioning.",
+    "visual_prompt": "Players performing backward hops on one knee followed by transitions from forward to backward skating and puck protection drills.",
     "hockey_skills": [
       "Backward Skating",
       "Crossovers",
+      "Transitions",
       "Puck Protection"
     ],
     "position": null,
-    "complexity": "Intermediate"
+    "complexity": "Intermediate",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Intermediate Players",
+    "play_or_skill_focus": "Puck Protection",
+    "duration": 42.56
   },
   {
+    "segment_number": 3,
     "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=73",
     "source": "Hockey Training",
-    "summary": "The segment focuses on improving stickhandling skills through a series of repetitive drills designed to enhance control and agility. The drills involve movements such as pulling the puck back and turning, with the emphasis on executing these techniques smoothly and repeatedly.",
+    "start_time": 73.68,
+    "end_time": 111.52000000000001,
+    "summary": "This segment covers foundational stickhandling drills focusing on pull and turn techniques, organized in three-line formations.",
     "teaching_points": [
-      "Focus on pulling the puck back with control.",
-      "Incorporate turning movements into stickhandling.",
-      "Use repetitive, smooth motions to build muscle memory.",
-      "Organize practice with three lines for efficient drill execution."
+      "Emphasize the pull and turn action.",
+      "Use a three-line setup for organization.",
+      "Practice quick, repetitive motion for stickhandling."
     ],
-    "visual_prompt": "The scene shows a coach demonstrating stickhandling drills on ice, with players arranged in three lines performing puck control maneuvers with agility and precision.",
+    "visual_prompt": "A coach demonstrates stickhandling drills using cones or lines on the ice, emphasizing pull and turn motions.",
     "hockey_skills": [
-      "Stickhandling",
-      "Puck Control",
-      "Agility"
+      "Stickhandling"
     ],
     "position": null,
-    "complexity": "Intermediate"
+    "complexity": "Beginner",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "U9 Player",
+    "play_or_skill_focus": "Stickhandling",
+    "duration": 37.84
   },
   {
+    "segment_number": 4,
     "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=111",
     "source": "Hockey Training",
-    "summary": "The video segment demonstrates a series of simple side step and hop drills designed to enhance agility and footwork on the ice.",
+    "start_time": 111.6,
+    "end_time": 149.04000000000002,
+    "summary": "The coach provides a drill focusing on lateral movement and positioning, emphasizing repetition and footwork to improve agility and balance on the ice.",
     "teaching_points": [
-      "Focus on maintaining balance during side steps and hops.",
-      "Keep movements controlled and consistent.",
-      "Transition smoothly between stepping up and back."
+      "Focus on lateral movement with precise steps.",
+      "Maintain balance while stepping to the side and back.",
+      "Repeat the sequence to build muscle memory."
     ],
-    "visual_prompt": "Display a coach demonstrating side steps and hops on ice, emphasizing foot placement and balance.",
+    "visual_prompt": "A coach demonstrating stepping side to side and backwards along a marked line, emphasizing quick, controlled movements.",
     "hockey_skills": [
       "Agility",
+      "Balance",
       "Footwork"
     ],
     "position": null,
-    "complexity": "Beginner"
+    "complexity": "Intermediate",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Intermediate Players",
+    "play_or_skill_focus": "Lateral Movement and Positioning",
+    "duration": 37.44
   },
   {
+    "segment_number": 5,
     "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=149",
     "source": "Hockey Training",
-    "summary": "The coach emphasizes puck control through lateral movements, guiding players to maintain control while moving the puck between different positions on the ice. Players are instructed to adapt quickly and maintain focus on puck handling.",
+    "start_time": 149.04000000000002,
+    "end_time": 177.76,
+    "summary": "The coach demonstrates a drill focused on puck control by guiding the puck from side to side and through the middle, building foundational skills in movement and control.",
     "teaching_points": [
-      "Control the puck on both sides and in the middle repeatedly.",
-      "Maintain focus while moving the puck laterally.",
-      "Ensure fluid transitions between sides maintaining puck control."
+      "Maintain control while moving the puck from side to side.",
+      "Practice smooth transitions between different areas of control (middle, left, right).",
+      "Focus on consistent puck handling at different positions on the ice."
     ],
-    "visual_prompt": "Demonstration of a player moving the puck skillfully from side to side in a zigzag manner.",
-    "hockey_skills": [
-      "Puck Handling",
-      "Lateral Movement",
-      "Control"
-    ],
-    "position": null,
-    "complexity": "Beginner"
-  },
-  {
-    "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
-    "source": "Hockey Training",
-    "summary": "The drill focuses on puck control using both forehand and backhand movements in a wide arc, emphasizing maintaining control in the middle of the stick handling area.",
-    "teaching_points": [
-      "Practice puck control using both forehand and backhand.",
-      "Emphasize wide movements with the puck before a line.",
-      "Focus on maintaining control in the middle of the movement area."
-    ],
-    "visual_prompt": "A player is demonstrating puck control drills on ice, moving the puck back and forth with wide forehand and backhand motions.",
+    "visual_prompt": "A player practicing puck control, maneuvering it from side to side across an ice rink lane, maintaining focus and precision.",
     "hockey_skills": [
       "Puck Control",
       "Stickhandling"
     ],
-    "position": null,
-    "complexity": "Intermediate"
+    "position": [
+      "Forward",
+      "Defense"
+    ],
+    "complexity": "Beginner",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Beginner Player",
+    "play_or_skill_focus": "Puck Control",
+    "duration": 28.72
   },
   {
+    "segment_number": 6,
     "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=177",
     "source": "Hockey Training",
-    "summary": "This drill focuses on puck control, movement along the line, and using deceptive maneuvers to improve handling skills.",
+    "start_time": 177.76,
+    "end_time": 222.96,
+    "summary": "The coach instructs players on maneuvering the puck using forehand and backhand techniques, emphasizing puck control and movement across wider areas.",
     "teaching_points": [
-      "Move the puck around the line with control.",
-      "Use backhand techniques and maintain station.",
-      "Incorporate fakes and spins to improve deception.",
-      "Repeat the drill to build muscle memory."
+      "Use the forehand and backhand to control the puck.",
+      "Focus on puck control in the middle of the stick.",
+      "Practice moving the puck in wider arcs before bringing it back to the center."
     ],
-    "visual_prompt": "A player moving the puck behind a line with controlled backhand passes, incorporating quick fakes and spins.",
+    "visual_prompt": "Players practice puck handling by moving it side to side with both forehand and backhand.",
+    "hockey_skills": [
+      "Forehand Control",
+      "Backhand Control",
+      "Puck Handling"
+    ],
+    "position": null,
+    "complexity": "Intermediate",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Intermediate Player",
+    "play_or_skill_focus": "Puck Control",
+    "duration": 45.2
+  },
+  {
+    "segment_number": 7,
+    "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=222",
+    "source": "Hockey Training",
+    "start_time": 222.96,
+    "end_time": 264.08000000000004,
+    "summary": "This segment focuses on puck control with emphasis on utilizing fakes and spins to navigate around obstacles effectively.",
+    "teaching_points": [
+      "Emphasize puck control while moving along a line.",
+      "Incorporate fakes to deceive opponents.",
+      "Use backhand and forehand to control the puck.",
+      "Perform spin moves to evade defenders."
+    ],
+    "visual_prompt": "A player demonstrating puck handling skills along a marked line, executing fakes and spins.",
+    "hockey_skills": [
+      "Puck Handling",
+      "Fakes",
+      "Spins"
+    ],
+    "position": null,
+    "complexity": "Intermediate",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Advanced Youth Players",
+    "play_or_skill_focus": "Puck Protection",
+    "duration": 41.12
+  },
+  {
+    "segment_number": 8,
+    "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=264",
+    "source": "Hockey Training",
+    "start_time": 264.08000000000004,
+    "end_time": 299.44,
+    "summary": "This segment focuses on developing puck control, mobility, and shooting skills through a series of drills involving fakes, spins, and hops.",
+    "teaching_points": [
+      "Maintain control of the puck while moving and performing fakes.",
+      "Incorporate spins to enhance agility and fluidity.",
+      "Use hopping movements to improve balance and dynamic motion.",
+      "Practice shooting with precision after executing maneuvers."
+    ],
+    "visual_prompt": "A player executing a series of moves: faking, spinning, hopping, and then shooting on goal during a practice drill.",
     "hockey_skills": [
       "Puck Control",
-      "Deception",
-      "Backhand Skills",
+      "Fakes",
+      "Agility",
+      "Shooting"
+    ],
+    "position": [
+      "Forward",
+      "Defense"
+    ],
+    "complexity": "Intermediate",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Intermediate Players",
+    "play_or_skill_focus": "Puck Control and Shooting",
+    "duration": 35.36
+  },
+  {
+    "segment_number": 9,
+    "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
+    "video_url": "https://youtu.be/l9cN8j6au2U?t=299",
+    "source": "Hockey Training",
+    "start_time": 299.44,
+    "end_time": 323.84000000000003,
+    "summary": "The coach emphasizes using hopping techniques to improve control and practice in small areas to enhance skills. Encourages hard work and dedication.",
+    "teaching_points": [
+      "Incorporate hopping into drills to improve control.",
+      "Practice in small areas to refine techniques.",
+      "Emphasize consistency and hard work."
+    ],
+    "visual_prompt": "A player hopping on the ice while maintaining puck control in a small area.",
+    "hockey_skills": [
+      "Puck Control",
       "Agility"
     ],
     "position": null,
-    "complexity": "Intermediate"
-  },
-  {
-    "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
-    "source": "Hockey Training",
-    "summary": "This segment focuses on controlling the puck with smooth, simple moves, and emphasizes faking, spinning, and shooting techniques to enhance agility and precision on the ice.",
-    "teaching_points": [
-      "Control the puck before making any moves.",
-      "Use fakes to confuse opponents and create space.",
-      "Incorporate spins to change direction and maintain control.",
-      "Focus on making simple, precise movements rather than hard or complex ones.",
-      "Practice combining hops and spins with puck handling."
-    ],
-    "visual_prompt": "An ice hockey player demonstrating puck control through fakes and spins, practicing simple shots on goal after maneuvering around obstacles.",
-    "hockey_skills": [
-      "Puck Control",
-      "Faking",
-      "Spinning",
-      "Shooting"
-    ],
-    "position": null,
-    "complexity": "Intermediate"
-  },
-  {
-    "title": "FLA Panthers SKILLS Coach Drills \ud83d\udd25",
-    "video_url": "https://youtu.be/l9cN8j6au2U",
-    "source": "Hockey Training",
-    "summary": "The video focuses on a drill involving quick footwork and puck control. Emphasis is on repetition and practice to build skill and ease of movement.",
-    "teaching_points": [
-      "Perform the hop and hit action with precision.",
-      "Focus on controlling the puck smoothly during drills.",
-      "Integrate the technique into full practices and post-practice routines.",
-      "Utilize small areas for practice to enhance skill development.",
-      "Maintain a strong work ethic to improve continuously."
-    ],
-    "visual_prompt": "The coach demonstrates a drill involving hopping in place while managing puck control, emphasizing repetition and technique in a small practice area.",
-    "hockey_skills": [
-      "Footwork",
-      "Puck Control",
-      "Drills"
-    ],
-    "position": null,
-    "complexity": "Beginner"
+    "complexity": "Beginner",
+    "clip_type": "Drill Explanation",
+    "intended_audience": "Beginner Coach",
+    "play_or_skill_focus": "Puck Control",
+    "duration": 24.4
   }
 ]
