@@ -22,7 +22,7 @@ clear_chroma_collection()
 collection = get_chroma_collection()
 
 # === Load classified drills ===
-DATA_PATH = Path(__file__).parent.parent / "mcp_server" / "drills.json"
+DATA_PATH = Path(__file__).parent.parent / "data" / "processed" / "drills.json"
 with open(DATA_PATH, "r") as f:
     data = json.load(f)
 

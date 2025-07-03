@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import time
 import argparse
+from pathlib import Path
 from typing import Any
 from agents import gen_trace_id, trace
 from agents.mcp import MCPServerSse
@@ -38,8 +39,7 @@ if __name__ == "__main__":
 
     print("🚀 Launching Thunder MCP SSE server at http://localhost:8000/sse ...")
 
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    server_path = os.path.join(this_dir, "server.py")
+    server_path = Path(__file__).resolve().parent.parent / "mcp_server" / "server.py"
 
     process: subprocess.Popen[Any] | None = subprocess.Popen(["uv", "run", server_path])
     time.sleep(3)
