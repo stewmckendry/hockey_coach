@@ -4,3 +4,4 @@ outputs/*.csv
 outputs/*.json
 .env
 chroma_db/
+.lock
