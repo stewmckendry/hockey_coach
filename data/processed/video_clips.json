@@ -1,0 +1,13 @@
+[
+  {
+    "title": "Sample Hockey Clip",
+    "video_url": "https://www.youtube.com/watch?v=example",
+    "source": "SampleChannel",
+    "summary": "How to improve your wrist shot with proper weight transfer.",
+    "teaching_points": ["Knees bent", "Transfer weight from back foot"],
+    "visual_prompt": "Player demonstrating wrist shot with bent knees",
+    "hockey_skills": ["Shooting"],
+    "position": ["Forward"],
+    "complexity": "Beginner"
+  }
+]
