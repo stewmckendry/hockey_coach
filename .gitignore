@@ -5,3 +5,5 @@ outputs/*.json
 .env
 chroma_db/
 .lock
+.mp4
+.mp3
