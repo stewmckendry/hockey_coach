@@ -56,7 +56,7 @@ def metadata_for(clip: dict) -> dict:
         "end_time": str(clip.get("end_time", "")),
         "duration": str(clip.get("duration", "")),
         "clip_type": clip.get("clip_type", ""),
-        "intended_audience": clip.get("intended_audience", ""),
+        "intended_audience": str(clip.get("intended_audience") or ""),
         "play_or_skill_focus": clip.get("play_or_skill_focus", ""),
         "transcript": clip.get("transcript", "")[:500],
     }
