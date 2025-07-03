@@ -12,7 +12,7 @@ class SummaryOutput(BaseModel):
     summary: str
 
 def _load_prompt() -> str:
-    path = Path(__file__).resolve().parent.parent / "prompts" / "summarizer_prompt.yaml"
+    path = Path(__file__).resolve().parent.parent.parent.parent / "prompts" / "summarizer_prompt.yaml"
     with open(path, "r", encoding="utf-8") as f:
         return "".join(f.readlines()[1:]).lstrip()
 

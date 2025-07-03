@@ -16,7 +16,7 @@ class RerankedResults(BaseModel):
 
 # --- Prompt Loader ---
 def _load_prompt() -> str:
-    path = Path(__file__).resolve().parent.parent / "prompts" / "rerank_prompt.yaml"
+    path = Path(__file__).resolve().parent.parent.parent.parent / "prompts" / "rerank_prompt.yaml"
     with open(path, "r", encoding="utf-8") as f:
         return "".join(f.readlines()[1:]).lstrip()
 

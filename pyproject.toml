@@ -1,0 +1,30 @@
+[project]
+name = "hockey-coach-ai-assistant"
+version = "0.1.0"
+description = "Hockey (AI) Assistant Coach"
+authors = [
+  { name = "Stewart McKendry", email = "stewart.mckendry@gmail.com" }
+]
+requires-python = ">=3.11"
+
+[tool.poetry]
+name = "hockey-coach-ai-assistant"
+version = "0.1.0"
+description = "Hockey (AI) Assistant Coach"
+authors = ["Stewart McKendry <stewart.mckendry@gmail.com>"]
+packages = [
+  { include = "app" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+openai-agents = { git = "https://github.com/stewmckendry/openai-agents-python.git", extras = ["viz"] }
+litellm = "*"
+chromadb = "^1.0.15"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+plan_drills = "app.client.main:main"

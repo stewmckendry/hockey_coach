@@ -22,7 +22,7 @@ class SearchResults(BaseModel):
 
 # === Load Prompt ===
 def _load_prompt() -> str:
-    path = Path(__file__).resolve().parent.parent / "prompts" / "search_prompt.yaml"
+    path = Path(__file__).resolve().parent.parent.parent.parent / "prompts" / "search_prompt.yaml"
     with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     return "".join(lines[1:]).lstrip()

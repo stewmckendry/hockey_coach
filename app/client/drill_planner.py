@@ -2,10 +2,10 @@ from __future__ import annotations
 import json
 from pydantic import BaseModel
 from agents import Agent, Runner
-from query_agent import ExpandedQuery, query_agent
-from search_agent import SearchResults, search_agent
-from summarizer_agent import summarizer_agent, SummaryInput, SummaryOutput
-from reranker_agent import reranker_agent, RerankedResults
+from .agent.query_agent import ExpandedQuery, query_agent
+from .agent.search_agent import SearchResults, search_agent
+from .agent.summarizer_agent import summarizer_agent, SummaryInput, SummaryOutput
+from .agent.reranker_agent import reranker_agent, RerankedResults
 
 # === Prompt ===
 DRILL_PLANNER_PROMPT = """
