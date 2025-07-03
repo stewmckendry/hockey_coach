@@ -25,7 +25,7 @@ Create a new pipeline that:
 
    * Use existing LLM summarizer patterns (see `summarizer_agent.py`)
 
-4. **Extracts structured metadata**
+4. **Extracts structured metadata (using GPT/LLM calls)**
 
    * Skill tags (e.g., Skating, Shooting, Angling)
    * Teaching points (e.g., "knees bent", "weight transfer")

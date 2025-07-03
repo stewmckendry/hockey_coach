@@ -2,3 +2,5 @@ fastmcp
 uvicorn
 pydantic
 chromadb
+yt_dlp
+whisper
