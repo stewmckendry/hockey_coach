@@ -1,6 +1,7 @@
 # chroma_utils.py
 import os
 from pathlib import Path
+import logging
 import chromadb
 from chromadb.api import ClientAPI
 from chromadb.api.types import Documents, Embeddings, IDs, Metadatas
@@ -12,6 +13,9 @@ load_dotenv()
 
 COLLECTION_NAME = "hockey_drills"
 _embed = OpenAIEmbeddingFunction(api_key=os.getenv("OPENAI_API_KEY"))
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def get_client() -> ClientAPI:
     host = os.getenv("CHROMA_SERVER_HOST", "localhost")
@@ -27,18 +31,43 @@ def get_chroma_collection():
     collection = client.get_or_create_collection(COLLECTION_NAME, embedding_function=_embed)
     return collection
 
-def clear_chroma_collection():
-    """Delete all documents in the Chroma collection by ID."""
+def clear_chroma_collection(
+    mode: str = "all",
+    prefix: str | None = None,
+    ids: list[str] | None = None,
+) -> None:
+    """Delete documents from the Chroma collection.
+
+    Modes:
+        - "all": remove everything (default)
+        - "type": remove docs with ID starting with ``prefix``
+        - "ids": remove specific document IDs
+    """
     collection = get_chroma_collection()
     try:
-        results = collection.get()  # No 'include' needed; ids are always returned
-        ids = results.get("ids", [])
-        if ids:
-            collection.delete(ids=ids)
-            print(f"🧹 Cleared {len(ids)} documents from Chroma collection.")
-        else:
-            print("✅ Chroma collection is already empty.")
+        all_ids = collection.get().get("ids", [])
+
+        if mode == "ids":
+            ids_to_delete = ids or []
+        elif mode == "type":
+            if not prefix:
+                logger.warning("Prefix required for mode='type'. No documents deleted.")
+                return
+            ids_to_delete = [i for i in all_ids if str(i).startswith(prefix)]
+        else:  # mode == "all" or unspecified
+            ids_to_delete = all_ids
+
+        if not ids_to_delete:
+            logger.info("No matching documents to delete from Chroma collection.")
+            return
+
+        collection.delete(ids=ids_to_delete)
+        logger.info(
+            "🧹 Deleted %s documents from Chroma collection (%s mode)",
+            len(ids_to_delete),
+            mode,
+        )
     except Exception as e:
-        print(f"❌ Failed to clear Chroma collection: {e}")
+        logger.error("❌ Failed to clear Chroma collection: %s", e)
 
 
