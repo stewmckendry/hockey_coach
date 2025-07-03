@@ -113,6 +113,7 @@ async def process_video(url: str, out_json: Path) -> None:
             "intended_audience": s.intended_audience,
             "play_or_skill_focus": s.play_or_skill_focus,
             "duration": round(end_time - start_time, 2),
+            "transcript": chunk["text"],
         }
         clips.append(clip)
 
