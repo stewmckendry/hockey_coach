@@ -9,6 +9,9 @@ class VideoSummaryOutput(BaseModel):
     hockey_skills: list[str]
     position: list[str] | None = []
     complexity: str | None = None
+    clip_type: str | None = None
+    intended_audience: str | None = None
+    play_or_skill_focus: str | None = None
 
 
 def _load_prompt() -> str:

@@ -4,5 +4,9 @@ prompt: |
   Given a transcript segment from a hockey instruction video, produce a short summary of the key coaching advice.
   List bullet point teaching points, tag the relevant hockey skills and positions if mentioned, and provide a short visual description that could accompany the clip.
   Optionally assign a complexity level (Beginner, Intermediate, Advanced) if obvious from context.
+  If clear from the transcript, you may also provide optional fields:
+    - `clip_type` (e.g. "Drill Explanation", "Demonstration")
+    - `intended_audience` (e.g. "U9 Player", "Beginner Coach")
+    - `play_or_skill_focus` (e.g. "Puck Protection")
 
   Respond in JSON matching the VideoSummaryOutput model.
