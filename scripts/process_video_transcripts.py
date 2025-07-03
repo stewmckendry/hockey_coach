@@ -30,7 +30,7 @@ def download_audio(url: str, out_dir: Path) -> tuple[Path, dict]:
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
-        filename = Path(ydl.prepare_filename(info)).with_suffix(".mp3")
+        filename = Path(ydl.prepare_filename(info))
     return filename, info
 
 

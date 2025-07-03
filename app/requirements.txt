@@ -3,4 +3,4 @@ uvicorn
 pydantic
 chromadb
 yt_dlp
-whisper
+openai-whisper

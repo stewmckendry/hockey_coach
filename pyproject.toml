@@ -21,6 +21,8 @@ python = "^3.11"
 openai-agents = { git = "https://github.com/stewmckendry/openai-agents-python.git", extras = ["viz"] }
 litellm = "*"
 chromadb = "^1.0.15"
+yt-dlp = "^2024.4.9"          # or omit version for latest
+openai-whisper = { git = "https://github.com/openai/whisper.git" }
 
 [build-system]
 requires = ["poetry-core"]
