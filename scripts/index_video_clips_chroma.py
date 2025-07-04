@@ -1,6 +1,8 @@
 # scripts/index_video_clips_chroma.py
 import json
+import argparse
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs
 
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -9,14 +11,12 @@ from app.mcp_server.chroma_utils import (
     clear_chroma_collection,
 )
 
-DATA_PATH = Path(__file__).parent.parent / "data" / "processed" / "video_clips.json"
-
-# Wipe only existing video documents so drills remain intact
-clear_chroma_collection(mode="type", prefix="video-")
-collection = get_chroma_collection()
-
-with open(DATA_PATH, "r", encoding="utf-8") as f:
-    data = json.load(f)
+def extract_video_id(url: str) -> str:
+    parsed = urlparse(url)
+    q = parse_qs(parsed.query)
+    if "v" in q:
+        return q["v"][0]
+    return parsed.path.strip("/")
 
 
 def clip_text(clip: dict) -> str:
@@ -61,16 +61,60 @@ def metadata_for(clip: dict) -> dict:
         "transcript": clip.get("transcript", "")[:500],
     }
 
+def load_clips(files: list[Path]) -> list[dict]:
+    clips: list[dict] = []
+    for fp in files:
+        try:
+            with open(fp, "r", encoding="utf-8") as f:
+                items = json.load(f)
+                clips.extend(items)
+                print(f"📂 Loaded {len(items)} clips from {fp}")
+        except Exception as e:
+            print(f"❌ Failed to load {fp}: {e}")
+    return clips
 
-docs = [clip_text(c) for c in data]
-metadatas = [metadata_for(c) for c in data]
-ids = [f"video-{i}" for i in range(len(data))]
-collection.add(documents=docs, metadatas=metadatas, ids=ids)
-print("Count:", collection.count())
-results = collection.get(include=["documents", "metadatas"], limit=5)
-for i, doc in enumerate(results["documents"]):
-    print(f"Doc {i+1}:")
-    print("  ID:", results["ids"][i])
-    print("  Title:", results["metadatas"][i].get("title"))
-    print("  Text:", doc[:100], "...")
-print(f"✅ Indexed {len(docs)} video clips into Chroma")
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Index video clip JSON files into Chroma")
+    parser.add_argument("--input-folder", type=Path, help="Folder containing clip JSON files")
+    parser.add_argument("--input-files", nargs="*", type=Path, help="Specific clip JSON files")
+    args = parser.parse_args()
+
+    files: list[Path] = []
+    if args.input_folder:
+        files.extend(sorted(Path(args.input_folder).glob("*.json")))
+    if args.input_files:
+        files.extend(args.input_files)
+    if not files:
+        files = [Path(__file__).parent.parent / "data" / "processed" / "video_clips.json"]
+
+    # Wipe only existing video documents so drills remain intact
+    clear_chroma_collection(mode="type", prefix="video-")
+    collection = get_chroma_collection()
+
+    data = load_clips(files)
+
+    docs, metadatas, ids = [], [], []
+    for clip in data:
+        docs.append(clip_text(clip))
+        metadatas.append(metadata_for(clip))
+        vid_id = extract_video_id(clip.get("video_url", ""))
+        seg_num = clip.get("segment_number", "")
+        ids.append(f"video-{vid_id}-{seg_num}")
+
+    if docs:
+        collection.add(documents=docs, metadatas=metadatas, ids=ids)
+        print("Count:", collection.count())
+        results = collection.get(include=["documents", "metadatas"], limit=5)
+        for i, doc in enumerate(results["documents"]):
+            print(f"Doc {i+1}:")
+            print("  ID:", results["ids"][i])
+            print("  Title:", results["metadatas"][i].get("title"))
+            print("  Text:", doc[:100], "...")
+        print(f"✅ Indexed {len(docs)} video clips into Chroma")
+    else:
+        print("No clips to index")
+
+
+if __name__ == "__main__":
+    main()
