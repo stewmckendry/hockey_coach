@@ -116,12 +116,20 @@ async def process_video(url: str, output: Path, separate: bool = False) -> int:
     chunks = group_segments(transcript.get("segments", []))
     summaries = await summarize_chunks(chunks, info.get("title", ""))
 
+    video_id = info.get("id", "unknown")
+
     clips = []
     for idx, (s, chunk) in enumerate(zip(summaries, chunks)):
         start_time = float(chunk.get("start", 0))
         end_time = float(chunk.get("end", start_time))
+        position = s.position or []
+        if not position:
+            position = ["Any"]
+
         clip = {
             "segment_number": idx + 1,
+            "segment_id": f"{video_id}_{idx+1:03d}",
+            "video_id": video_id,
             "title": info.get("title"),
             "video_url": f"{url}?t={int(start_time)}",
             "source": info.get("uploader"),
@@ -131,7 +139,7 @@ async def process_video(url: str, output: Path, separate: bool = False) -> int:
             "teaching_points": s.teaching_points,
             "visual_prompt": s.visual_prompt,
             "hockey_skills": s.hockey_skills,
-            "position": s.position,
+            "position": position,
             "complexity": s.complexity,
             "clip_type": s.clip_type,
             "intended_audience": s.intended_audience,
@@ -140,8 +148,6 @@ async def process_video(url: str, output: Path, separate: bool = False) -> int:
             "transcript": chunk["text"],
         }
         clips.append(clip)
-
-    video_id = info.get("id", "unknown")
     out_json = output
     if separate:
         output.mkdir(parents=True, exist_ok=True)
@@ -193,7 +199,7 @@ async def run_all(args) -> None:
             with open(output_path, "r", encoding="utf-8") as f:
                 existing = json.load(f)
             for clip in existing:
-                vid = parse_video_id(clip.get("video_url", ""))
+                vid = clip.get("video_id") or parse_video_id(clip.get("video_url", ""))
                 if vid:
                     processed_ids.add(vid)
         except Exception as e:
@@ -202,7 +208,7 @@ async def run_all(args) -> None:
     summary = []
     for url in urls:
         vid = parse_video_id(url)
-        if vid and vid in processed_ids:
+        if not args.force and vid and vid in processed_ids:
             print(f"⏭️  Skipping {url} (already processed)")
             summary.append((url, 0, "skipped"))
             continue
@@ -231,6 +237,7 @@ def main() -> None:
     parser.add_argument("--url-list", type=Path, dest="url_file", help="Alias of --url-file")
     parser.add_argument("--output", type=Path, default=Path("data/processed/video_clips.json"), help="Combined output JSON")
     parser.add_argument("--output-folder", type=Path, help="Folder to write separate JSON files per video")
+    parser.add_argument("--force", action="store_true", help="Reprocess videos even if already processed")
     args = parser.parse_args()
 
     asyncio.run(run_all(args))
