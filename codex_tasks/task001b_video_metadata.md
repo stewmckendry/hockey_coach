@@ -1,5 +1,7 @@
 # Codex Agent Task: Enhance Video Clip Structuring for Downstream Learning
 
+**STATUS:** 🟢 Completed
+
 ## 🏋️ Overview
 
 You're improving the pipeline that processes YouTube hockey instruction videos into structured segments with summaries and tags. The goal is to make these outputs more useful and actionable for downstream users — hockey coaches, parents, and players.

@@ -1,5 +1,7 @@
 # Codex Agent Task: Build Season Plan Orchestrator for Hockey Coach AI Assistant
 
+**STATUS:** 🟢 Not Started
+
 ## 🏋️ Overview
 
 You are building a multi-agent orchestrator called `SeasonPlannerAgent` to help youth hockey coaches create a full-season development plan. This includes:

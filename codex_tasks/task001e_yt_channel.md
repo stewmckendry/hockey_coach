@@ -1,5 +1,7 @@
 # Codex Agent Task: Automate YouTube Channel Discovery and Video Selection
 
+**STATUS:** 🟢 Completed
+
 ## 🏋️ Overview
 
 You're building a utility that pulls video metadata from a public YouTube channel and prepares a structured list of URLs to be passed into the video processing pipeline.

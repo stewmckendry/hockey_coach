@@ -1,5 +1,7 @@
 # Codex Agent Task: Improve Chroma Indexing and Cleanup Logic for Video Clips
 
+**STATUS:** 🟢 Completed
+
 ## 🏋️ Overview
 
 You're improving the `index_video_clips_chroma.py`, `process_video_transcripts.py`, and `chroma_utils.py` files to ensure video knowledge is accurately and cleanly indexed without disrupting other data (like drills).

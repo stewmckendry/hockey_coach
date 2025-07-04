@@ -1,5 +1,7 @@
 # Codex Agent Task: Multi-Video Processing Support for YouTube Pipeline
 
+**STATUS:** 🟢 Completed
+
 ## 🏋️ Overview
 
 You're updating the `scripts/process_video_transcripts.py` and `scripts/index_video_clips_chroma.py` scripts to enable batch processing and indexing of multiple YouTube videos.

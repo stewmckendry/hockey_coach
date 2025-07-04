@@ -1,5 +1,7 @@
 # Codex Agent Task: Build YouTube Video Processing Pipeline for Hockey Assistant
 
+**STATUS:** 🟢 Completed
+
 ## 🏋️ Overview
 
 You are contributing to a multi-agent AI assistant for hockey coaches, players, and parents. The system already includes a curated database of 1125 structured drills and a full AI agent stack built using the OpenAI Agents SDK and Model Context Protocol (MCP).

@@ -1,5 +1,7 @@
 # Codex Agent Task: Add Video ID & Segment ID to Support Duplicate Detection
 
+**STATUS:** 🟢 In Progress
+
 ## 🏋️ Overview
 
 You're updating the `process_video_transcripts.py` script to add more stable identifiers to each segment so that duplicate videos are correctly skipped during re-runs, and segments can be uniquely addressed later.

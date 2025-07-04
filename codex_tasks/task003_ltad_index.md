@@ -1,5 +1,7 @@
 # Codex Agent Task: Index Hockey Canada LTAD Skill Pathways
 
+**STATUS:** 🟢 Completed
+
 ## 🏋️ Overview
 
 You are building a data ingestion and indexing pipeline to process Hockey Canada PDF resources containing long-term athlete development (LTAD) guidance by age group and position. The resulting index will support age- and role-appropriate season planning and practice generation by other agents.
