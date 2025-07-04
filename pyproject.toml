@@ -23,6 +23,7 @@ litellm = "*"
 chromadb = "^1.0.15"
 yt-dlp = "^2024.4.9"          # or omit version for latest
 openai-whisper = { git = "https://github.com/openai/whisper.git" }
+pandas = "^2.1.3"
 
 [build-system]
 requires = ["poetry-core"]
