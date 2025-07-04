@@ -31,6 +31,9 @@ def parse_video_id(url: str) -> str | None:
         qs = parse_qs(parsed.query)
         if "v" in qs:
             return qs["v"][0]
+        if parsed.path.startswith("/watch"):
+            # fallback: parse from path or full URL
+            return parsed.query.split("&")[0].replace("v=", "")
     return None
 
 
