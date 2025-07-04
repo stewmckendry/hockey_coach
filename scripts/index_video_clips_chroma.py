@@ -44,6 +44,7 @@ def metadata_for(clip: dict) -> dict:
     """Flatten clip fields for easier filtering/search."""
     return {
         "segment_number": str(clip.get("segment_number", "")),
+        "segment_id": clip.get("segment_id", ""),
         "title": clip.get("title", ""),
         "summary": clip.get("summary", ""),
         "teaching_points": "; ".join(clip.get("teaching_points", [])),
@@ -98,9 +99,9 @@ def main() -> None:
     for clip in data:
         docs.append(clip_text(clip))
         metadatas.append(metadata_for(clip))
-        vid_id = extract_video_id(clip.get("video_url", ""))
-        seg_num = clip.get("segment_number", "")
-        ids.append(f"video-{vid_id}-{seg_num}")
+        vid_id = clip.get("video_id") or extract_video_id(clip.get("video_url", ""))
+        seg_id = clip.get("segment_id") or f"{vid_id}_{clip.get('segment_number', '')}"
+        ids.append(f"video-{seg_id}")
 
     if docs:
         collection.add(documents=docs, metadatas=metadatas, ids=ids)
