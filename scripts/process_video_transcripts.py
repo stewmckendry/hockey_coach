@@ -5,7 +5,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Set
 import csv
 import sys
 
@@ -13,6 +13,7 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import yt_dlp
+from urllib.parse import urlparse, parse_qs
 import whisper
 
 from agents import Runner
@@ -20,6 +21,19 @@ from app.client.agent.video_summarizer_agent import video_summarizer_agent, Vide
 
 
 # --- Helpers ---
+def parse_video_id(url: str) -> str | None:
+    """Extract the YouTube video ID from a URL if possible."""
+    parsed = urlparse(url)
+    host = parsed.netloc.lower()
+    if "youtu.be" in host:
+        return parsed.path.lstrip("/")
+    if "youtube.com" in host:
+        qs = parse_qs(parsed.query)
+        if "v" in qs:
+            return qs["v"][0]
+    return None
+
+
 def download_audio(url: str, out_dir: Path) -> tuple[Path, dict]:
     """Download audio using yt-dlp and return file path and video info."""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -170,12 +184,32 @@ async def run_all(args) -> None:
     separate = bool(args.output_folder)
     output_path = args.output_folder if separate else args.output
 
+    processed_ids: Set[str] = set()
+    if not separate and output_path.exists():
+        try:
+            with open(output_path, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+            for clip in existing:
+                vid = parse_video_id(clip.get("video_url", ""))
+                if vid:
+                    processed_ids.add(vid)
+        except Exception as e:
+            print(f"⚠️ Could not read existing clips from {output_path}: {e}")
+
     summary = []
     for url in urls:
+        vid = parse_video_id(url)
+        if vid and vid in processed_ids:
+            print(f"⏭️  Skipping {url} (already processed)")
+            summary.append((url, 0, "skipped"))
+            continue
+
         print(f"\n==== Processing {url} ====")
         try:
             count = await process_video(url, output_path, separate)
             summary.append((url, count, None))
+            if vid:
+                processed_ids.add(vid)
         except Exception as e:
             print(f"❌ Failed to process {url}: {e}")
             summary.append((url, 0, str(e)))
