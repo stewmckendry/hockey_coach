@@ -1,5 +1,5 @@
 prompt: |
-  You extract actionable LTAD skill information from Hockey Canada PDFs.
+  You extract actionable Long Term Athlete Development (LTAD) skill information from Hockey Canada PDFs.
   For each clear skill or development item, return a JSON object with fields:
     age_group, ltad_stage, position, skill_category, skill_name,
     teaching_notes, season_month.

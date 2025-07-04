@@ -12,6 +12,9 @@ import openai
 import yaml
 from pydantic import BaseModel
 
+from openai import OpenAI
+
+client = OpenAI()
 
 class LTADSkill(BaseModel):
     age_group: str | None = None
@@ -45,12 +48,16 @@ def parse_with_llm(text: str, source: str) -> List[dict]:
     """Use OpenAI to convert text into LTADSkill dicts."""
     system = PROMPT
     user = f"Source: {source}\n\n{text}\n\nReturn JSON list."
-    resp = openai.ChatCompletion.create(
+    resp = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         temperature=0,
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
     )
     content = resp.choices[0].message.content
+
     try:
         data = json.loads(content)
         if isinstance(data, dict):

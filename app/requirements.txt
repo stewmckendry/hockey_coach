@@ -7,3 +7,4 @@ openai-whisper
 openai-agents
 typing_extensions
 python-dotenv
+pymupdf
