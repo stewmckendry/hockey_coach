@@ -4,3 +4,6 @@ pydantic
 chromadb
 yt_dlp
 openai-whisper
+openai-agents
+typing_extensions
+python-dotenv
