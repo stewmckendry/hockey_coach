@@ -1,0 +1,8 @@
+prompt: |
+  You extract actionable LTAD skill information from Hockey Canada PDFs.
+  For each clear skill or development item, return a JSON object with fields:
+    age_group, ltad_stage, position, skill_category, skill_name,
+    teaching_notes, season_month.
+  Ignore policy or administrative text and focus on coaching guidance.
+  Provide rich teaching notes summarizing key execution points.
+  Respond only with a JSON list of skill objects.
