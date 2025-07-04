@@ -83,7 +83,14 @@ async def summarize_chunks(chunks: List[Dict[str, float | str]], title: str) -> 
     return results
 
 
-async def process_video(url: str, out_json: Path) -> None:
+async def process_video(url: str, output: Path, separate: bool = False) -> int:
+    """Process a single YouTube URL and write clips to disk.
+
+    If ``separate`` is True, ``output`` should be a folder and the JSON/CSV files
+    will be created inside it using ``video_id`` in the filename. Otherwise
+    ``output`` is treated as a combined JSON file.
+    Returns the number of clips processed.
+    """
     tmp_dir = Path("tmp_video")
     audio_path, info = download_audio(url, tmp_dir)
     print(f"📥 Downloaded {audio_path}")
@@ -117,6 +124,12 @@ async def process_video(url: str, out_json: Path) -> None:
         }
         clips.append(clip)
 
+    video_id = info.get("id", "unknown")
+    out_json = output
+    if separate:
+        output.mkdir(parents=True, exist_ok=True)
+        out_json = output / f"video_clips_{video_id}.json"
+
     existing = []
     if out_json.exists():
         with open(out_json, "r", encoding="utf-8") as f:
@@ -141,14 +154,48 @@ async def process_video(url: str, out_json: Path) -> None:
             writer.writerows(clips)
         print(f"✅ Appended clips to {csv_path}")
 
+    return len(clips)
+
+
+async def run_all(args) -> None:
+    urls: list[str] = args.url or []
+    if args.url_file:
+        with open(args.url_file, "r", encoding="utf-8") as f:
+            urls.extend([ln.strip() for ln in f if ln.strip()])
+
+    if not urls:
+        print("No URLs provided. Use --url or --url-file.")
+        return
+
+    separate = bool(args.output_folder)
+    output_path = args.output_folder if separate else args.output
+
+    summary = []
+    for url in urls:
+        print(f"\n==== Processing {url} ====")
+        try:
+            count = await process_video(url, output_path, separate)
+            summary.append((url, count, None))
+        except Exception as e:
+            print(f"❌ Failed to process {url}: {e}")
+            summary.append((url, 0, str(e)))
+
+    print("\n--- Summary ---")
+    for url, count, err in summary:
+        if err:
+            print(f"❌ {url} failed: {err}")
+        else:
+            print(f"✅ {url} -> {count} clips")
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process YouTube videos into transcripts and summaries")
-    parser.add_argument("--url", action="append", required=True, help="YouTube video URL")
-    parser.add_argument("--output", type=Path, default=Path("data/processed/video_clips.json"))
+    parser.add_argument("--url", action="append", help="YouTube video URL (repeat for multiple)")
+    parser.add_argument("--url-file", type=Path, help="Text file with YouTube URLs, one per line")
+    parser.add_argument("--output", type=Path, default=Path("data/processed/video_clips.json"), help="Combined output JSON")
+    parser.add_argument("--output-folder", type=Path, help="Folder to write separate JSON files per video")
     args = parser.parse_args()
 
-    asyncio.run(process_video(args.url[0], args.output))
+    asyncio.run(run_all(args))
 
 
 if __name__ == "__main__":
