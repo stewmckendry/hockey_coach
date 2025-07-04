@@ -190,7 +190,8 @@ async def run_all(args) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process YouTube videos into transcripts and summaries")
     parser.add_argument("--url", action="append", help="YouTube video URL (repeat for multiple)")
-    parser.add_argument("--url-file", type=Path, help="Text file with YouTube URLs, one per line")
+    parser.add_argument("--url-file", type=Path, dest="url_file", help="Text file with YouTube URLs, one per line")
+    parser.add_argument("--url-list", type=Path, dest="url_file", help="Alias of --url-file")
     parser.add_argument("--output", type=Path, default=Path("data/processed/video_clips.json"), help="Combined output JSON")
     parser.add_argument("--output-folder", type=Path, help="Folder to write separate JSON files per video")
     args = parser.parse_args()
