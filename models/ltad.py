@@ -10,4 +10,7 @@ class LTADSkill(BaseModel):
     skill_name: str | None = None
     teaching_notes: str | None = None
     season_month: str | None = None
+    progression_stage: str | None = None  # Introductory, Developmental, Refinement
+    teaching_complexity: int | None = None  # 1 = beginner, 2 = intermediate, 3 = advanced
+    variant: str | None = None
     source: str

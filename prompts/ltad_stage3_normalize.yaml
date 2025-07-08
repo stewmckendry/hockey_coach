@@ -1,0 +1,12 @@
+prompt: |
+  You normalize and canonicalize LTADSkill objects for youth hockey development.
+  Review the given skill and adjust fields so they match the style of existing skills.
+  - Keep skill_name concise (e.g. "C-cuts").
+  - Move descriptors like "left", "right", "wide", "narrow", or "alternating" into the variant field.
+  - If age_group is missing, attempt to infer it from the filename in the source field (values like "U7", "U9", etc.).
+  - If ltad_stage is missing and age_group is provided, infer using:
+      U7 -> Fundamentals 1
+      U9 -> Fundamentals 2
+      U11 -> Learn to Train
+      U13 -> Train to Train
+  Return a single JSON object with the same LTADSkill fields.
