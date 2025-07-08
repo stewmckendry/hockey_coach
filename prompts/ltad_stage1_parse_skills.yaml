@@ -1,0 +1,6 @@
+prompt: |
+  You parse a raw text section that lists hockey skills or drills.
+  For each bullet point or table row, return a JSON object with:
+    skill_name, skill_category, raw_description.
+  Infer the skill category when possible.
+  Respond only with a JSON list.

@@ -7,18 +7,10 @@ import json
 from pathlib import Path
 from typing import List
 
-from pydantic import BaseModel
+import sys
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-
-class LTADSkill(BaseModel):
-    age_group: str
-    ltad_stage: str | None = None
-    position: List[str]
-    skill_category: str
-    skill_name: str
-    teaching_notes: str
-    season_month: str | None = None
-    source: str
+from models.ltad import LTADSkill
 
 
 SYNONYMS = {
