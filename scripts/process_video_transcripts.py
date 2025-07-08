@@ -21,6 +21,7 @@ from app.client.agent.video_summarizer_agent import (
     video_summarizer_agent,
     VideoSummaryOutput,
 )
+from tools.youtube_search_tool import get_video_metadata
 
 
 # --- Helpers ---
@@ -41,7 +42,7 @@ def parse_video_id(url: str) -> str | None:
 
 
 def download_audio(url: str, out_dir: Path) -> tuple[Path, dict]:
-    """Download audio using yt-dlp and return file path and video info."""
+    """Download audio using yt-dlp and return file path and video metadata."""
     out_dir.mkdir(parents=True, exist_ok=True)
     ydl_opts = {
         "format": "bestaudio/best",
@@ -51,6 +52,16 @@ def download_audio(url: str, out_dir: Path) -> tuple[Path, dict]:
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         filename = Path(ydl.prepare_filename(info))
+
+    video_id = parse_video_id(url) or info.get("id")
+    try:
+        meta = get_video_metadata(video_id)
+        info = meta.model_dump()
+        info["id"] = video_id
+        info["uploader"] = meta.author
+    except Exception:
+        info = {"id": video_id, "title": None, "uploader": None}
+
     return filename, info
 
 

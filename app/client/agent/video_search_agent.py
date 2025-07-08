@@ -11,79 +11,11 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from agents import Agent, Runner
-from agents.tool import function_tool
-from tools.youtube_search_tool import youtube_search, VideoResult
+from agents.mcp import MCPServerSse
+from agents.model_settings import ModelSettings
+from tools.youtube_search_tool import VideoResult
 
-import yt_dlp
 
-
-# --- Channel tool -----------------------------------------------------------
-@function_tool(
-    name_override="youtube_channel_videos",
-    description_override="Fetch video URLs from a YouTube channel",
-)
-def youtube_channel_videos(
-    channel: str,
-    limit: Optional[int] = None,
-    sort: Optional[str] = None,
-    keywords: Optional[List[str]] = None,
-) -> List[str]:
-    """Return a list of video URLs from a YouTube channel.
-
-    ``channel`` may be a full URL or just the channel handle.
-    The ``sort`` option accepts ``"popular"`` or ``"recent"``.
-    ``keywords`` filters videos whose titles contain any of the terms.
-    """
-    if not channel.startswith("http"):
-        channel_url = f"https://www.youtube.com/@{channel}/videos"
-    else:
-        channel_url = channel
-        if "/videos" not in channel_url:
-            channel_url = channel_url.rstrip("/") + "/videos"
-
-    ydl_opts = {
-        "quiet": True,
-        "skip_download": True,
-        "extract_flat": True,
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(channel_url, download=False)
-
-    entries = info.get("entries", []) or []
-    videos = []
-    for e in entries:
-        if not isinstance(e, dict):
-            continue
-        url = e.get("url")
-        if url and not url.startswith("http"):
-            url = f"https://www.youtube.com/watch?v={e.get('id')}"
-        videos.append(
-            {
-                "title": e.get("title", ""),
-                "url": url,
-                "view_count": e.get("view_count"),
-                "published_date": e.get("upload_date")
-                or e.get("release_date")
-                or e.get("timestamp"),
-            }
-        )
-
-    if keywords:
-        videos = [
-            v
-            for v in videos
-            if any(k.lower() in v.get("title", "").lower() for k in keywords)
-        ]
-
-    if sort == "recent":
-        videos.sort(key=lambda v: v.get("published_date") or "", reverse=True)
-    elif sort == "popular":
-        videos.sort(key=lambda v: v.get("view_count") or 0, reverse=True)
-
-    if limit:
-        videos = videos[:limit]
-
-    return [v["url"] for v in videos if v.get("url")]
 
 
 # --- Output schema ---------------------------------------------------------
@@ -106,8 +38,10 @@ def _load_prompt() -> str:
 video_search_agent = Agent(
     name="VideoSearchAgent",
     instructions=_load_prompt(),
-    tools=[youtube_search, youtube_channel_videos],
     output_type=VideoSearchResults,
+    mcp_servers=[MCPServerSse(name="Thunder MCP Server", params={"url": "http://localhost:8000/sse"})],
+    model="gpt-4o",
+    model_settings=ModelSettings(tool_choice="required"),
 )
 
 
@@ -130,8 +64,6 @@ def run_cli() -> None:
 
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY environment variable not set")
-    if not os.getenv("YOUTUBE_API_KEY"):
-        raise RuntimeError("YOUTUBE_API_KEY environment variable not set")
 
     query = f"{args.query} num:{args.num}"
 
