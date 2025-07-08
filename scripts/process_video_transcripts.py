@@ -17,7 +17,10 @@ from urllib.parse import urlparse, parse_qs
 import whisper
 
 from agents import Runner
-from app.client.agent.video_summarizer_agent import video_summarizer_agent, VideoSummaryOutput
+from app.client.agent.video_summarizer_agent import (
+    video_summarizer_agent,
+    VideoSummaryOutput,
+)
 
 
 # --- Helpers ---
@@ -56,7 +59,9 @@ def transcribe_audio(audio_path: Path) -> dict:
     return model.transcribe(str(audio_path))
 
 
-def group_segments(segments: List[dict], max_words: int = 80) -> List[Dict[str, float | str]]:
+def group_segments(
+    segments: List[dict], max_words: int = 80
+) -> List[Dict[str, float | str]]:
     """Group whisper segments into larger text chunks while preserving timestamps."""
     chunks: List[Dict[str, float | str]] = []
     current_words: List[str] = []
@@ -68,7 +73,13 @@ def group_segments(segments: List[dict], max_words: int = 80) -> List[Dict[str, 
         if start_time is None:
             start_time = float(seg.get("start", 0))
         if word_count + len(words) > max_words and current_words:
-            chunks.append({"text": " ".join(current_words), "start": start_time, "end": end_time or start_time})
+            chunks.append(
+                {
+                    "text": " ".join(current_words),
+                    "start": start_time,
+                    "end": end_time or start_time,
+                }
+            )
             current_words = words
             start_time = float(seg.get("start", 0))
             end_time = float(seg.get("end", 0))
@@ -78,15 +89,25 @@ def group_segments(segments: List[dict], max_words: int = 80) -> List[Dict[str, 
             end_time = float(seg.get("end", 0))
             word_count += len(words)
     if current_words:
-        chunks.append({"text": " ".join(current_words), "start": start_time or 0.0, "end": end_time or (start_time or 0.0)})
+        chunks.append(
+            {
+                "text": " ".join(current_words),
+                "start": start_time or 0.0,
+                "end": end_time or (start_time or 0.0),
+            }
+        )
     return chunks
 
 
-async def summarize_chunks(chunks: List[Dict[str, float | str]], title: str) -> List[VideoSummaryOutput]:
+async def summarize_chunks(
+    chunks: List[Dict[str, float | str]], title: str
+) -> List[VideoSummaryOutput]:
     results = []
     for i, chunk in enumerate(chunks):
         text = chunk["text"]
-        print(f"\n📝 Summarizing segment {i+1}/{len(chunks)} ({len(text.split())} words)...")
+        print(
+            f"\n📝 Summarizing segment {i+1}/{len(chunks)} ({len(text.split())} words)..."
+        )
         agent_input = f"Video Title: {title}\nTranscript Segment:\n{text}"
         try:
             run = await Runner.run(video_summarizer_agent, agent_input)
@@ -183,8 +204,20 @@ async def process_video(url: str, output: Path, separate: bool = False) -> int:
 async def run_all(args) -> None:
     urls: list[str] = args.url or []
     if args.url_file:
-        with open(args.url_file, "r", encoding="utf-8") as f:
-            urls.extend([ln.strip() for ln in f if ln.strip()])
+        if args.url_file.suffix == ".json":
+            try:
+                with open(args.url_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                for item in data:
+                    if isinstance(item, str):
+                        urls.append(item)
+                    elif isinstance(item, dict) and item.get("url"):
+                        urls.append(item["url"])
+            except Exception as e:
+                print(f"⚠️ Failed to load JSON URLs: {e}")
+        else:
+            with open(args.url_file, "r", encoding="utf-8") as f:
+                urls.extend([ln.strip() for ln in f if ln.strip()])
 
     if not urls:
         print("No URLs provided. Use --url or --url-file.")
@@ -230,14 +263,39 @@ async def run_all(args) -> None:
         else:
             print(f"✅ {url} -> {count} clips")
 
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Process YouTube videos into transcripts and summaries")
-    parser.add_argument("--url", action="append", help="YouTube video URL (repeat for multiple)")
-    parser.add_argument("--url-file", type=Path, dest="url_file", help="Text file with YouTube URLs, one per line")
-    parser.add_argument("--url-list", type=Path, dest="url_file", help="Alias of --url-file")
-    parser.add_argument("--output", type=Path, default=Path("data/processed/video_clips.json"), help="Combined output JSON")
-    parser.add_argument("--output-folder", type=Path, help="Folder to write separate JSON files per video")
-    parser.add_argument("--force", action="store_true", help="Reprocess videos even if already processed")
+    parser = argparse.ArgumentParser(
+        description="Process YouTube videos into transcripts and summaries"
+    )
+    parser.add_argument(
+        "--url", action="append", help="YouTube video URL (repeat for multiple)"
+    )
+    parser.add_argument(
+        "--url-file",
+        type=Path,
+        dest="url_file",
+        help="Text file with YouTube URLs, one per line",
+    )
+    parser.add_argument(
+        "--url-list", type=Path, dest="url_file", help="Alias of --url-file"
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("data/processed/video_clips.json"),
+        help="Combined output JSON",
+    )
+    parser.add_argument(
+        "--output-folder",
+        type=Path,
+        help="Folder to write separate JSON files per video",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Reprocess videos even if already processed",
+    )
     args = parser.parse_args()
 
     asyncio.run(run_all(args))
