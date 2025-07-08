@@ -1,4 +1,4 @@
-"""Video search agent using WebSearchTool to find YouTube clips."""
+"""Video search agent using the YouTube Data API to find clips."""
 
 from __future__ import annotations
 
@@ -11,7 +11,8 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from agents import Agent, Runner
-from agents.tool import WebSearchTool, function_tool
+from agents.tool import function_tool
+from tools.youtube_search_tool import youtube_search, VideoResult
 
 import yt_dlp
 
@@ -86,14 +87,6 @@ def youtube_channel_videos(
 
 
 # --- Output schema ---------------------------------------------------------
-class VideoResult(BaseModel):
-    url: str
-    title: Optional[str] | None = None
-    author: Optional[str] | None = None
-    channel: Optional[str] | None = None
-    rationale: Optional[str] | None = None
-
-
 class VideoSearchResults(BaseModel):
     videos: List[VideoResult]
 
@@ -113,7 +106,7 @@ def _load_prompt() -> str:
 video_search_agent = Agent(
     name="VideoSearchAgent",
     instructions=_load_prompt(),
-    tools=[WebSearchTool(), youtube_channel_videos],
+    tools=[youtube_search, youtube_channel_videos],
     output_type=VideoSearchResults,
 )
 
@@ -137,11 +130,10 @@ def run_cli() -> None:
 
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY environment variable not set")
+    if not os.getenv("YOUTUBE_API_KEY"):
+        raise RuntimeError("YOUTUBE_API_KEY environment variable not set")
 
-    query = args.query
-    if "site:youtube.com" not in query:
-        query += " site:youtube.com"
-    query += f" num:{args.num}"
+    query = f"{args.query} num:{args.num}"
 
     result = Runner.run_sync(video_search_agent, query)
     output = result.final_output_as(VideoSearchResults)
