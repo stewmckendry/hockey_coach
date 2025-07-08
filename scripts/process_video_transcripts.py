@@ -128,7 +128,7 @@ async def process_video(url: str, output: Path, separate: bool = False) -> int:
 
         clip = {
             "segment_number": idx + 1,
-            "segment_id": f"{video_id}_{idx+1:03d}",
+            "segment_id": f"{video_id}_{idx+1:03d}".lower(),
             "video_id": video_id,
             "title": info.get("title"),
             "video_url": f"{url}?t={int(start_time)}",

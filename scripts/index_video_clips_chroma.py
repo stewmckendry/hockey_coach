@@ -11,12 +11,27 @@ from app.mcp_server.chroma_utils import (
     clear_chroma_collection,
 )
 
-def extract_video_id(url: str) -> str:
+def extract_video_id(url: str) -> str | None:
+    """Extract YouTube video ID from a URL safely."""
     parsed = urlparse(url)
-    q = parse_qs(parsed.query)
-    if "v" in q:
-        return q["v"][0]
-    return parsed.path.strip("/")
+    qs = parse_qs(parsed.query)
+
+    # Case 1: Standard YouTube link with ?v=abc123
+    if "v" in qs:
+        return qs["v"][0]
+
+    # Case 2: Shortened youtu.be links
+    if "youtu.be" in parsed.netloc:
+        return parsed.path.lstrip("/")
+
+    # Case 3: If it’s a /watch path but v= is missing
+    if parsed.path.startswith("/watch") and "v" in parsed.query:
+        return parsed.query.split("&")[0].replace("v=", "")
+
+    # Fallback: Warn and return None
+    print(f"⚠️ Warning: Could not extract video ID from URL: {url}")
+    return None
+
 
 
 def clip_text(clip: dict) -> str:
