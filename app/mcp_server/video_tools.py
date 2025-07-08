@@ -3,13 +3,15 @@
 from __future__ import annotations
 from typing import List, Optional
 
-from .server import mcp
 from tools.youtube_search_tool import (
     youtube_search as _youtube_search,
     fetch_channel_videos as _fetch_channel_videos,
     VideoResult,
 )
 
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Thunder Video Search")
 
 @mcp.tool(title="Search YouTube Videos")
 def search_youtube_videos(query: str, max_results: int = 5) -> List[VideoResult]:
@@ -26,3 +28,6 @@ def fetch_channel_videos(
 ) -> List[VideoResult]:
     """Fetch videos from a specific YouTube channel."""
     return _fetch_channel_videos(channel=channel_id, limit=limit, sort=sort, keywords=keywords)
+
+if __name__ == "__main__":
+    mcp.run(transport="sse")
