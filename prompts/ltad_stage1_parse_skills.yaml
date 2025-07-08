@@ -1,6 +1,20 @@
 prompt: |
-  You parse a raw text section that lists hockey skills or drills.
-  For each bullet point or table row, return a JSON object with:
-    skill_name, skill_category, raw_description.
-  Infer the skill category when possible.
-  Respond only with a JSON list.
+  You are an expert hockey development coach. Given a raw skill section, parse it into structured skill items.
+
+  Return each skill as an object with:
+  - skill_name (e.g., "Backward C-cuts")
+  - skill_category (e.g., "Skating", "Passing")
+  - raw_description (short explanation if needed)
+
+  Use this JSON format:
+  ```json
+  [
+    {
+      "skill_name": "Backward C-cuts",
+      "skill_category": "Skating",
+      "raw_description": "Focus on wide stance and edge control"
+    }
+  ]
+  ```
+
+  Return only the JSON block.

@@ -40,9 +40,14 @@ PROMPT_STAGE2 = load_prompt(PROMPT_DIR / "ltad_stage2_enrich_skills.yaml")
 def _parse_json(content: str) -> list[dict] | dict | None:
     """Safely parse JSON content from an LLM response."""
     try:
+        if content.startswith("```json"):
+            content = (
+                content.strip().split("```json", 1)[1].split("```", 1)[0].strip()
+            )
         return json.loads(content)
     except Exception as e:
         print(f"❌ JSON parse failed: {e}")
+        print("🔍 Raw content was:\n", content)
         return None
 
 
