@@ -8,6 +8,9 @@ from chromadb.config import Settings
 import chromadb
 import os
 
+# Import video tools so they register with this MCP instance
+from . import video_tools  # noqa: F401
+
 mcp = FastMCP("Thunder DrillKB")
 
 # === Drill Schema Definition ===
@@ -143,7 +146,7 @@ def get_drill_schema() -> str:
 }"""
 
 # === Tool: Search drills in chroma vector DB ===
-from chroma_utils import get_chroma_collection
+from .chroma_utils import get_chroma_collection
 collection = get_chroma_collection()
 
 def parse_list(value: str) -> list[str]:
