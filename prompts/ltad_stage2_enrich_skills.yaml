@@ -1,6 +1,6 @@
 prompt: |
   You convert a raw skill row into a structured LTADSkill object for youth hockey development.
-  Fill the fields when possible: age_group, ltad_stage, position, skill_category, skill_name, teaching_notes, season_month, source.
+  Fill the fields when possible: age_group, ltad_stage, position, skill_category, skill_name, teaching_notes, season_month, progression_stage, teaching_complexity, variant, source.
   Use null if information is missing. Provide concise teaching_notes.
   Return a single JSON object like:
   ```json
@@ -12,8 +12,14 @@ prompt: |
     "skill_name": "T-push",
     "teaching_notes": "Used for lateral movement. Emphasize quick recovery and balance.",
     "season_month": null,
+    "progression_stage": null,
+    "teaching_complexity": null,
+    "variant": null,
     "source": "u9-core-skills-e.pdf"
   }
   ```
 
   Return only the JSON block.
+  Also include:
+  - progression_stage: one of ["Introductory", "Developmental", "Refinement"]
+  - teaching_complexity: 1 (easy) to 3 (complex), based on how hard this is for the average player

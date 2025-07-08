@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""3-stage pipeline to extract LTAD skills from Hockey Canada PDFs."""
+"""4-stage pipeline to extract and normalize LTAD skills from Hockey Canada PDFs."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from openai import OpenAI
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from models.ltad import LTADSkill
+from ltad_normalizer import normalize_ltad_skill
 
 client = OpenAI()
 
@@ -49,6 +50,16 @@ def _parse_json(content: str) -> list[dict] | dict | None:
         print(f"❌ JSON parse failed: {e}")
         print("🔍 Raw content was:\n", content)
         return None
+
+
+def _load_json_if_exists(path: Path) -> list[dict]:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
 
 
 def stage0_extract_relevant_sections(text_chunk: str, source: str, page_number: int) -> List[Dict[str, Any]]:
@@ -112,14 +123,20 @@ def stage2_enrich_to_ltad_skill(raw_row: Dict[str, Any]) -> Dict[str, Any] | Non
         return None
 
 
+def stage3_normalize_skill(enriched_skill: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize and infer missing metadata for a skill via LLM."""
+    return normalize_ltad_skill(enriched_skill)
+
+
 # --- PDF processing ---------------------------------------------------------
 
-def extract_pdf(pdf_path: Path) -> tuple[list[dict], list[dict], list[dict]]:
-    """Run all stages for a single PDF and return (sections, raw_rows, skills)."""
+def extract_pdf(pdf_path: Path, do_normalize: bool = False) -> tuple[list[dict], list[dict], list[dict], list[dict]]:
+    """Run stages 0-3 for a single PDF and return (sections, raw_rows, enriched, normalized)."""
     doc = fitz.open(pdf_path)
     sections: list[dict] = []
     raw_rows: list[dict] = []
     skills: list[dict] = []
+    normalized: list[dict] = []
 
     for page_no, page in enumerate(doc, start=1):
         text = page.get_text()
@@ -132,14 +149,16 @@ def extract_pdf(pdf_path: Path) -> tuple[list[dict], list[dict], list[dict]]:
                 skill = stage2_enrich_to_ltad_skill(row)
                 if skill:
                     skills.append(skill)
+                    if do_normalize:
+                        normalized.append(stage3_normalize_skill(skill.copy()))
     doc.close()
-    return sections, raw_rows, skills
+    return sections, raw_rows, skills, normalized
 
 
 # --- CLI -------------------------------------------------------------------
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Extract LTAD skills from PDFs via 3-stage pipeline")
+    parser = argparse.ArgumentParser(description="Extract LTAD skills from PDFs via multi-stage pipeline")
     parser.add_argument("--input-folder", type=Path, default=Path("data/raw/ltad"))
     parser.add_argument(
         "--output",
@@ -147,31 +166,61 @@ def main() -> None:
         default=Path("data/processed/ltad_skills_raw.json"),
         help="Output JSON file",
     )
+    parser.add_argument("--normalize", action="store_true", help="Run normalization stage")
     args = parser.parse_args()
 
-    all_sections: list[dict] = []
-    all_rows: list[dict] = []
-    all_skills: list[dict] = []
+    existing_skills = _load_json_if_exists(args.output)
+    rows_path = args.output.with_name("ltad_raw_skill_rows.json")
+    sections_path = args.output.with_name("ltad_sections.json")
+    norm_path = args.output.with_name("ltad_skills_normalized.json")
+    existing_rows = _load_json_if_exists(rows_path)
+    existing_sections = _load_json_if_exists(sections_path)
+    existing_norm = _load_json_if_exists(norm_path)
+
+    all_sections: list[dict] = existing_sections
+    all_rows: list[dict] = existing_rows
+    all_skills: list[dict] = existing_skills
+    all_norm: list[dict] = existing_norm
 
     for pdf in sorted(args.input_folder.glob("*.pdf")):
         print(f"📖 Processing {pdf.name}")
         try:
-            secs, rows, skills = extract_pdf(pdf)
+            secs, rows, skills, norm = extract_pdf(pdf, do_normalize=args.normalize)
             all_sections.extend(secs)
             all_rows.extend(rows)
             all_skills.extend(skills)
+            if args.normalize:
+                all_norm.extend(norm)
         except Exception as e:
             print(f"❌ Failed to process {pdf.name}: {e}")
+
+    def dedupe(items: list[dict]) -> list[dict]:
+        seen = set()
+        result = []
+        for it in items:
+            key = (it.get("skill_name"), it.get("skill_category"), it.get("source"))
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(it)
+        return result
+
+    all_skills = dedupe(all_skills)
+    if args.normalize:
+        all_norm = dedupe(all_norm)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(all_skills, f, indent=2)
+    if args.normalize:
+        with open(norm_path, "w", encoding="utf-8") as f:
+            json.dump(all_norm, f, indent=2)
     print(f"✅ Wrote {len(all_skills)} skills to {args.output}")
+    if args.normalize:
+        print(f"✅ Wrote {len(all_norm)} normalized skills to {norm_path}")
 
-    rows_path = args.output.with_name("ltad_raw_skill_rows.json")
     with open(rows_path, "w", encoding="utf-8") as f:
         json.dump(all_rows, f, indent=2)
-    sections_path = args.output.with_name("ltad_sections.json")
     with open(sections_path, "w", encoding="utf-8") as f:
         json.dump(all_sections, f, indent=2)
     print(f"✅ Wrote debug artifacts to {sections_path} and {rows_path}")
