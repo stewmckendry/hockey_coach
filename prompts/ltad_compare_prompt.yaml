@@ -1,0 +1,10 @@
+prompt: |
+  You are reviewing multiple LTAD skill records to identify duplicates.
+  The input is a JSON array of skill objects. Decide which records describe the same core skill.
+  Return a JSON array of groups, where each group is a list of numeric indexes referencing the input order.
+  Example:
+  ```json
+  [[0,2],[1]]
+  ```
+  Means record 0 and 2 are duplicates and should be merged, record 1 is unique.
+  Return JSON only.

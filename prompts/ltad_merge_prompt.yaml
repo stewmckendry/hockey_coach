@@ -1,0 +1,8 @@
+prompt: |
+  You merge multiple LTAD skill records that describe the same skill.
+  Consolidate fields and rewrite teaching notes briefly for coaches.
+  Input is a JSON array of skill objects in the same format as LTADSkill.
+  Return a single JSON object with merged data.
+  Combine unique age_group values into `age_groups` list.
+  Keep variant if provided. Choose the most descriptive teaching_notes.
+  Return JSON only.
