@@ -132,7 +132,7 @@ async def summarize_chunks(
     return results
 
 
-async def process_video(url: str, output: Path, separate: bool = False) -> int:
+async def process_video(url: str, output: Path, separate: bool = False, query_term: str = "") -> int:
     """Process a single YouTube URL and write clips to disk.
 
     If ``separate`` is True, ``output`` should be a folder and the JSON/CSV files
@@ -164,6 +164,9 @@ async def process_video(url: str, output: Path, separate: bool = False) -> int:
             "video_id": video_id,
             "title": info.get("title"),
             "video_url": f"{url}?t={int(start_time)}",
+            "url": url,
+            "query_term": query_term,
+            "published_at": info.get("published_at"),
             "source": info.get("uploader"),
             "start_time": start_time,
             "end_time": end_time,
@@ -213,7 +216,10 @@ async def process_video(url: str, output: Path, separate: bool = False) -> int:
 
 
 async def run_all(args) -> None:
-    urls: list[str] = args.url or []
+    entries: list[tuple[str, str]] = []
+    if args.url:
+        for u in args.url:
+            entries.append((u, ""))
     if args.url_file:
         if args.url_file.suffix == ".json":
             try:
@@ -221,29 +227,31 @@ async def run_all(args) -> None:
                     data = json.load(f)
                 for item in data:
                     if isinstance(item, str):
-                        urls.append(item)
+                        entries.append((item, ""))
                     elif isinstance(item, dict) and item.get("url"):
-                        urls.append(item["url"])
+                        entries.append((item["url"], str(item.get("query_term", ""))))
             except Exception as e:
                 print(f"⚠️ Failed to load JSON URLs: {e}")
         else:
             with open(args.url_file, "r", encoding="utf-8") as f:
-                urls.extend([ln.strip() for ln in f if ln.strip()])
+                entries.extend([(ln.strip(), "") for ln in f if ln.strip()])
 
     if args.url_folder:
         for file in args.url_folder.glob("video_search_*.json"):
             try:
                 with open(file, "r", encoding="utf-8") as f:
                     data = json.load(f)
+                query = file.stem.replace("video_search_", "")
                 for item in data:
                     if isinstance(item, str):
-                        urls.append(item)
+                        entries.append((item, query))
                     elif isinstance(item, dict) and item.get("url"):
-                        urls.append(item["url"])
+                        term = str(item.get("query_term", query))
+                        entries.append((item["url"], term))
             except Exception as e:
                 print(f"⚠️ Failed to load {file}: {e}")
 
-    if not urls:
+    if not entries:
         print("No URLs provided. Use --url, --url-file or --url-list-folder.")
         return
 
@@ -270,7 +278,7 @@ async def run_all(args) -> None:
             processed_ids.add(vid)
 
     summary = []
-    for url in urls:
+    for url, q_term in entries:
         vid = parse_video_id(url)
         if not args.force and vid and vid in processed_ids:
             print(f"⏭️  Skipping {url} (already processed)")
@@ -279,7 +287,7 @@ async def run_all(args) -> None:
 
         print(f"\n==== Processing {url} ====")
         try:
-            count = await process_video(url, output_path, separate)
+            count = await process_video(url, output_path, separate, q_term)
             summary.append((url, count, None))
             if vid:
                 processed_ids.add(vid)
