@@ -37,6 +37,9 @@ def extract_video_id(url: str) -> str | None:
 def clip_text(clip: dict) -> str:
     """Assemble a text block for embedding."""
     parts = [
+        f"Video ID: {clip.get('video_id', '')}",
+        f"Segment ID: {clip.get('segment_id', '')}",
+        f"Query Term: {clip.get('query_term', '')}",
         f"Title: {clip.get('title', '')}",
         f"Summary: {clip.get('summary', '')}",
         clip.get("transcript", ""),
@@ -44,6 +47,7 @@ def clip_text(clip: dict) -> str:
         "Skills: " + ", ".join(clip.get("hockey_skills", [])),
         "Positions: " + ", ".join(clip.get("position") or []),
         f"Complexity: {clip.get('complexity', '')}",
+        f"Duration: {clip.get('duration', '')}",
         f"Clip Type: {clip.get('clip_type', '')}",
         f"Audience: {clip.get('intended_audience', '')}",
         f"Focus: {clip.get('play_or_skill_focus', '')}",
@@ -57,37 +61,45 @@ def clip_text(clip: dict) -> str:
 
 def metadata_for(clip: dict) -> dict:
     """Flatten clip fields for easier filtering/search."""
+    def s(val):
+        return str(val or "")
+
     return {
-        "segment_number": str(clip.get("segment_number", "")),
-        "segment_id": clip.get("segment_id", ""),
-        "title": clip.get("title", ""),
-        "summary": clip.get("summary", ""),
+        "segment_number": s(clip.get("segment_number")),
+        "segment_id": s(clip.get("segment_id")),
+        "video_id": s(clip.get("video_id")),
+        "title": s(clip.get("title")),
+        "summary": s(clip.get("summary")),
+        "query_term": s(clip.get("query_term")),
         "teaching_points": "; ".join(clip.get("teaching_points", [])),
         "hockey_skills": "; ".join(clip.get("hockey_skills", [])),
         "position": "; ".join(clip.get("position") or []),
-        "complexity": clip.get("complexity", ""),
-        "source": clip.get("source", ""),
-        "video_url": clip.get("video_url", ""),
-        "start_time": str(clip.get("start_time", "")),
-        "end_time": str(clip.get("end_time", "")),
-        "duration": str(clip.get("duration", "")),
-        "clip_type": clip.get("clip_type", ""),
-        "intended_audience": str(clip.get("intended_audience") or ""),
-        "play_or_skill_focus": clip.get("play_or_skill_focus", ""),
+        "complexity": s(clip.get("complexity")),
+        "source": s(clip.get("source")),
+        "video_url": s(clip.get("video_url")),
+        "start_time": s(clip.get("start_time")),
+        "end_time": s(clip.get("end_time")),
+        "duration": s(clip.get("duration")),
+        "clip_type": s(clip.get("clip_type")),
+        "intended_audience": s(clip.get("intended_audience")),
+        "play_or_skill_focus": s(clip.get("play_or_skill_focus")),
+        "published_at": s(clip.get("published_at")),
         "transcript": clip.get("transcript", "")[:500],
     }
 
-def load_clips(files: list[Path]) -> list[dict]:
+def load_clips(files: list[Path]) -> tuple[list[dict], dict[str, int]]:
     clips: list[dict] = []
+    counts: dict[str, int] = {}
     for fp in files:
         try:
             with open(fp, "r", encoding="utf-8") as f:
                 items = json.load(f)
                 clips.extend(items)
+                counts[fp.name] = len(items)
                 print(f"📂 Loaded {len(items)} clips from {fp}")
         except Exception as e:
             print(f"❌ Failed to load {fp}: {e}")
-    return clips
+    return clips, counts
 
 
 def main() -> None:
@@ -108,15 +120,32 @@ def main() -> None:
     clear_chroma_collection(mode="type", prefix="video-")
     collection = get_chroma_collection()
 
-    data = load_clips(files)
+    data, file_counts = load_clips(files)
 
     docs, metadatas, ids = [], [], []
+    video_ids = set()
+    query_terms: dict[str, int] = {}
+    manifest: dict[str, dict] = {}
+
     for clip in data:
         docs.append(clip_text(clip))
-        metadatas.append(metadata_for(clip))
+        meta = metadata_for(clip)
+        metadatas.append(meta)
         vid_id = clip.get("video_id") or extract_video_id(clip.get("video_url", ""))
         seg_id = clip.get("segment_id") or f"{vid_id}_{clip.get('segment_number', '')}"
         ids.append(f"video-{seg_id}")
+        if vid_id:
+            video_ids.add(str(vid_id))
+            m = manifest.setdefault(str(vid_id), {
+                "video_id": str(vid_id),
+                "query_term": clip.get("query_term", ""),
+                "clip_count": 0,
+                "publish_time": clip.get("published_at", "")
+            })
+            m["clip_count"] += 1
+        term = clip.get("query_term")
+        if term:
+            query_terms[term] = query_terms.get(term, 0) + 1
 
     if docs:
         collection.add(documents=docs, metadatas=metadatas, ids=ids)
@@ -127,7 +156,31 @@ def main() -> None:
             print("  ID:", results["ids"][i])
             print("  Title:", results["metadatas"][i].get("title"))
             print("  Text:", doc[:100], "...")
-        print(f"✅ Indexed {len(docs)} video clips into Chroma")
+        for fname, cnt in file_counts.items():
+            print(f"✅ Indexed {cnt} clips from {fname}")
+        print(f"Total clips indexed: {len(docs)}")
+        print(f"Unique video_id count: {len(video_ids)}")
+        if query_terms:
+            print("Query term distribution:")
+            for term, cnt in query_terms.items():
+                print(f"  {term}: {cnt}")
+
+        # Write manifest CSV
+        manifest_path = Path("index_manifest.csv")
+        import csv
+        with open(manifest_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=["video_id", "query_term", "clip_count", "publish_time"])
+            writer.writeheader()
+            writer.writerows(manifest.values())
+        summary = {
+            "files": file_counts,
+            "total_clips": len(docs),
+            "unique_videos": len(video_ids),
+            "query_terms": query_terms,
+        }
+        with open("index_summary.json", "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2)
+        print("✅ Wrote index summary to index_summary.json")
     else:
         print("No clips to index")
 
