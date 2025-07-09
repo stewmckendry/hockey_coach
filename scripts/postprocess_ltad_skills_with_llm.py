@@ -69,10 +69,19 @@ def postprocess_skill_llm(skill: dict) -> dict:
     )
     data = _parse_json(resp.choices[0].message.content)
     if isinstance(data, dict):
+        if isinstance(data.get("position"), str):
+            data["position"] = [data["position"]]
+        if not data.get("position"):
+            data["position"] = ["Any"]
+        if "source" not in data and "source" in skill:
+            data["source"] = skill["source"]
+        if "season_month" not in data:
+            data["season_month"] = None
         try:
             return LTADSkill(**data).model_dump()
         except Exception as e:  # pragma: no cover - validation helper
             print(f"❌ Invalid LTADSkill from LLM: {e}")
+            print("🔍 Offending data:\n", json.dumps(data, indent=2))
     return skill
 
 
