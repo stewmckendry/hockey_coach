@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import os
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -15,28 +14,34 @@ from app.mcp_server.chroma_utils import get_client, _embed
 
 def doc_text(skill: dict) -> str:
     parts = [
-        f"Age Group: {skill.get('age_group', '')}",
-        f"Stage: {skill.get('ltad_stage', '')}",
-        f"Position: {', '.join(skill.get('position', []))}",
-        f"Category: {skill.get('skill_category', '')}",
-        f"Skill: {skill.get('skill_name', '')}",
-        skill.get("teaching_notes", ""),
-        f"Month: {skill.get('season_month', '')}",
+        f"Age Group: {skill.get('age_group') or ''}",
+        f"Stage: {skill.get('ltad_stage') or ''}",
+        f"Position: {', '.join(skill.get('position') or [])}",
+        f"Category: {skill.get('skill_category') or ''}",
+        f"Skill: {skill.get('skill_name') or ''}",
+        skill.get("teaching_notes") or "",
+        f"Month: {skill.get('season_month') or ''}",
     ]
     text = "\n".join([p for p in parts if p])
     return text[:16000]
 
 
 def metadata_for(skill: dict) -> dict:
+    def safe_str(val) -> str:
+        return val if isinstance(val, str) else ""
+
     return {
-        "age_group": skill.get("age_group", ""),
-        "ltad_stage": skill.get("ltad_stage", ""),
-        "position": "; ".join(skill.get("position", [])),
-        "skill_category": skill.get("skill_category", ""),
-        "skill_name": skill.get("skill_name", ""),
-        "teaching_notes": skill.get("teaching_notes", ""),
-        "season_month": skill.get("season_month", ""),
-        "source": skill.get("source", ""),
+        "age_group": safe_str(skill.get("age_group")),
+        "ltad_stage": safe_str(skill.get("ltad_stage")),
+        "position": "; ".join(skill.get("position") or []),
+        "skill_category": safe_str(skill.get("skill_category")),
+        "skill_name": safe_str(skill.get("skill_name")),
+        "teaching_notes": safe_str(skill.get("teaching_notes")),
+        "season_month": safe_str(skill.get("season_month")),
+        "progression_stage": safe_str(skill.get("progression_stage")),
+        "teaching_complexity": str(skill.get("teaching_complexity") or ""),
+        "variant": safe_str(skill.get("variant")),
+        "source": safe_str(skill.get("source")),
     }
 
 
