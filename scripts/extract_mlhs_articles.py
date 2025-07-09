@@ -89,7 +89,7 @@ def crawl(num_pages: int) -> List[MLHSArticle]:
 
 def write_output(articles: List[MLHSArticle], out_path: Path) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    data = [a.model_dump() for a in articles]
+    data = [json.loads(a.model_dump_json()) for a in articles]
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 

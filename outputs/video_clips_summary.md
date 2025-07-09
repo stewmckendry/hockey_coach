@@ -1,0 +1,677 @@
+# Video Clips Summary
+
+- **Total unique videos (by video_id):** 105
+- **Total unique videos (by title):** 105
+- **Total video duration (seconds):** 28365.04
+
+## Breakdown of unique videos by query_term
+
+- **best_goalie_training_drills_for_reflexes_and_angles:** 2
+- **best_hockey_breakout_drills_for_all_positions:** 4
+- **best_hockey_shooting_drills_for_accuracy_and_power:** 6
+- **best_hockey_stickhandling_and_puck_control_drills:** 9
+- **best_small_area_games_for_hockey_skill_and_iq:** 1
+- **controlled_zone_entry_strategies_and_drills_hockey:** 1
+- **defensive_zone_coverage_and_positioning_drills_hockey:** 5
+- **gap_control_drills_for_defensemen_and_transition_defense:** 2
+- **hockey_angling_drills_and_body_positioning_techniques:** 1
+- **hockey_backchecking_drills_and_defensive_support:** 5
+- **hockey_coaching_tips_for_teaching_drills_and_managing_practice:** 4
+- **hockey_communication_drills_and_team_systems_awareness:** 5
+- **hockey_defenseman_drills_and_gap_control_tips:** 10
+- **hockey_faceoff_techniques_and_drills_for_centers:** 8
+- **hockey_iq_drills_and_decision_making_for_youth_players:** 3
+- **hockey_rules_explained_for_youth_players:** 5
+- **hockey_transition_drills_and_neutral_zone_regroup_tactics:** 2
+- **neutral_zone_transitions_and_passing_drills_hockey:** 4
+- **off_ice_hockey_training_and_skills_development_drills:** 8
+- **offensive_zone_tactics_and_puck_support_hockey:** 5
+- **power_play_and_penalty_kill_systems_for_hockey_teams:** 1
+- **top_hockey_passing_and_puck_movement_drills:** 4
+- **top_hockey_skating_drills_for_speed_and_edgework:** 10
+
+## Breakdown of unique videos by hockey_skills
+
+- **1 on 1 Defense:** 1
+- **Acceleration:** 5
+- **Accuracy:** 7
+- **Adaptability:** 1
+- **Aggression:** 2
+- **Aggressive Play:** 1
+- **Agility:** 15
+- **Aiming:** 1
+- **Angle Control:** 1
+- **Angle Play:** 1
+- **Angling:** 5
+- **Ankle Mobility:** 1
+- **Ankle Stability:** 2
+- **Anti-Rotation Techniques:** 1
+- **Anticipation:** 9
+- **Arm Pumping:** 1
+- **Attack Strategy:** 1
+- **Attacking:** 1
+- **Attacking Play:** 1
+- **Attacking Strategy:** 1
+- **Awareness:** 10
+- **Back Pedaling:** 1
+- **Backchecking:** 5
+- **Backhand:** 1
+- **Backhand Catching:** 1
+- **Backhand Control:** 1
+- **Backhand Handling:** 1
+- **Backhand Pass:** 1
+- **Backhand Positioning:** 1
+- **Backhand Toe Drag:** 1
+- **Backward Crossovers:** 1
+- **Backward Skating:** 8
+- **Backward skating:** 1
+- **Balance:** 19
+- **Balance Control:** 1
+- **Ball Clearing:** 1
+- **Ball Control:** 2
+- **Ball Handling:** 1
+- **Ball Parrying:** 1
+- **Basic Hockey Knowledge:** 1
+- **Basic Rules:** 1
+- **Basic Understanding:** 1
+- **Battle in high-traffic areas:** 1
+- **Blocker Usage:** 1
+- **Blocking Lanes:** 1
+- **Blocking passing lanes:** 1
+- **Board Battles:** 1
+- **Board Play:** 5
+- **Body Alignment:** 1
+- **Body Checking:** 5
+- **Body Contact:** 3
+- **Body Control:** 1
+- **Body Coordination:** 1
+- **Body Engagement:** 1
+- **Body Mechanics:** 1
+- **Body Play:** 1
+- **Body Positioning:** 20
+- **Body Strength:** 1
+- **Box Out:** 1
+- **Boxing Out:** 1
+- **Breakaway Execution:** 2
+- **Breakout:** 2
+- **Breakout Execution:** 6
+- **Breakout Pass:** 2
+- **Breakout Passes:** 1
+- **Breakout Passing:** 4
+- **Breakout Play:** 1
+- **Breakout Strategies:** 1
+- **Breakout Strategy:** 5
+- **Breakout Support:** 1
+- **Breakout Tactics:** 1
+- **Breakout Technique:** 2
+- **Breakouts:** 2
+- **Catching:** 1
+- **Catching Technique:** 1
+- **Checking:** 5
+- **Chip Passes:** 1
+- **Clearing the Crease:** 1
+- **Clearing the Zone:** 1
+- **Coaching Strategy:** 1
+- **Communication:** 20
+- **Composure:** 1
+- **Containment:** 1
+- **Control:** 2
+- **Coordination:** 5
+- **Core Development:** 1
+- **Core Engagement:** 1
+- **Core Stability:** 1
+- **Core Strength:** 3
+- **Creating Passing Lanes:** 1
+- **Creating Space:** 4
+- **Creating Turnovers:** 1
+- **Creating Two-on-One:** 1
+- **Creativity:** 1
+- **Cross Management:** 1
+- **Crossover:** 1
+- **Crossover Skating:** 4
+- **Crossover Steps:** 1
+- **Crossover Technique:** 1
+- **Crossover skating:** 1
+- **Crossovers:** 9
+- **Curling:** 1
+- **D to D Pass:** 2
+- **D to D Passing:** 1
+- **D-to-D Passing:** 1
+- **Deception:** 3
+- **Deceptive Passing:** 1
+- **Deceptive Skating:** 1
+- **Decision Making:** 16
+- **Decision-Making:** 4
+- **Decision-making:** 1
+- **Defense:** 2
+- **Defense Awareness:** 1
+- **Defense Positioning:** 2
+- **Defensive Angling:** 3
+- **Defensive Awareness:** 15
+- **Defensive Coordination:** 1
+- **Defensive Coverage:** 4
+- **Defensive Pinching:** 1
+- **Defensive Play:** 2
+- **Defensive Positioning:** 21
+- **Defensive Reading:** 1
+- **Defensive Regroups:** 1
+- **Defensive Skating:** 3
+- **Defensive Skills:** 1
+- **Defensive Stickwork:** 1
+- **Defensive Strategy:** 2
+- **Defensive Tracking:** 1
+- **Defensive Zone Coverage:** 8
+- **Defensive Zone Strategies:** 1
+- **Defensive Zone Transition:** 1
+- **Defensive passing:** 1
+- **Defensive play:** 1
+- **Defensive positioning:** 5
+- **Discipline:** 1
+- **Diving:** 1
+- **Diving Technique:** 1
+- **Diving Techniques:** 1
+- **Diving techniques:** 1
+- **Dribbling:** 1
+- **Drill Execution:** 1
+- **Drill Explanation:** 1
+- **Drop Pass:** 1
+- **Dump and Chase:** 3
+- **Edge Control:** 6
+- **Edge Work:** 10
+- **Edgework:** 4
+- **Endurance:** 1
+- **Endurance Management:** 1
+- **Escaping Checks:** 1
+- **Evading Forechecker:** 1
+- **Explosive Skating:** 1
+- **Eye Movement Training:** 1
+- **Face-Off Techniques:** 1
+- **Face-Offs:** 1
+- **Face-off:** 3
+- **Face-off Strategy:** 2
+- **Face-off Techniques:** 1
+- **Face-off Winning:** 1
+- **Face-offs:** 5
+- **Faceoff Technique:** 1
+- **Faceoffs:** 1
+- **Field Check:** 1
+- **Flexibility:** 1
+- **Focus:** 2
+- **Follow Through:** 1
+- **Follow-through:** 1
+- **Foot Positioning:** 3
+- **Footwork:** 11
+- **Force Control:** 1
+- **Forechecking:** 3
+- **Forehand:** 1
+- **Forward Crossover:** 1
+- **Forward Crossovers:** 1
+- **Fundamental Skills:** 1
+- **Game Analysis:** 2
+- **Game Awareness:** 5
+- **Game Intelligence:** 1
+- **Game Management:** 2
+- **Game Preparation:** 1
+- **Game Reading:** 2
+- **Game Rules Understanding:** 1
+- **Game Sense:** 3
+- **Game Situational Awareness:** 1
+- **Game Strategy:** 3
+- **Game Understanding:** 2
+- **Gap Control:** 13
+- **Glove Saves:** 1
+- **Glute Strength:** 1
+- **Goal Awareness:** 1
+- **Goal Coverage:** 1
+- **Goal Scoring:** 2
+- **Goal Setting:** 1
+- **Goalie Diving:** 1
+- **Goalie Play:** 1
+- **Goalie Positioning:** 2
+- **Goalie Saves:** 1
+- **Goalie movements:** 1
+- **Goalkeeper Diving:** 1
+- **Goalkeeper Positioning:** 1
+- **Goalkeeping:** 4
+- **Goaltending:** 2
+- **Goaltending Positioning:** 1
+- **Goaltending Stance:** 1
+- **Grip:** 1
+- **Grip Control:** 1
+- **Grip Technique:** 1
+- **Hand Control:** 1
+- **Hand Coordination:** 1
+- **Hand Placement:** 1
+- **Hand Positioning:** 4
+- **Hand-Eye Coordination:** 1
+- **Hand-Foot Coordination:** 1
+- **Hand-eye coordination:** 1
+- **Head-Up Awareness:** 1
+- **Hip Mobility:** 1
+- **Hip Movement:** 1
+- **Hip Rotation:** 1
+- **Hip Stability:** 1
+- **Hockey IQ:** 2
+- **Hockey Sense:** 1
+- **Hockey Stop:** 1
+- **Hook Check:** 1
+- **Hustle:** 1
+- **Ice Awareness:** 6
+- **Icing Understanding:** 1
+- **Injury Prevention:** 2
+- **Inside Edge Control:** 1
+- **Interception:** 1
+- **Interceptions:** 1
+- **Knee Bend:** 1
+- **Lane Blocking:** 1
+- **Lateral Force:** 1
+- **Lateral Movement:** 4
+- **Leg Movement:** 1
+- **Leg Saves:** 1
+- **Leg Strength:** 1
+- **Leverage:** 1
+- **Line Strategy:** 1
+- **Lower Body Strength:** 1
+- **Maneuverability:** 1
+- **Mental Focus:** 1
+- **Mental Preparation:** 1
+- **Middle Drive:** 1
+- **Midfield Control:** 1
+- **Midfield Coordination:** 1
+- **Mirror Drill:** 1
+- **Misdirection:** 1
+- **Mobility:** 2
+- **Mohawk Skating:** 2
+- **Mohawk Turn:** 3
+- **Mohawk Turns:** 2
+- **Motivation:** 1
+- **Movement Without the Puck:** 1
+- **Net Awareness:** 1
+- **Net Front Coverage:** 1
+- **Net front clearance:** 1
+- **Net-front presence:** 1
+- **Neutral Zone Face-off:** 1
+- **Neutral Zone Play:** 1
+- **Neutral Zone Regroup:** 2
+- **Neutral Zone Transition:** 3
+- **Neutral Zone Transitions:** 1
+- **Observation:** 1
+- **Off-ice Training:** 1
+- **Offense:** 1
+- **Offensive Awareness:** 4
+- **Offensive Creativity:** 1
+- **Offensive Decision-Making:** 1
+- **Offensive Play:** 1
+- **Offensive Positioning:** 6
+- **Offensive Pressure:** 1
+- **Offensive Strategy:** 6
+- **Offensive Support:** 1
+- **Offensive Techniques:** 1
+- **Offensive Transition:** 2
+- **Offensive Zone Entry:** 2
+- **Offensive Zone Play:** 3
+- **Offensive Zone Strategy:** 1
+- **Offside Awareness:** 2
+- **Offsides Rule:** 1
+- **One-Foot Stopping:** 1
+- **One-Handed Puck Control:** 1
+- **One-Handed Stick Handling:** 1
+- **One-Timer:** 1
+- **One-on-One Defense:** 2
+- **One-on-One Offense:** 1
+- **One-on-One Situations:** 1
+- **One-on-one defense:** 1
+- **Pass Handling:** 1
+- **Pass Interception:** 1
+- **Pass Reception:** 1
+- **Passing:** 29
+- **Passing Lane Blocking:** 1
+- **Passing Lanes:** 1
+- **Pattern Play:** 1
+- **Penalty Corner Execution:** 1
+- **Penalty Kill:** 2
+- **Penalty Kill Strategy:** 1
+- **Penalty Killing:** 2
+- **Penalty Shootout:** 1
+- **Penalty Shot:** 1
+- **Penalty Stroke:** 1
+- **Pivoting:** 5
+- **Pivots:** 5
+- **Play Reading:** 2
+- **Player Development:** 1
+- **Player Rotation:** 1
+- **Player awareness:** 1
+- **Playing Center:** 1
+- **Playmaking:** 5
+- **Poke Check:** 3
+- **Poke Checking:** 2
+- **Position Rotation:** 1
+- **Positional Awareness:** 6
+- **Positional Play:** 6
+- **Positioning:** 52
+- **Posture:** 4
+- **Power:** 4
+- **Power Play:** 2
+- **Power Shot:** 1
+- **Power Skating:** 1
+- **Power Step:** 1
+- **Power Transfer:** 2
+- **Practice Planning:** 1
+- **Press Check:** 1
+- **Pressure Application:** 2
+- **Pressure Defense:** 2
+- **Pressure Evasion:** 1
+- **Progress Tracking:** 1
+- **Pry Check:** 1
+- **Puck Awareness:** 2
+- **Puck Battle:** 1
+- **Puck Battles:** 1
+- **Puck Carrier Challenge:** 1
+- **Puck Carrying:** 1
+- **Puck Check:** 1
+- **Puck Clearing:** 1
+- **Puck Control:** 23
+- **Puck Defense:** 1
+- **Puck Handling:** 24
+- **Puck Hunting:** 1
+- **Puck Interception:** 1
+- **Puck Lifting:** 2
+- **Puck Management:** 2
+- **Puck Movement:** 7
+- **Puck Passing:** 1
+- **Puck Possession:** 2
+- **Puck Pressure:** 1
+- **Puck Protection:** 6
+- **Puck Pursuit:** 1
+- **Puck Receiving:** 1
+- **Puck Reception:** 1
+- **Puck Recovery:** 2
+- **Puck Retrieval:** 8
+- **Puck Stopping:** 1
+- **Puck Support:** 6
+- **Puck Takeaway:** 1
+- **Puck Timing:** 1
+- **Puck Tracking:** 3
+- **Puck Transportation:** 1
+- **Puck control:** 1
+- **Pushing Off:** 1
+- **Quick Passing:** 1
+- **Quick Release:** 4
+- **Quick Transition:** 1
+- **Quick Transitions:** 1
+- **Quick stops and starts:** 1
+- **Quickness:** 1
+- **Reaction Saves:** 1
+- **Reaction Time:** 6
+- **Reactions:** 1
+- **Reading the Game:** 1
+- **Reading the Play:** 5
+- **Reading the play:** 1
+- **Ready Position:** 1
+- **Rebound Awareness:** 2
+- **Rebound Control:** 7
+- **Rebounding:** 1
+- **Receiving:** 3
+- **Receiving Checks:** 1
+- **Receiving Passes:** 1
+- **Receiving a Pass:** 1
+- **Recovery:** 1
+- **Recovery Techniques:** 1
+- **Regrouping:** 1
+- **Repositioning:** 1
+- **Rink Navigation:** 1
+- **Role Embracement:** 1
+- **Role Switching:** 1
+- **Role Understanding:** 1
+- **Roll Check:** 1
+- **Rule Familiarization:** 1
+- **Rule Understanding:** 1
+- **Safe Landing:** 1
+- **Safety Awareness:** 1
+- **Safety Techniques:** 1
+- **Save Selection:** 1
+- **Save Technique:** 1
+- **Save Techniques:** 1
+- **Scoring:** 5
+- **Scoring Opportunities:** 1
+- **Scoring Techniques:** 1
+- **Screening:** 1
+- **Seat Cuts:** 1
+- **Self-assessment:** 1
+- **Shift Management:** 1
+- **Shooting:** 17
+- **Shooting Lane Blocking:** 1
+- **Shooting Mechanics:** 1
+- **Shooting Position:** 1
+- **Shooting Power:** 1
+- **Shooting Preparation:** 1
+- **Shooting Technique:** 3
+- **Shooting Techniques:** 1
+- **Shooting for Rebounds:** 1
+- **Shot Accuracy:** 1
+- **Shot Blocking:** 4
+- **Shot Power:** 2
+- **Shot Release:** 1
+- **Shot Stopping:** 2
+- **Shot-stopping:** 1
+- **Shoulder Checking:** 1
+- **Side Check:** 1
+- **Situational Awareness:** 3
+- **Skating:** 35
+- **Skating Agility:** 3
+- **Skating Backward:** 1
+- **Skating Backwards:** 1
+- **Skating Crossovers:** 1
+- **Skating Power:** 1
+- **Skating Speed:** 2
+- **Skating Technique:** 1
+- **Skating Techniques:** 1
+- **Skating Transitions:** 1
+- **Skating agility:** 1
+- **Skating technique:** 1
+- **Skating with speed:** 1
+- **Skill Application:** 1
+- **Smart Playmaking:** 1
+- **Snap Shot:** 1
+- **Snapshot:** 3
+- **Space Control:** 1
+- **Spatial Awareness:** 1
+- **Speed:** 13
+- **Speed Adjustment:** 1
+- **Speed Control:** 2
+- **Speed Development:** 2
+- **Speed Gaining:** 1
+- **Speed Management:** 1
+- **Speed Matching:** 1
+- **Speed Skating:** 2
+- **Speed Training:** 2
+- **Speed transition:** 1
+- **Sportsmanship:** 1
+- **Stability:** 2
+- **Stamina:** 1
+- **Stamina Management:** 1
+- **Stance:** 2
+- **Stance Control:** 1
+- **Stance Correction:** 1
+- **Stance Management:** 1
+- **Stealing the puck:** 1
+- **Steering:** 1
+- **Stick Checking:** 5
+- **Stick Control:** 2
+- **Stick Engagement:** 1
+- **Stick Flex:** 1
+- **Stick Flexibility:** 1
+- **Stick Flexion:** 1
+- **Stick Handling:** 13
+- **Stick Lifting:** 1
+- **Stick Placement:** 2
+- **Stick Positioning:** 5
+- **Stick Use:** 1
+- **Stick checking:** 1
+- **Stick handling:** 1
+- **Stick positioning:** 1
+- **Stickhandling:** 9
+- **Stopping:** 3
+- **Stopping Techniques:** 1
+- **Stops and Starts:** 1
+- **Strategic Play:** 3
+- **Strategic Positioning:** 1
+- **Strategic Shooting:** 1
+- **Strategic Thinking:** 2
+- **Strategies:** 1
+- **Strategy:** 1
+- **Strength:** 1
+- **Strength Building:** 1
+- **Strength Training:** 1
+- **Stride Efficiency:** 1
+- **Stride Length:** 1
+- **Stride Mechanics:** 1
+- **Stride Power:** 1
+- **Stride Technique:** 1
+- **Striding:** 2
+- **Support Play:** 7
+- **Support Positioning:** 2
+- **Support play:** 1
+- **Supporting:** 1
+- **Sweep Check:** 1
+- **Sweep Poke Check:** 1
+- **System Understanding:** 1
+- **Systems Understanding:** 1
+- **Tackling:** 1
+- **Tactical Awareness:** 1
+- **Tap Check:** 1
+- **Target Focus:** 1
+- **Target Practice:** 1
+- **Targeting:** 1
+- **Team Communication:** 2
+- **Team Composition:** 1
+- **Team Coordination:** 2
+- **Team Defense:** 3
+- **Team Dynamics:** 1
+- **Team Play:** 1
+- **Team Positioning:** 1
+- **Team Strategy:** 1
+- **Team Structure:** 1
+- **Team Support:** 1
+- **Teamwork:** 6
+- **Technique:** 1
+- **Tight Turn:** 1
+- **Tight Turns:** 1
+- **Time Management:** 1
+- **Timing:** 6
+- **Tipping:** 1
+- **Toe Drag:** 1
+- **Toe Drags:** 1
+- **Top Corner Saves:** 1
+- **Tow Drag:** 1
+- **Transition:** 4
+- **Transition Game:** 2
+- **Transition Gameplay:** 1
+- **Transition Play:** 8
+- **Transition Skating:** 4
+- **Transition Skills:** 1
+- **Transition play:** 1
+- **Transitional Play:** 1
+- **Transitioning:** 9
+- **Transitions:** 2
+- **Tuck:** 1
+- **Turning:** 3
+- **Two-on-One Offensive Play:** 1
+- **Understanding Field Dimensions:** 1
+- **Understanding Game Rules:** 1
+- **Understanding Hockey Positions:** 1
+- **Understanding Offside Rule:** 1
+- **Understanding Penalties:** 1
+- **Understanding Prep Hockey Systems:** 1
+- **Understanding Rink Layout:** 1
+- **Understanding Rules:** 2
+- **Understanding game rules:** 1
+- **Understanding of Rules:** 1
+- **Upper Body Strength:** 1
+- **Video analysis:** 1
+- **Vision:** 6
+- **Vision Training:** 1
+- **Visualization:** 1
+- **Warm-up:** 1
+- **Weight Distribution:** 1
+- **Weight Shift:** 1
+- **Weight Shifting:** 1
+- **Weight Transfer:** 8
+- **Wide Puck Movement:** 1
+- **Wind-up:** 1
+- **Work Ethic:** 2
+- **Wrist Control:** 1
+- **Wrist Shot:** 5
+- **Wrist Shots:** 1
+- **Wrist Snap:** 1
+- **Wrist Snapshot:** 1
+- **Wrist Strength:** 1
+- **Zone Control:** 1
+- **Zone Coverage:** 3
+- **Zone Entries:** 1
+- **Zone Entry:** 4
+- **Zone Exits:** 1
+- **Zone defense:** 1
+
+## Breakdown of unique videos by source
+
+- **247 Hockey:** 2
+- **Advancement Hockey Advising:** 1
+- **Andrew L.:** 1
+- **Atomic Hockey:** 2
+- **Barrdown:** 1
+- **BenchWorm | Sports Explained:** 1
+- **Championship Productions:** 2
+- **Cheap Seats Sports:** 1
+- **Chris Wetzel:** 1
+- **Coach Jeremy:** 2
+- **Coach John:** 1
+- **Coach Peters (PE):** 2
+- **Culturama:** 1
+- **Dahan Goaltending - Goalie Hockey School:** 1
+- **Delaney Hockey:** 1
+- **Evolution Hockey:** 1
+- **Field Hockey Education:** 1
+- **Francis Hockey Development:** 1
+- **Ground Glory Goalkeeping:** 2
+- **Hit The Ice:** 1
+- **Hockey Drill Club:** 1
+- **Hockey Drills:** 1
+- **Hockey Fan Network:** 1
+- **Hockey Training:** 9
+- **Hockey Tutorial:** 1
+- **HockeyShare:** 4
+- **How To Hockey - Coach Jeremy:** 1
+- **Ice Hockey Systems Inc.:** 2
+- **Ignite Performance Hockey:** 1
+- **James Lines:** 1
+- **Jeremy Weiss (Weiss Tech Hockey):** 4
+- **Jordan Brisebois:** 2
+- **Kris Renfrow Hockey:** 1
+- **LIDIAL HOCKEY:** 1
+- **Locked On Kraken:** 1
+- **Matt Korthuis - Hockey Pro Training:** 1
+- **Minárik Hockey Skills:** 1
+- **Mr.Animate:** 1
+- **NTM HOCKEY DEVELOPMENT :** 1
+- **Nicholas Lang:** 1
+- **Ninh Ly:** 2
+- **Norcan Hockey:** 1
+- **Ottawa Citizen:** 1
+- **PowerTech Hockey Online Development:** 5
+- **PrimeSport HD:** 1
+- **RHA Hockey Academy:** 1
+- **Reach Hockey:** 1
+- **SOLYANKIN:** 1
+- **Sanesports:** 1
+- **Sean Johnson:** 1
+- **Sports Line:** 1
+- **The Coaches Site:** 4
+- **TheWinterSportXpert:** 1
+- **Train 2.0 Hockey:** 2
+- **USA HOCKEY:** 1
+- **iTrain Hockey:** 15
+- **jmcydney7:** 1
+- **passthepuck:** 1
+- **sebastien cossette:** 1
+- **why76why76:** 1
