@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from agents import Agent, Runner
 from agents.mcp import MCPServerSse
 from agents.model_settings import ModelSettings
-from tools.youtube_search_tool import VideoResult
+from app.mcp_server.video_tools import VideoResult
 
 
 
