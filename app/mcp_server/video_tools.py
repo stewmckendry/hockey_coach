@@ -9,7 +9,12 @@ from typing import List, Optional
 from pydantic import BaseModel
 from googleapiclient.discovery import build
 
-from .server import mcp
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Thunder Video Search")
+
+from dotenv import load_dotenv
+load_dotenv()
 
 DEBUG = os.getenv("DEBUG", "false").lower() in {"1", "true", "yes"}
 
@@ -27,6 +32,7 @@ class VideoResult(BaseModel):
 
 def _get_client():
     api_key = os.getenv("YOUTUBE_API_KEY")
+    print(f"🔑 Using YouTube API key: {api_key}")
     if not api_key:
         raise RuntimeError("YOUTUBE_API_KEY environment variable not set")
     return build("youtube", "v3", developerKey=api_key)
@@ -122,7 +128,6 @@ def _resolve_channel_id(channel: str) -> str:
     if channel.startswith("http"):
         try:
             from urllib.parse import urlparse
-
             parsed = urlparse(channel)
             parts = [p for p in parsed.path.split("/") if p]
             if "channel" in parts:
@@ -245,10 +250,6 @@ def get_video_metadata(video_id: str) -> VideoResult:
         published_at=snippet.get("publishedAt"),
     )
 
-from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP("Thunder Video Search")
-
 @mcp.tool(title="Search YouTube Videos")
 def search_youtube_videos(query: str, max_results: int = 5) -> List[VideoResult]:
     """Search YouTube videos."""
@@ -272,3 +273,6 @@ def fetch_channel_videos(
         f"📺 MCP Tool 'fetch_channel_videos' returned {len(results)} videos from '{channel_id}'"
     )
     return results
+
+if __name__ == "__main__":
+    mcp.run(transport="sse")
