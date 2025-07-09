@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Analyze LTAD skills dataset and print summary statistics."""
+"""Analyze LTAD skills dataset and write summary statistics to Markdown."""
 
 from __future__ import annotations
 import argparse
@@ -69,30 +69,74 @@ def completeness(skills: List[dict]) -> Dict[str, float]:
     return {field: round(totals[field] / total_records * 100, 2) for field in FIELDS}
 
 
-def print_summary(counts: Dict[str, Dict[str, int]]) -> None:
-    print("\n--- Skill Counts by Age Group and Category ---")
+def counts_by_source(skills: List[dict]) -> Dict[str, Dict[str, int]]:
+    """Return counts of skills by source and category."""
+    result: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for skill in skills:
+        src = skill.get("source", "Unknown") or "Unknown"
+        cat = skill.get("skill_category", "Unknown") or "Unknown"
+        result[src][cat] += 1
+    return result
+
+
+def completeness_by_source(skills: List[dict]) -> Dict[str, Dict[str, float]]:
+    """Calculate data completeness for each source."""
+    grouped: Dict[str, List[dict]] = defaultdict(list)
+    for skill in skills:
+        src = skill.get("source", "Unknown") or "Unknown"
+        grouped[src].append(skill)
+    return {src: completeness(items) for src, items in grouped.items()}
+
+
+def render_markdown(
+    counts: Dict[str, Dict[str, int]],
+    lists: Dict[str, Dict[str, List[str]]],
+    stats: Dict[str, float],
+    src_counts: Dict[str, Dict[str, int]],
+    src_stats: Dict[str, Dict[str, float]],
+) -> str:
+    """Return full markdown report for all analysis."""
+    lines: List[str] = ["# LTAD Skills Analysis"]
+
+    lines.append("\n## Skill Counts by Age Group and Category")
     for age in sorted(counts):
-        print(f"\nAge Group: {age}")
+        lines.append(f"\n### Age Group: {age}")
         total = 0
-        for category, count in sorted(counts[age].items()):
-            print(f"  {category}: {count}")
-            total += count
-        print(f"  Total: {total}")
+        for category, cnt in sorted(counts[age].items()):
+            lines.append(f"- **{category}**: {cnt}")
+            total += cnt
+        lines.append(f"- **Total**: {total}")
 
-
-def print_skill_lists(lists: Dict[str, Dict[str, List[str]]]) -> None:
-    print("\n--- Skill Names by Age Group and Category ---")
+    lines.append("\n## Skill Names by Age Group and Category")
     for age in sorted(lists):
-        print(f"\nAge Group: {age}")
+        lines.append(f"\n### Age Group: {age}")
         for category, names in sorted(lists[age].items()):
             joined = ", ".join(sorted(set(names)))
-            print(f"  {category}: {joined}")
+            lines.append(f"- **{category}**: {joined}")
 
-
-def print_completeness(stats: Dict[str, float]) -> None:
-    print("\n--- Data Completeness (% of records with value) ---")
+    lines.append("\n## Data Completeness (Overall)")
+    lines.append("| Field | % Complete |")
+    lines.append("|-------|------------|")
     for field, pct in stats.items():
-        print(f"{field}: {pct:.1f}%")
+        lines.append(f"| {field} | {pct:.1f}% |")
+
+    lines.append("\n## Analysis by Source")
+    for src in sorted(src_counts):
+        total = sum(src_counts[src].values())
+        lines.append(f"\n### Source: {src} (Total: {total} skills)")
+        lines.append("#### Counts by Category")
+        for cat, cnt in sorted(src_counts[src].items()):
+            lines.append(f"- **{cat}**: {cnt}")
+
+        comp = src_stats.get(src, {})
+        lines.append("\n#### Data Completeness")
+        lines.append("| Field | % Complete |")
+        lines.append("|-------|------------|")
+        for field, pct in comp.items():
+            lines.append(f"| {field} | {pct:.1f}% |")
+
+    lines.append("")
+    return "\n".join(lines)
 
 
 def main() -> None:
@@ -102,6 +146,12 @@ def main() -> None:
         type=Path,
         default=Path("data/processed/ltad_skills_processed.json"),
         help="Input JSON file with LTAD skills",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("outputs/ltad_skill_analysis.md"),
+        help="Markdown file to write analysis",
     )
     args = parser.parse_args()
 
@@ -113,16 +163,22 @@ def main() -> None:
     print(f"✅ Loaded {len(skills)} skills from {args.input}")
 
     counts = summary_counts(skills)
-    print_summary(counts)
     print("✅ Generated summary counts")
 
     lists = skill_lists_by_age(skills)
-    print_skill_lists(lists)
     print("✅ Generated skill lists")
 
     stats = completeness(skills)
-    print_completeness(stats)
     print("✅ Calculated data completeness")
+
+    src_counts = counts_by_source(skills)
+    src_stats = completeness_by_source(skills)
+    print("✅ Analyzed skills by source")
+
+    md = render_markdown(counts, lists, stats, src_counts, src_stats)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(md, encoding="utf-8")
+    print(f"✅ Wrote analysis to {args.output}")
 
 
 if __name__ == "__main__":
