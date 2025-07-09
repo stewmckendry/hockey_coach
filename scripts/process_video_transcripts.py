@@ -230,9 +230,25 @@ async def run_all(args) -> None:
             with open(args.url_file, "r", encoding="utf-8") as f:
                 urls.extend([ln.strip() for ln in f if ln.strip()])
 
+    if args.url_folder:
+        for file in args.url_folder.glob("video_search_*.json"):
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                for item in data:
+                    if isinstance(item, str):
+                        urls.append(item)
+                    elif isinstance(item, dict) and item.get("url"):
+                        urls.append(item["url"])
+            except Exception as e:
+                print(f"⚠️ Failed to load {file}: {e}")
+
     if not urls:
-        print("No URLs provided. Use --url or --url-file.")
+        print("No URLs provided. Use --url, --url-file or --url-list-folder.")
         return
+
+    if args.combine_output:
+        args.output = args.combine_output
 
     separate = bool(args.output_folder)
     output_path = args.output_folder if separate else args.output
@@ -248,6 +264,10 @@ async def run_all(args) -> None:
                     processed_ids.add(vid)
         except Exception as e:
             print(f"⚠️ Could not read existing clips from {output_path}: {e}")
+    if separate and args.output_folder and args.output_folder.exists():
+        for fpath in args.output_folder.glob("video_clips_*.json"):
+            vid = fpath.stem.replace("video_clips_", "")
+            processed_ids.add(vid)
 
     summary = []
     for url in urls:
@@ -292,6 +312,12 @@ def main() -> None:
         "--url-list", type=Path, dest="url_file", help="Alias of --url-file"
     )
     parser.add_argument(
+        "--url-list-folder",
+        type=Path,
+        dest="url_folder",
+        help="Folder containing video_search_*.json files",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=Path("data/processed/video_clips.json"),
@@ -301,6 +327,12 @@ def main() -> None:
         "--output-folder",
         type=Path,
         help="Folder to write separate JSON files per video",
+    )
+    parser.add_argument(
+        "--combine-output",
+        type=Path,
+        dest="combine_output",
+        help="Write all clips to this JSON file",
     )
     parser.add_argument(
         "--force",

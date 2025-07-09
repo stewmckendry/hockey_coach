@@ -5,9 +5,17 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 from typing import List, Optional
 import asyncio
+
+
+def _slugify(text: str) -> str:
+    """Return a filename-friendly slug."""
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    return text.strip("_")
 
 from pydantic import BaseModel
 
@@ -51,7 +59,12 @@ async def run_cli() -> None:
     parser = argparse.ArgumentParser(
         description="Search YouTube videos with the VideoSearchAgent"
     )
-    parser.add_argument("--query", required=True, help="Search query text")
+    parser.add_argument("--query", help="Search query text")
+    parser.add_argument(
+        "--query-file",
+        type=Path,
+        help="File containing search queries, one per line",
+    )
     parser.add_argument(
         "--num", type=int, default=10, help="Number of videos to request"
     )
@@ -63,20 +76,39 @@ async def run_cli() -> None:
     )
     args = parser.parse_args()
 
+    if not args.query and not args.query_file:
+        parser.error("Provide --query or --query-file")
+
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY environment variable not set")
 
     mcp_server = video_search_agent.mcp_servers[0]
     await mcp_server.connect()
 
-    query = f"{args.query} num:{args.num}"
-    result = await Runner.run(video_search_agent, query)
-    output = result.final_output_as(VideoSearchResults)
+    tasks = []
+    outputs: list[tuple[str, Path]] = []
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    with open(args.output, "w", encoding="utf-8") as f:
-        json.dump([v.model_dump() for v in output.videos], f, indent=2)
-    print(f"✅ Saved {len(output.videos)} video results to {args.output}")
+    if args.query:
+        outputs.append((args.query, args.output))
+
+    if args.query_file:
+        with open(args.query_file, "r", encoding="utf-8") as f:
+            for ln in f:
+                q = ln.strip()
+                if not q:
+                    continue
+                slug = _slugify(q)
+                out_path = args.query_file.parent / f"video_search_{slug}.json"
+                outputs.append((q, out_path))
+
+    for q, out_path in outputs:
+        query = f"{q} num:{args.num}"
+        result = await Runner.run(video_search_agent, query)
+        output = result.final_output_as(VideoSearchResults)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump([v.model_dump() for v in output.videos], f, indent=2)
+        print(f"✅ Saved {len(output.videos)} videos for \"{q}\" -> {out_path.name}")
 
 
 
