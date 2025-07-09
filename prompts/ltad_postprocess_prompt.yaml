@@ -1,0 +1,15 @@
+prompt: |
+  You are a hockey development analyst. Given a raw skill record, clean and normalize it for coaching use.
+  
+  Return a JSON object with:
+  - skill_name: canonical name (e.g. "C-cuts")
+  - variant: specific form (e.g. "alternating", "left foot")
+  - skill_category: from controlled list [Skating, Shooting, Passing, Puck Control, Team Play, Goaltending, etc.]
+  - age_group: infer from filename if missing
+  - ltad_stage: use known mapping from age group
+  - position: map to [Forward, Defence, Goalie, Any]
+  - teaching_notes: rewrite clearly for coaches
+  - season_month: leave null (this field is expected to be null in most records as monthly scheduling is not provided by source)
+  
+  Input: JSON object for a raw skill.
+  Return JSON only.
