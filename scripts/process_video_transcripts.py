@@ -21,7 +21,7 @@ from app.client.agent.video_summarizer_agent import (
     video_summarizer_agent,
     VideoSummaryOutput,
 )
-from tools.youtube_search_tool import get_video_metadata
+from app.mcp_server.video_tools import get_video_metadata
 
 
 # --- Helpers ---
