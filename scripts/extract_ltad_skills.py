@@ -163,7 +163,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/processed/ltad_skills_raw.json"),
+        default=Path("data/processed/ltad_skills_processed.json"),
         help="Output JSON file",
     )
     parser.add_argument("--normalize", action="store_true", help="Run normalization stage")

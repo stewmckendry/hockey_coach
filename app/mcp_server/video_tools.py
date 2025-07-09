@@ -245,6 +245,9 @@ def get_video_metadata(video_id: str) -> VideoResult:
         published_at=snippet.get("publishedAt"),
     )
 
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Thunder Video Search")
 
 @mcp.tool(title="Search YouTube Videos")
 def search_youtube_videos(query: str, max_results: int = 5) -> List[VideoResult]:

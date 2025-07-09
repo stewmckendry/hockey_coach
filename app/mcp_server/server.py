@@ -9,7 +9,8 @@ import chromadb
 import os
 
 # Import video tools so they register with this MCP instance
-from . import video_tools  # noqa: F401
+# Use absolute import to avoid ImportError when running as a script
+import video_tools  # noqa: F401
 
 mcp = FastMCP("Thunder DrillKB")
 

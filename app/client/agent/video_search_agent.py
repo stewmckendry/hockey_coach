@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 from typing import List, Optional
+import asyncio
 
 from pydantic import BaseModel
 
@@ -39,14 +40,14 @@ video_search_agent = Agent(
     name="VideoSearchAgent",
     instructions=_load_prompt(),
     output_type=VideoSearchResults,
-    mcp_servers=[MCPServerSse(name="Thunder MCP Server", params={"url": "http://localhost:8000/sse"})],
+    mcp_servers=[MCPServerSse(name="Thunder Video Search", params={"url": "http://localhost:8000/sse"})],
     model="gpt-4o",
     model_settings=ModelSettings(tool_choice="required"),
 )
 
 
 # --- CLI -------------------------------------------------------------------
-def run_cli() -> None:
+async def run_cli() -> None:
     parser = argparse.ArgumentParser(
         description="Search YouTube videos with the VideoSearchAgent"
     )
@@ -65,9 +66,11 @@ def run_cli() -> None:
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY environment variable not set")
 
-    query = f"{args.query} num:{args.num}"
+    mcp_server = video_search_agent.mcp_servers[0]
+    await mcp_server.connect()
 
-    result = Runner.run_sync(video_search_agent, query)
+    query = f"{args.query} num:{args.num}"
+    result = await Runner.run(video_search_agent, query)
     output = result.final_output_as(VideoSearchResults)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -76,5 +79,7 @@ def run_cli() -> None:
     print(f"✅ Saved {len(output.videos)} video results to {args.output}")
 
 
+
 if __name__ == "__main__":
-    run_cli()
+    import asyncio
+    asyncio.run(run_cli())
