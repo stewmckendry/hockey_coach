@@ -75,7 +75,7 @@ def main() -> None:
         data = json.load(f)
 
     collection = get_chroma_collection()
-    existing_ids = set(collection.get(include=["ids"]).get("ids", []))
+    existing_ids = set(collection.get()["ids"])
 
     docs: List[str] = []
     metas: List[dict] = []

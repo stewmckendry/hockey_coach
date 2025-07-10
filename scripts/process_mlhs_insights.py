@@ -84,7 +84,8 @@ def extract_insights_llm(article: MLHSArticle) -> List[NHLInsight]:
         data = [data]
     insights: List[NHLInsight] = []
     for d in data:
-        d.setdefault("id", str(uuid4()))
+        if not d.get("id") or not isinstance(d["id"], str) or not d["id"].startswith("insight-"):
+            d["id"] = f"insight-{uuid4()}"
         d.setdefault("source_url", str(article.url))
         d.setdefault("source_article", article.title)
         d.setdefault("source_type", "MLHS")
