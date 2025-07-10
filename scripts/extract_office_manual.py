@@ -72,6 +72,8 @@ def stage0_extract_items(text: str, page_no: int) -> List[OffIceEntry]:
         d.setdefault("source_page", page_no)
         d.setdefault("source", "off_ice_manual_hockey_canada_level1")
         try:
+            if isinstance(d.get("goals"), str):
+                d["goals"] = [d["goals"]]
             items.append(OffIceEntry(**d))
         except ValidationError as e:
             print(f"❌ Validation error: {e}")
@@ -95,10 +97,12 @@ def extract_pdf(pdf_path: Path) -> List[OffIceEntry]:
     doc = fitz.open(pdf_path)
     rows: List[OffIceEntry] = []
     for page_no, page in enumerate(doc, start=1):
+        print(f"📄 Processing page {page_no}...")
         text = page.get_text().strip()
         if not text:
             continue
         items = stage0_extract_items(text, page_no)
+        print(f"🔍 Found {len(items)} items on page {page_no}")
         rows.extend([i for i in items if i.is_valid()])
     doc.close()
     return dedupe(rows)
