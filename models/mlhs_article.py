@@ -16,3 +16,4 @@ class MLHSArticle(BaseModel):
     category: Optional[str]
     excerpt: Optional[str]
     html_content: str
+    page_number: int
