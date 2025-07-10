@@ -1,0 +1,32 @@
+[
+  {
+    "skill_name": "C-cuts",
+    "skill_category": "Skating",
+    "variant": "alternating",
+    "ltad_stage": "Fundamentals 1",
+    "position": ["Any"],
+    "teaching_notes": "Used to develop early edge control and rhythm.",
+    "age_groups": ["U7"],
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "skill_name": "Pivots",
+    "skill_category": "Skating",
+    "variant": "forward to backward",
+    "ltad_stage": "Fundamentals 2",
+    "position": ["Any"],
+    "teaching_notes": "Transition quickly while maintaining balance.",
+    "age_groups": ["U9"],
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "skill_name": "Figure 8's",
+    "skill_category": "Skating",
+    "variant": "circle",
+    "ltad_stage": "Fundamentals 1",
+    "position": ["Any"],
+    "teaching_notes": "Focus on edge control around each loop.",
+    "age_groups": ["U7", "U9"],
+    "source": "u7-core-skills-e.pdf"
+  }
+]

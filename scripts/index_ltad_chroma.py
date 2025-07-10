@@ -13,8 +13,9 @@ from app.mcp_server.chroma_utils import get_client, _embed
 
 
 def doc_text(skill: dict) -> str:
+    ags = ', '.join(skill.get('age_groups') or [])
     parts = [
-        f"Age Group: {skill.get('age_group') or ''}",
+        f"Age Groups: {ags}",
         f"Stage: {skill.get('ltad_stage') or ''}",
         f"Position: {', '.join(skill.get('position') or [])}",
         f"Category: {skill.get('skill_category') or ''}",
@@ -31,7 +32,7 @@ def metadata_for(skill: dict) -> dict:
         return val if isinstance(val, str) else ""
 
     return {
-        "age_group": safe_str(skill.get("age_group")),
+        "age_groups": "; ".join(skill.get("age_groups") or []),
         "ltad_stage": safe_str(skill.get("ltad_stage")),
         "position": "; ".join(skill.get("position") or []),
         "skill_category": safe_str(skill.get("skill_category")),

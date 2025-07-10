@@ -15,7 +15,7 @@ LTAD_PATH = Path(__file__).resolve().parent.parent / "data" / "processed" / "lta
 
 
 class LTADSkill(TypedDict):
-    age_group: str
+    age_groups: List[str]
     ltad_stage: str | None
     position: List[str]
     skill_category: str
@@ -36,7 +36,7 @@ def _load_data() -> List[LTADSkill]:
 def get_skills_by_age(age_group: str) -> List[LTADSkill]:
     """Return LTAD skills for a specific age group."""
     data = _load_data()
-    return [s for s in data if s.get("age_group") == age_group]
+    return [s for s in data if age_group in s.get("age_groups", [])]
 
 
 @mcp.tool("get_skills_by_position")

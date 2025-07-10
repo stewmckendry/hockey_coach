@@ -18,6 +18,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from models.ltad import LTADSkill
 from ltad_normalizer import normalize_ltad_skill, infer_age_group_from_text
+from difflib import SequenceMatcher
 
 
 PROMPT_DIR = Path(__file__).resolve().parent.parent / "prompts"
@@ -187,6 +188,11 @@ def clean_variant(text: str | None) -> str:
     return v.strip(" ,;")
 
 
+def normalize_variant(text: str | None) -> str:
+    """Normalize verbose variant strings for consistency."""
+    return clean_variant(text)
+
+
 def stage0_sections(text: str, source: str, page_num: int) -> List[dict]:
     user = f"Source: {source}\nPage: {page_num}\n\n{text}\n\nReturn JSON list."
     resp = client.chat.completions.create(
@@ -267,6 +273,16 @@ def stage3_normalize(skill: dict) -> dict:
     else:
         norm["age_group"] = "Unknown"
 
+    norm["variant"] = normalize_variant(norm.get("variant"))
+
+    ag = norm.get("age_group")
+    if ag:
+        norm["age_groups"] = [ag]
+    else:
+        norm["age_groups"] = []
+
+    norm.pop("age_group", None)
+
     norm.pop("section_title", None)
     return norm
 
@@ -276,10 +292,10 @@ def stage3_normalize(skill: dict) -> dict:
 def _canonical_key(skill: dict) -> Tuple[str, str, str, str]:
     name = (skill.get("skill_name") or "").lower().strip()
     cat = (skill.get("skill_category") or "").lower().strip()
+    variant = normalize_variant(skill.get("variant"))
     pos_list = skill.get("position") or ["Any"]
     pos = ";".join(sorted(p.lower().strip() for p in pos_list))
-    variant = clean_variant(skill.get("variant"))
-    return name, cat, pos, variant
+    return name, cat, variant, pos
 
 
 def compare_skills_llm(skills: List[dict]) -> List[List[dict]]:
@@ -316,7 +332,8 @@ def merge_skills_llm(skills: List[dict]) -> dict:
 def deduplicate(skills: List[dict]) -> Tuple[List[dict], dict]:
     groups: Dict[Tuple[str, str, str], List[dict]] = defaultdict(list)
     for s in skills:
-        key = _canonical_key(s)[:3]
+        key_parts = _canonical_key(s)
+        key = key_parts[:3]  # name, category, variant
         groups[key].append(s)
 
     merged: List[dict] = []
@@ -326,24 +343,26 @@ def deduplicate(skills: List[dict]) -> Tuple[List[dict], dict]:
         if len(grp) == 1:
             merged.append(grp[0])
             continue
+        notes = [g.get("teaching_notes") or "" for g in grp]
+        first_note = notes[0]
+        similar = all(SequenceMatcher(None, first_note, n).ratio() > 0.9 for n in notes[1:])
         subgroups = [grp]
-        if 2 <= len(grp) <= 10:
+        if not similar and 2 <= len(grp) <= 10:
             subgroups = compare_skills_llm(grp)
         for sub in subgroups:
             if len(sub) == 1:
                 merged.append(sub[0])
                 continue
-            merged_skill = merge_skills_llm(sub)
+            if similar:
+                merged_skill = sub[0].copy()
+            else:
+                merged_skill = merge_skills_llm(sub)
             ags = set()
             for it in sub:
                 if it.get("age_groups"):
                     ags.update(it["age_groups"])
-                elif it.get("age_group"):
-                    ags.add(it["age_group"])
             if merged_skill.get("age_groups"):
                 ags.update(merged_skill["age_groups"])
-            elif merged_skill.get("age_group"):
-                ags.add(merged_skill["age_group"])
             if ags:
                 merged_skill["age_groups"] = sorted(ags)
             merged.append(merged_skill)
@@ -378,7 +397,7 @@ def audit_skills(skills: List[dict], sections: List[dict]) -> dict:
                 excerpt = text[:200]
                 break
         required = [
-            "age_group",
+            "age_groups",
             "ltad_stage",
             "position",
             "skill_category",
@@ -406,18 +425,23 @@ def process_pdf(pdf_path: Path) -> Tuple[List[dict], List[dict], List[dict]]:
     raw_rows: List[dict] = []
     skills: List[dict] = []
 
+    print(f"\n✅ Parsing PDF: {pdf_path.name}")
+
     for page_no, page in enumerate(doc, start=1):
         text = page.get_text()
         secs = stage0_sections(text, pdf_path.name, page_no)
         sections.extend(secs)
+        print(f"  - Stage 0 sections on page {page_no}: {len(secs)}")
         for sec in secs:
             rows = stage1_parse(sec)
             raw_rows.extend(rows)
+            print(f"    • Stage 1 rows from section '{sec.get('section_title', '')}': {len(rows)}")
             for row in rows:
                 skill = stage2_enrich(row)
                 if skill:
                     skills.append(skill)
     doc.close()
+    print(f"  -> Stage 2 enriched skills: {len(skills)}")
     return sections, raw_rows, skills
 
 
@@ -435,6 +459,7 @@ def main() -> None:
     all_rows: List[dict] = []
     all_skills: List[dict] = []
 
+    print("\n✅ Starting Stage 1: Parse Raw Skill Rows")
     for pdf in sorted(args.input_folder.glob("*.pdf")):
         print(f"📖 Processing {pdf.name}")
         try:
@@ -444,25 +469,26 @@ def main() -> None:
             all_skills.extend(skills)
         except Exception as e:
             print(f"❌ Failed to process {pdf.name}: {e}")
+    print(f"-> Parsed sections: {len(all_sections)} | rows: {len(all_rows)} | skills: {len(all_skills)}")
+
+    print("\n✅ Starting Stage 3: Normalize Skills")
 
     # Stage 3 normalize
     normalized = [stage3_normalize(s) for s in all_skills]
+    print(f"-> Normalized skills: {len(normalized)}")
 
     # Age group default for position pathways
     for skill in normalized:
         cat = skill.get("skill_category") or ""
-        if not skill.get("age_group") and cat in {"Goaltending", "Defensive Tactics"}:
+        if not skill.get("age_groups") and cat in {"Goaltending", "Defensive Tactics"}:
             skill["age_groups"] = DEFAULT_POSITION_AGES.copy()
             skill["source_type"] = "position_pathway"
-        else:
-            ag = skill.get("age_group")
-            if ag:
-                skill["age_groups"] = [ag]
 
-    # Stage 5 deduplicate
+    print("\n✅ Starting Stage 5: Merge & Deduplicate")
     deduped, report = deduplicate(normalized)
+    print(f"-> Deduplicated {report['deduplicated']} items (final count {len(deduped)})")
 
-    # Stage 6 audit
+    print("\n✅ Starting Stage 6: Audit")
     audit = audit_skills(deduped, all_sections)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
