@@ -135,7 +135,7 @@ def main() -> None:
         print(f"✨ Processing: {art.title}")
         new_insights.extend(extract_insights_llm(art))
 
-    all_insights = [i.model_dump() for i in existing + new_insights]
+    all_insights = [i.model_dump(mode="json") for i in existing + new_insights]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(all_insights, f, indent=2)
