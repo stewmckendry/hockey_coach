@@ -4,5 +4,6 @@ prompt: |
   For each relevant item return an object with:
     title, category, description, optional age_recommendation, optional goals.
   Categories: warm-up, stretching, plyometrics, balance, stickhandling, nutrition, hydration.
-  Keep description concise. Include the page number for traceability.
+  Preserve all relevant instructional content and language in the description so that it can be richly processed and indexed later.
+  Include the page number for traceability.
   Respond only with a JSON list.
