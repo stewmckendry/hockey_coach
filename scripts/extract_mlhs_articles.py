@@ -7,7 +7,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Set
 
 import requests
 from bs4 import BeautifulSoup
@@ -21,6 +21,16 @@ BASE_URL = "https://mapleleafshotstove.com/leafs-news/"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0 Safari/537.36"
 }
+
+
+def _load_json_if_exists(path: Path) -> list[dict]:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
 
 
 def fetch_page(url: str) -> BeautifulSoup:
@@ -41,11 +51,14 @@ def parse_tiles(soup: BeautifulSoup) -> List[dict]:
         date_el = div.select_one("span.td-post-date")
         cat_el = div.select_one("a.td-post-category")
         excerpt_el = div.select_one("div.td-excerpt")
+        author = author_el.get_text(strip=True) if author_el else None
+        if author and author.endswith("-"):
+            author = author[:-1].strip()
         tiles.append(
             {
                 "title": title,
                 "url": url,
-                "author": author_el.get_text(strip=True) if author_el else None,
+                "author": author,
                 "published_date": date_el.get_text(strip=True) if date_el else None,
                 "category": cat_el.get_text(strip=True) if cat_el else None,
                 "excerpt": excerpt_el.get_text(strip=True) if excerpt_el else None,
@@ -60,7 +73,7 @@ def fetch_article_html(url: str) -> str:
     return str(content_div) if content_div else ""
 
 
-def crawl(num_pages: int) -> List[MLHSArticle]:
+def crawl(num_pages: int, existing_urls: Set[str]) -> List[MLHSArticle]:
     articles: List[MLHSArticle] = []
     for page in range(1, num_pages + 1):
         page_url = BASE_URL if page == 1 else f"{BASE_URL}page/{page}/"
@@ -69,21 +82,33 @@ def crawl(num_pages: int) -> List[MLHSArticle]:
         tiles = parse_tiles(soup)
         print(f"📝 Found {len(tiles)} articles on page {page}")
         for t in tiles:
+            if t["url"] in existing_urls:
+                print(f"⏭️ Skipping already fetched {t['url']}")
+                continue
             html = fetch_article_html(t["url"])
             try:
-                date_obj = datetime.strptime(t["published_date"], "%B %d, %Y").date() if t.get("published_date") else datetime.today().date()
+                date_obj = (
+                    datetime.strptime(t["published_date"], "%B %d, %Y").date()
+                    if t.get("published_date")
+                    else datetime.today().date()
+                )
             except Exception:
                 date_obj = datetime.today().date()
+            author = t.get("author")
+            if author and author.endswith("-"):
+                author = author[:-1].strip()
             article = MLHSArticle(
                 title=t["title"],
                 url=t["url"],
-                author=t.get("author"),
+                author=author,
                 published_date=date_obj,
                 category=t.get("category"),
                 excerpt=t.get("excerpt"),
                 html_content=html,
+                page_number=page,
             )
             articles.append(article)
+            existing_urls.add(t["url"])
     return articles
 
 
@@ -95,14 +120,30 @@ def write_output(articles: List[MLHSArticle], out_path: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Extract Maple Leafs Hot Stove articles")
-    parser.add_argument("--num-pages", type=int, default=1, help="Number of pages to crawl")
-    parser.add_argument("--output", type=Path, default=Path("data/raw/mlhs_articles.json"), help="Output JSON path")
+    parser = argparse.ArgumentParser(
+        description="Extract Maple Leafs Hot Stove articles"
+    )
+    parser.add_argument(
+        "--num-pages", type=int, default=1, help="Number of pages to crawl"
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("data/raw/mlhs_articles.json"),
+        help="Output JSON path",
+    )
     args = parser.parse_args()
 
-    articles = crawl(args.num_pages)
+    existing_data = _load_json_if_exists(args.output)
+    existing_urls = {a.get("url") for a in existing_data}
+    articles = [MLHSArticle(**a) for a in existing_data]
+
+    new_articles = crawl(args.num_pages, existing_urls)
+    articles.extend(new_articles)
     write_output(articles, args.output)
-    print(f"✅ Saved {len(articles)} articles to {args.output}")
+    print(
+        f"✅ Saved {len(new_articles)} new articles ({len(articles)} total) to {args.output}"
+    )
 
 
 if __name__ == "__main__":
