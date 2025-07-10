@@ -1,32 +1,1381 @@
 [
   {
-    "skill_name": "C-cuts",
-    "skill_category": "Skating",
-    "variant": "alternating",
+    "age_groups": [
+      "U7"
+    ],
     "ltad_stage": "Fundamentals 1",
-    "position": ["Any"],
-    "teaching_notes": "Used to develop early edge control and rhythm.",
-    "age_groups": ["U7"],
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Basic stance",
+    "teaching_notes": "Teach players the proper stance for balance and stability on the ice.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
     "source": "u7-core-skills-e.pdf"
   },
   {
-    "skill_name": "Pivots",
-    "skill_category": "Skating",
-    "variant": "forward to backward",
+    "age_groups": [
+      "U9"
+    ],
     "ltad_stage": "Fundamentals 2",
-    "position": ["Any"],
-    "teaching_notes": "Transition quickly while maintaining balance.",
-    "age_groups": ["U9"],
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Basic stance",
+    "teaching_notes": "Teach players the proper stance for balance and agility.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
     "source": "u9-core-skills-e.pdf"
   },
   {
-    "skill_name": "Figure 8's",
-    "skill_category": "Skating",
-    "variant": "circle",
+    "age_groups": [
+      "U7"
+    ],
     "ltad_stage": "Fundamentals 1",
-    "position": ["Any"],
-    "teaching_notes": "Focus on edge control around each loop.",
-    "age_groups": ["U7", "U9"],
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Getting up from the ice",
+    "teaching_notes": "Teach players how to safely and efficiently get up from the ice after falling.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
     "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Balance on one foot",
+    "teaching_notes": "Develops balance and stability. Encourage players to keep their head up while balancing. Also, focus on a fixed point for better balance.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf, u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Jumping",
+    "teaching_notes": "Develops lower body strength and balance. Start with two feet before progressing to one foot.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Gliding on two skates",
+    "teaching_notes": "Focus on maintaining balance and proper body positioning.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Gliding on two skates",
+    "teaching_notes": "Focus on maintaining balance and proper body positioning while gliding.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Gliding on one skate",
+    "teaching_notes": "Develops balance and edge control. Practice on both sides for overall skill improvement. Encourage players to bend knees and use arms for stability.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf, u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Lateral Crossovers",
+    "teaching_notes": "Focus on shifting weight and pushing off with the outside edge of the skate.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "step and plant / continuous",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Inside edge glide",
+    "teaching_notes": "Focus on weight distribution on inside edges of skates. Practice gliding in straight lines and gentle curves.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Figure 8's",
+    "teaching_notes": "Develops edge control and balance. Practice both inside and outside edges.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "forward , inside & outside edge",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Figure 8's",
+    "teaching_notes": "Develops edge control and balance. Focus on maintaining proper body position.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "backward , inside & outside edge",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Slalom",
+    "teaching_notes": "Improve agility and edge control by weaving through cones in a zig-zag pattern.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "T-start",
+    "teaching_notes": "Fundamental skill for initiating movement. Focus on proper foot positioning and weight transfer.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Front v-start",
+    "teaching_notes": "Focus on proper body positioning, weight transfer, and explosive starts for a quick start. Practice from stationary position.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf, u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Crossover start",
+    "teaching_notes": "Introduction to using crossovers to start moving in a different direction.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Crossover start",
+    "teaching_notes": "Initiate forward movement with crossovers for speed and agility.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Backward c-cut start",
+    "teaching_notes": "Focus on weight transfer, edge control, and proper body positioning. Start with small controlled movements and progress to longer strides.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf, u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "One o'clock - eleven o'clock",
+    "teaching_notes": "Focus on shifting weight smoothly from one skate to the other. Develop balance and agility.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Outside leg stop",
+    "teaching_notes": "Focus on weight transfer, distribution, and edge control. Start slow to ensure balance and execute the stop effectively.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf, u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Two-foot parallel stop",
+    "teaching_notes": "Teach players to use both feet to stop efficiently, focus on weight distribution and edge control. Practice stopping in both directions.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "One-leg backward stop",
+    "teaching_notes": "Focus on balance, weight distribution, and edge control. Practice stopping with control, stability, and starting slow for balance. Source: u7-core-skills-e.pdf, u9-core-skills-e.pdf",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Two-leg backward stop",
+    "teaching_notes": "Focus on weight distribution and using edges to stop efficiently.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "C-cuts",
+    "teaching_notes": "Practice shifting weight from one foot to the other. Focus on maintaining balance and control.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "left foot / right foot / alternating",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "T-push",
+    "teaching_notes": "Fundamental skill for lateral movement and quick stops.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "T-push",
+    "teaching_notes": "Focus on pushing off one foot to move laterally. Develop balance and control.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Forward"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Forward striding",
+    "teaching_notes": "Focus on proper knee bend and pushing technique. Encourage full extension of the leg.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Forward striding",
+    "teaching_notes": "Focus on proper body positioning and pushing technique.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Gliding on two skates - backward",
+    "teaching_notes": "Practice maintaining balance and control while gliding backward.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Gliding on one skate - backward",
+    "teaching_notes": "Focus on weight distribution, knee bend, and edge control for balance. Encourage smooth movements and keeping head up.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Glide turns",
+    "teaching_notes": "Focus on weight transfer and edge control during turns.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Tight turns",
+    "teaching_notes": "Focus on using inside and outside edges to execute tight turns. Encourage proper body positioning.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "C-cuts",
+    "teaching_notes": "Practice making C-shaped cuts around a circle using outside foot. Include forward and backward movements. Focus on balance and control.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "circle , outside foot , fwd+bwd",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf, u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7",
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Crossovers",
+    "teaching_notes": "Practice crossovers in both forward and backward directions to improve agility and edge control.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Backward on-foot stop and t-start",
+    "teaching_notes": "Focus on weight distribution and quick transitions between stopping and starting.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Pivots",
+    "teaching_notes": "Practice transitioning from backward to forward, forward to backward, open, and reverse pivots to improve agility, edge control, and skating skills.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Pivots",
+    "teaching_notes": "Practice transitioning from backward to forward and forward to backward, open, and reverse pivots to improve agility, balance, and quick direction changes.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Puck Control",
+    "skill_name": "Stance",
+    "teaching_notes": "Teach different stances for better balance and control of the puck.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Puck Control",
+    "skill_name": "Toe Drag",
+    "teaching_notes": "Practice both front and side toe drag techniques for puck control.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Puck Control",
+    "skill_name": "Open Ice Carry",
+    "teaching_notes": "Practice carrying the puck while maintaining control and changing direction.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Puck Control",
+    "skill_name": "Weaving",
+    "teaching_notes": "Develop puck protection skills and agility to navigate through opponents.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Passing",
+    "skill_name": "Stationary Forehand Pass",
+    "teaching_notes": "Practice proper hand positioning and weight transfer for accurate passes.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Passing",
+    "skill_name": "Stationary Backhand Pass",
+    "teaching_notes": "Practice wrist snap for power and accuracy. Focus on blade positioning.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Passing",
+    "skill_name": "Stationary Bank Pass",
+    "teaching_notes": "Practice angling the stick to control the direction of the pass.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Passing",
+    "skill_name": "Moving Forehand Pass",
+    "teaching_notes": "Practice passing while skating to improve game situations.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Passing",
+    "skill_name": "Moving Backhand Pass",
+    "teaching_notes": "Practice weight transfer and follow through for accuracy.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Shooting",
+    "skill_name": "Forehand Sweep Shot",
+    "teaching_notes": "Focus on weight transfer and follow-through for power and accuracy.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Shooting",
+    "skill_name": "Forehand Wrist Shot",
+    "teaching_notes": "Technique for executing a wrist shot with the forehand.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Shooting",
+    "skill_name": "Backhand Sweep Shot",
+    "teaching_notes": "Focus on wrist movement and follow-through. Practice shooting from different angles.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Shooting",
+    "skill_name": "Forehand Flip Shot",
+    "teaching_notes": "Teach players how to lift the puck using the forehand for a surprise shot on goal.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Offensive Tactics",
+    "skill_name": "Body fakes",
+    "teaching_notes": "Teach players to use body movements to deceive opponents and create scoring opportunities.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Offensive Tactics",
+    "skill_name": "Stick fakes",
+    "teaching_notes": "Teach players to deceive opponents with quick stick movements.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U7"
+    ],
+    "ltad_stage": "Fundamentals 1",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "General",
+    "skill_name": "Angling",
+    "teaching_notes": "Teach players to angle opponents towards the boards to limit their options.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u7-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "General",
+    "skill_name": "Angling",
+    "teaching_notes": "Teach players to steer opponents away from dangerous areas of the ice.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Lateral Crossovers",
+    "teaching_notes": "Develops agility and edge control. Focus on smooth transitions and knee bend.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Figure 8's",
+    "teaching_notes": "Develops balance and edge control. Practice both inside and outside edges.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Figure 8's - backward - inside & outside edge",
+    "teaching_notes": "Develops edge control and balance. Focus on proper body positioning and weight transfer.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Heel to Heel",
+    "teaching_notes": "Practice shifting weight smoothly between feet. Focus on maintaining balance.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "mohawk",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "1 leg weaving",
+    "teaching_notes": "Improve balance and agility by weaving in and out on one leg. Practice going forward and backward.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "One o'clock - eleven o'clock stops",
+    "teaching_notes": "Practice stopping at different angles to improve agility and balance.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Crossunders",
+    "teaching_notes": "Focus on maintaining balance while crossing feet under the body. Develop agility and coordination.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "C-cuts",
+    "teaching_notes": "Practice shifting weight from one foot to the other. Focus on maintaining balance and control.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "left foot / right foot",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Gliding backward on two skates",
+    "teaching_notes": "Practice maintaining balance and control while moving backward.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Backward Striding",
+    "teaching_notes": "Focus on knee bend and pushing from the balls of the feet. Encourage players to keep their head up.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Crossover",
+    "teaching_notes": "Practice crossing one foot over the other for improved agility and balance.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "reach",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Skating",
+    "skill_name": "Glide turns / Tight turns",
+    "teaching_notes": "Focus on weight transfer and edge control. Practice both tight and wide turns.",
+    "season_month": null,
+    "progression_stage": "Developmental",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Puck Control",
+    "skill_name": "Stationary Puck Control",
+    "teaching_notes": "Focus on puck handling techniques while stationary. Encourage players to keep their head up.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Puck Control",
+    "skill_name": "Moving Puck Control",
+    "teaching_notes": "Focus on keeping the puck close while moving. Encourage head up scanning for teammates.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Passing",
+    "skill_name": "Stationary Passing and Receiving",
+    "teaching_notes": "Focus on proper hand positioning and soft passes. Encourage players to receive the puck with the blade open.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Passing",
+    "skill_name": "Moving Passing and Receiving",
+    "teaching_notes": "Focus on proper technique for passing and receiving while in motion.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Shooting",
+    "skill_name": "Shooting",
+    "teaching_notes": "Focus on proper technique and accuracy when shooting the puck.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "Offensive Tactics",
+    "skill_name": "Individual Offensive Tactics",
+    "teaching_notes": "Focus on puck protection, deking, and creating scoring opportunities.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "General",
+    "skill_name": "1 on 1's",
+    "teaching_notes": "Teach players how to defend against an opponent in a one-on-one situation.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "General",
+    "skill_name": "Escape moves",
+    "teaching_notes": "Teach players how to evade opponents effectively.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "General",
+    "skill_name": "Puck retrievals",
+    "teaching_notes": "Teach players how to effectively retrieve the puck from opponents.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 2,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
+  },
+  {
+    "age_groups": [
+      "U9"
+    ],
+    "ltad_stage": "Fundamentals 2",
+    "position": [
+      "Any"
+    ],
+    "skill_category": "General",
+    "skill_name": "Basic Positioning",
+    "teaching_notes": "Teach players the basic positioning principles for effective defense.",
+    "season_month": null,
+    "progression_stage": "Introductory",
+    "teaching_complexity": 1,
+    "variant": "",
+    "source_type": null,
+    "source": "u9-core-skills-e.pdf"
   }
 ]
