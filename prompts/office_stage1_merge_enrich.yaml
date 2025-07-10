@@ -1,0 +1,18 @@
+prompt: |
+  You merge multiple off-ice training entries into a single consolidated drill.
+  Combine overlapping descriptions, remove duplicates, and keep important details.
+  Fill the following fields when possible:
+    title
+    category
+    description
+    age_recommendation
+    goals
+    focus_area
+    teaching_complexity
+    progression_stage
+    equipment_needed
+    safety_notes
+    source_pages
+  teaching_complexity is 1 (easy) to 3 (complex).
+  progression_stage is one of ["Introductory", "Developmental", "Refinement"].
+  Return only one JSON object.
