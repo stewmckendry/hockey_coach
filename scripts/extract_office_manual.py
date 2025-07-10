@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 from typing import List, Dict
+import time
 
 import re
 from difflib import SequenceMatcher
@@ -61,8 +62,15 @@ def _load_json_if_exists(path: Path) -> list[dict]:
     return []
 
 
-def stage0_extract_items(text: str, page_no: int) -> List[OffIceEntry]:
-    user = f"Page {page_no}:\n{text}\n\nReturn JSON list."
+def stage0_extract_items(pages: List[tuple[int, str]]) -> List[OffIceEntry]:
+    """Extract items from a batch of pages."""
+    user_blocks = []
+    page_nums = []
+    for page_no, text in pages:
+        page_nums.append(page_no)
+        user_blocks.append(f"Page {page_no}:\n{text}")
+    user = "\n".join(user_blocks) + "\n\nReturn JSON list."
+
     resp = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         temperature=0,
@@ -75,7 +83,7 @@ def stage0_extract_items(text: str, page_no: int) -> List[OffIceEntry]:
         data = [data]
     items: List[OffIceEntry] = []
     for d in data:
-        d.setdefault("source_page", page_no)
+        d.setdefault("source_page", page_nums[0])
         d.setdefault("source", "off_ice_manual_hockey_canada_level1")
         try:
             if isinstance(d.get("goals"), str):
@@ -134,8 +142,19 @@ def merge_and_enrich(group: List[OffIceEntry]) -> EnrichedOffIceEntry | None:
     )
     data = _parse_json(resp.choices[0].message.content)
     if isinstance(data, dict):
+        # Normalize LLM output types
+        if isinstance(data.get("teaching_complexity"), int):
+            data["teaching_complexity"] = str(data["teaching_complexity"])
+        if isinstance(data.get("goals"), str):
+            data["goals"] = [data["goals"]]
+
         data.setdefault("source_pages", sorted({e.source_page for e in group}))
         data.setdefault("source", group[0].source)
+
+        if not data.get("focus_area"):
+            print("⚠️ Missing focus_area; skipping group")
+            return None
+
         try:
             return EnrichedOffIceEntry(**data)
         except ValidationError as e:
@@ -143,17 +162,31 @@ def merge_and_enrich(group: List[OffIceEntry]) -> EnrichedOffIceEntry | None:
     return None
 
 
-def extract_pdf(pdf_path: Path) -> List[OffIceEntry]:
+def extract_pdf(pdf_path: Path, batch_size: int = 3) -> List[OffIceEntry]:
+    """Extract raw entries from the PDF using batched LLM calls."""
     doc = fitz.open(pdf_path)
     rows: List[OffIceEntry] = []
+    batch: List[tuple[int, str]] = []
+
     for page_no, page in enumerate(doc, start=1):
-        print(f"📄 Processing page {page_no}...")
         text = page.get_text().strip()
         if not text:
             continue
-        items = stage0_extract_items(text, page_no)
-        print(f"🔍 Found {len(items)} items on page {page_no}")
+        print(f"📄 Loaded page {page_no}")
+        batch.append((page_no, text))
+        if len(batch) >= batch_size:
+            print(f"🕒 Sending pages {batch[0][0]}-{batch[-1][0]} to LLM...")
+            items = stage0_extract_items(batch)
+            print(f"🔍 Found {len(items)} items in batch")
+            rows.extend([i for i in items if i.is_valid()])
+            batch = []
+
+    if batch:
+        print(f"🕒 Sending pages {batch[0][0]}-{batch[-1][0]} to LLM...")
+        items = stage0_extract_items(batch)
+        print(f"🔍 Found {len(items)} items in final batch")
         rows.extend([i for i in items if i.is_valid()])
+
     doc.close()
     return dedupe(rows)
 
@@ -182,15 +215,21 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Print results only")
     args = parser.parse_args()
 
+    start_time = time.perf_counter()
+
     raw_entries: List[OffIceEntry] = []
     if args.pdf:
-        print(f"📖 Extracting from {args.pdf}")
+        print("▶️ Extracting PDF pages...")
+        print(f"📖 Source: {args.pdf}")
+        stage_start = time.perf_counter()
         raw_entries = extract_pdf(args.pdf)
         args.input.parent.mkdir(parents=True, exist_ok=True)
         with open(args.input, "w", encoding="utf-8") as f:
             json.dump([e.model_dump() for e in raw_entries], f, indent=2)
-        print(f"✅ Wrote {len(raw_entries)} raw entries to {args.input}")
+        duration = time.perf_counter() - stage_start
+        print(f"✅ Wrote {len(raw_entries)} raw entries to {args.input} ({duration:.1f}s)")
     else:
+        print("▶️ Loading raw entries from input file...")
         for d in _load_json_if_exists(args.input):
             try:
                 raw_entries.append(OffIceEntry(**d))
@@ -201,12 +240,20 @@ def main() -> None:
         print("❌ No entries to process")
         return
 
+    print("🔁 Grouping similar entries...")
+    stage_start = time.perf_counter()
     groups = group_similar(raw_entries)
+    print(f"🔎 Created {len(groups)} groups ({time.perf_counter() - stage_start:.1f}s)")
+
     enriched: List[EnrichedOffIceEntry] = []
-    for grp in groups:
+    skipped = 0
+    for idx, grp in enumerate(groups, 1):
+        print(f"✨ Enriching entry group {idx}/{len(groups)}...")
         item = merge_and_enrich(grp)
         if item:
             enriched.append(item)
+        else:
+            skipped += 1
 
     if args.dry_run:
         print(json.dumps([e.model_dump() for e in enriched], indent=2))
@@ -216,6 +263,11 @@ def main() -> None:
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump([e.model_dump() for e in enriched], f, indent=2)
     print(f"✅ Wrote {len(enriched)} enriched entries to {args.output}")
+    if skipped:
+        print(f"⚠️ Skipped {skipped} groups due to errors")
+
+    total_duration = time.perf_counter() - start_time
+    print(f"⏱️ Finished in {total_duration:.1f}s")
 
 
 if __name__ == "__main__":

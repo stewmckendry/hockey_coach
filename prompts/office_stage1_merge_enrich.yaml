@@ -15,4 +15,5 @@ prompt: |
     source_pages
   teaching_complexity is 1 (easy) to 3 (complex).
   progression_stage is one of ["Introductory", "Developmental", "Refinement"].
+  All fields must be valid JSON. Use strings or lists only — do not return integers.
   Return only one JSON object.
