@@ -6,13 +6,17 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List
+
+from pydantic import ValidationError
 
 import fitz  # PyMuPDF
 import yaml
 from openai import OpenAI
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from models.off_ice import OffIceEntry
 
 client = OpenAI()
 
@@ -51,7 +55,7 @@ def _load_json_if_exists(path: Path) -> list[dict]:
     return []
 
 
-def stage0_extract_items(text: str, page_no: int) -> List[Dict[str, Any]]:
+def stage0_extract_items(text: str, page_no: int) -> List[OffIceEntry]:
     user = f"Page {page_no}:\n{text}\n\nReturn JSON list."
     resp = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
@@ -63,21 +67,23 @@ def stage0_extract_items(text: str, page_no: int) -> List[Dict[str, Any]]:
         return []
     if isinstance(data, dict):
         data = [data]
+    items: List[OffIceEntry] = []
     for d in data:
         d.setdefault("source_page", page_no)
         d.setdefault("source", "off_ice_manual_hockey_canada_level1")
-    return data  # type: ignore[return-value]
+        try:
+            items.append(OffIceEntry(**d))
+        except ValidationError as e:
+            print(f"❌ Validation error: {e}")
+            continue
+    return items
 
 
-def is_valid(item: Dict[str, Any]) -> bool:
-    return all(item.get(k) and str(item.get(k)).strip() for k in ["title", "description", "category"])
-
-
-def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def dedupe(items: List[OffIceEntry]) -> List[OffIceEntry]:
     seen = set()
-    result = []
+    result: List[OffIceEntry] = []
     for it in items:
-        key = (it.get("title"), it.get("category"), it.get("source_page"))
+        key = (it.title, it.category, it.source_page)
         if key in seen:
             continue
         seen.add(key)
@@ -85,15 +91,15 @@ def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return result
 
 
-def extract_pdf(pdf_path: Path) -> List[Dict[str, Any]]:
+def extract_pdf(pdf_path: Path) -> List[OffIceEntry]:
     doc = fitz.open(pdf_path)
-    rows: List[Dict[str, Any]] = []
+    rows: List[OffIceEntry] = []
     for page_no, page in enumerate(doc, start=1):
         text = page.get_text().strip()
         if not text:
             continue
         items = stage0_extract_items(text, page_no)
-        rows.extend([i for i in items if is_valid(i)])
+        rows.extend([i for i in items if i.is_valid()])
     doc.close()
     return dedupe(rows)
 
@@ -118,15 +124,22 @@ def main() -> None:
     entries = extract_pdf(args.input)
 
     if args.dry_run:
-        print(json.dumps(entries, indent=2))
+        print(json.dumps([e.dict() for e in entries], indent=2))
         return
 
-    existing = _load_json_if_exists(args.output)
+    existing_raw = _load_json_if_exists(args.output)
+    existing: List[OffIceEntry] = []
+    for d in existing_raw:
+        try:
+            existing.append(OffIceEntry(**d))
+        except ValidationError as e:
+            print(f"❌ Validation error for existing entry: {e}")
+
     existing.extend(entries)
     existing = dedupe(existing)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as f:
-        json.dump(existing, f, indent=2)
+        json.dump([e.dict() for e in existing], f, indent=2)
     print(f"✅ Wrote {len(existing)} entries to {args.output}")
 
 
