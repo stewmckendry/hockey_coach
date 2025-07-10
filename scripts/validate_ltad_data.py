@@ -38,7 +38,7 @@ def main() -> None:
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("data/processed/ltad_index.json"),
+        default=Path("data/processed/ltad_skills_final.json"),
         help="Path to skill JSON file",
     )
     args = parser.parse_args()
