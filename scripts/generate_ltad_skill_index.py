@@ -17,7 +17,7 @@ from openai import OpenAI
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from models.ltad import LTADSkill
-from ltad_normalizer import normalize_ltad_skill
+from ltad_normalizer import normalize_ltad_skill, infer_age_group_from_text
 
 
 PROMPT_DIR = Path(__file__).resolve().parent.parent / "prompts"
@@ -31,7 +31,6 @@ def load_prompt(name: str) -> str:
 PROMPT_STAGE0 = load_prompt("ltad_stage0_extract.yaml")
 PROMPT_STAGE1 = load_prompt("ltad_stage1_parse_skills.yaml")
 PROMPT_STAGE2 = load_prompt("ltad_stage2_enrich_skills.yaml")
-PROMPT_POST = load_prompt("ltad_postprocess_prompt.yaml")
 PROMPT_COMPARE = load_prompt("ltad_compare_prompt.yaml")
 PROMPT_MERGE = load_prompt("ltad_merge_prompt.yaml")
 
@@ -106,6 +105,22 @@ CATEGORY_MAP = {
     "Other": "General",
     "Technical Skills": "General Development",
     "General Development": "General Development",
+    "Body Contact": "Checking",
+    "Checking": "Checking",
+    "Body Contact and Checking": "Checking",
+    "Angling": "Defensive Tactics",
+    "Face-offs": "Faceoffs",
+    "Faceoff": "Faceoffs",
+    "Shooting and Scoring": "Shooting",
+    "Skating Agility": "Skating",
+    "Goaltender Movement": "Goaltending",
+    "Offensive Skills": "Offensive Tactics",
+    "Individual Skills": "General Development",
+    "Compete Level": "Compete",
+    "Small Area Games": "Team Play",
+    "Power Play": "Team Play",
+    "Penalty Kill": "Team Play",
+    "Specialty Teams": "Team Play",
 }
 
 AGE_STAGE_MAP = {
@@ -156,7 +171,20 @@ def normalize_category(cat: str | None) -> str | None:
     canonical = CATEGORY_MAP.get(base, CATEGORY_MAP.get(base.title(), None))
     if canonical:
         return canonical
-    return base.title()
+    return "General"
+
+
+def clean_variant(text: str | None) -> str:
+    if not text:
+        return ""
+    v = text.lower()
+    v = v.replace("forward and backward", "fwd+bwd")
+    v = v.replace("forward & backward", "fwd+bwd")
+    v = v.replace("forward/backward", "fwd+bwd")
+    v = v.replace("around circle", "circle")
+    v = v.replace("-", ",")
+    v = v.replace("  ", " ")
+    return v.strip(" ,;")
 
 
 def stage0_sections(text: str, source: str, page_num: int) -> List[dict]:
@@ -212,13 +240,22 @@ def stage2_enrich(row: dict) -> dict | None:
         return None
     data.setdefault("source", row.get("source"))
     try:
-        return LTADSkill(**data).model_dump()
+        skill = LTADSkill(**data).model_dump()
+        skill["section_title"] = row.get("section_title")
+        return skill
     except Exception:
         return None
 
 
 def stage3_normalize(skill: dict) -> dict:
     norm = normalize_ltad_skill(skill)
+
+    # Infer age group from section title if still missing
+    if not norm.get("age_group") and skill.get("section_title"):
+        ag = infer_age_group_from_text(skill["section_title"])
+        if ag:
+            norm["age_group"] = ag
+
     cat = normalize_category(norm.get("skill_category"))
     if cat:
         norm["skill_category"] = cat
@@ -228,25 +265,12 @@ def stage3_normalize(skill: dict) -> dict:
         norm["age_group"] = age
         norm["ltad_stage"] = norm.get("ltad_stage") or AGE_STAGE_MAP.get(age)
     else:
-        norm["age_group"] = None
+        norm["age_group"] = "Unknown"
 
+    norm.pop("section_title", None)
     return norm
 
 
-def stage4_postprocess(skill: dict) -> dict:
-    user = json.dumps(skill, indent=2)
-    resp = client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
-        temperature=0,
-        messages=[{"role": "system", "content": PROMPT_POST}, {"role": "user", "content": user}],
-    )
-    data = _parse_json(resp.choices[0].message.content)
-    if isinstance(data, dict):
-        try:
-            return LTADSkill(**data).model_dump()
-        except Exception:
-            pass
-    return skill
 
 
 def _canonical_key(skill: dict) -> Tuple[str, str, str, str]:
@@ -254,7 +278,7 @@ def _canonical_key(skill: dict) -> Tuple[str, str, str, str]:
     cat = (skill.get("skill_category") or "").lower().strip()
     pos_list = skill.get("position") or ["Any"]
     pos = ";".join(sorted(p.lower().strip() for p in pos_list))
-    variant = (skill.get("variant") or "").lower().strip()
+    variant = clean_variant(skill.get("variant"))
     return name, cat, pos, variant
 
 
@@ -310,6 +334,18 @@ def deduplicate(skills: List[dict]) -> Tuple[List[dict], dict]:
                 merged.append(sub[0])
                 continue
             merged_skill = merge_skills_llm(sub)
+            ags = set()
+            for it in sub:
+                if it.get("age_groups"):
+                    ags.update(it["age_groups"])
+                elif it.get("age_group"):
+                    ags.add(it["age_group"])
+            if merged_skill.get("age_groups"):
+                ags.update(merged_skill["age_groups"])
+            elif merged_skill.get("age_group"):
+                ags.add(merged_skill["age_group"])
+            if ags:
+                merged_skill["age_groups"] = sorted(ags)
             merged.append(merged_skill)
             report_clusters.append({"original": sub, "merged": merged_skill})
 
@@ -341,10 +377,20 @@ def audit_skills(skills: List[dict], sections: List[dict]) -> dict:
                 found = True
                 excerpt = text[:200]
                 break
+        required = [
+            "age_group",
+            "ltad_stage",
+            "position",
+            "skill_category",
+            "skill_name",
+            "source",
+        ]
+        missing = [f for f in required if not skill.get(f)]
         audits.append({
             "skill_name": skill.get("skill_name"),
             "found_in_source": found,
             "source_excerpt": excerpt,
+            "missing_fields": missing,
         })
     coverage = sum(1 for a in audits if a["found_in_source"]) / len(audits) if audits else 0
     return {"coverage": coverage, "audits": audits}
@@ -413,11 +459,8 @@ def main() -> None:
             if ag:
                 skill["age_groups"] = [ag]
 
-    # Stage 4 postprocess with LLM
-    post = [stage4_postprocess(s) for s in normalized]
-
     # Stage 5 deduplicate
-    deduped, report = deduplicate(post)
+    deduped, report = deduplicate(normalized)
 
     # Stage 6 audit
     audit = audit_skills(deduped, all_sections)
