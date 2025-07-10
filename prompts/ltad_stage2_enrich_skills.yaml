@@ -1,7 +1,13 @@
 prompt: |
-  You convert a raw skill row into a structured LTADSkill object for youth hockey development.
-  Fill the fields when possible: age_group, ltad_stage, position, skill_category, skill_name, teaching_notes, season_month, progression_stage, teaching_complexity, variant, source.
-  Use null if information is missing. Provide concise teaching_notes.
+  You convert a raw skill row into a finalized LTADSkill object for youth hockey development. Normalize names and metadata.
+  Fill the fields when possible: age_group, ltad_stage, position, skill_category, skill_name,
+  teaching_notes, season_month, progression_stage, teaching_complexity, variant, source.
+  - Canonicalize skill_name and variant (e.g. "C-cuts - alternating" -> skill_name "C-cuts", variant "alternating").
+  - Map skill_category to standard options like Skating, Passing, Shooting, Puck Control, Team Play, Goaltending, Defensive Tactics, Offensive Tactics, Hockey IQ, Compete, General Development. Use "General" if unsure.
+  - Infer age_group from section title or source filename if missing. Use "Unknown" only when it cannot be inferred.
+  - Infer ltad_stage from age_group using known mapping (U7 -> Fundamentals 1, U9 -> Fundamentals 2, U11 -> Learn to Train, U13/U15 -> Train to Train, U18 -> Train to Compete).
+  - Position should be one of [Forward, Defence, Goalie, Any]; default to Any.
+  - Keep teaching_notes short and clear for coaches. Leave season_month null unless clearly provided.
   Return a single JSON object like:
   ```json
   {
