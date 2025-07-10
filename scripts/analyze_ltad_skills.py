@@ -2,7 +2,7 @@ import json
 import os
 from collections import defaultdict, Counter
 
-INPUT_FILE = "data/processed/ltad_skills_postprocessed.json"
+INPUT_FILE = "data/processed/ltad_skills_final.json"
 OUTPUT_DIR = "outputs"
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "ltad_skills_summary.md")
 
@@ -88,76 +88,31 @@ def main():
 
     for age, info in details.items():
         lines.append(f"\n### Age Group: {age}")
-        for category, names in sorted(lists[age].items()):
-            joined = ", ".join(sorted(set(names)))
-            lines.append(f"- **{category}**: {joined}")
+        lines.append(f"- **# of skills by skill category:**")
+        for cat, count in info["by_category"].items():
+            lines.append(f"  - {cat}: {count}")
+        lines.append(f"- **# of skills by position:**")
+        for pos, count in info["by_position"].items():
+            lines.append(f"  - {pos}: {count}")
+        lines.append(f"- **List of skills by skill category:**")
+        for cat, skills in info["skills_by_category"].items():
+            skill_list = ', '.join(sorted(set(skills)))
+            lines.append(f"  - {cat}: {skill_list}")
 
-    lines.append("\n## Data Completeness (Overall)")
-    lines.append("| Field | % Complete |")
-    lines.append("|-------|------------|")
-    for field, pct in stats.items():
-        lines.append(f"| {field} | {pct:.1f}% |")
+    lines.append("\n## Incomplete Metadata Records\n")
+    if incomplete:
+        lines.append("| Index | Skill Name | Missing Fields |")
+        lines.append("|-------|------------|---------------|")
+        for idx, name, missing in incomplete:
+            lines.append(f"| {idx} | {name} | {', '.join(missing)} |")
+    else:
+        lines.append("All records have complete metadata.")
 
-    lines.append("\n## Analysis by Source")
-    for src in sorted(src_counts):
-        total = sum(src_counts[src].values())
-        lines.append(f"\n### Source: {src} (Total: {total} skills)")
-        lines.append("#### Counts by Category")
-        for cat, cnt in sorted(src_counts[src].items()):
-            lines.append(f"- **{cat}**: {cnt}")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write('\n'.join(lines))
 
-        comp = src_stats.get(src, {})
-        lines.append("\n#### Data Completeness")
-        lines.append("| Field | % Complete |")
-        lines.append("|-------|------------|")
-        for field, pct in comp.items():
-            lines.append(f"| {field} | {pct:.1f}% |")
-
-    lines.append("")
-    return "\n".join(lines)
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Analyze LTAD skills dataset")
-    parser.add_argument(
-        "--input",
-        type=Path,
-        default=Path("data/processed/ltad_skills_final.json"),
-        help="Input JSON file with LTAD skills",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=Path("outputs/ltad_skill_analysis.md"),
-        help="Markdown file to write analysis",
-    )
-    args = parser.parse_args()
-
-    if not args.input.is_file():
-        print(f"❌ File not found: {args.input}")
-        return
-
-    skills = load_skills(args.input)
-    print(f"✅ Loaded {len(skills)} skills from {args.input}")
-
-    counts = summary_counts(skills)
-    print("✅ Generated summary counts")
-
-    lists = skill_lists_by_age(skills)
-    print("✅ Generated skill lists")
-
-    stats = completeness(skills)
-    print("✅ Calculated data completeness")
-
-    src_counts = counts_by_source(skills)
-    src_stats = completeness_by_source(skills)
-    print("✅ Analyzed skills by source")
-
-    md = render_markdown(counts, lists, stats, src_counts, src_stats)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(md, encoding="utf-8")
-    print(f"✅ Wrote analysis to {args.output}")
-
+    print(f"Summary written to {OUTPUT_FILE}")
 
 if __name__ == "__main__":
     main()
