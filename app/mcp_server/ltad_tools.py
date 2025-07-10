@@ -11,7 +11,7 @@ from .chroma_utils import get_client, _embed
 
 mcp = FastMCP("Thunder LTAD")
 
-LTAD_PATH = Path(__file__).resolve().parent.parent / "data" / "processed" / "ltad_index.json"
+LTAD_PATH = Path(__file__).resolve().parent.parent / "data" / "processed" / "ltad_skills_final.json"
 
 
 class LTADSkill(TypedDict):

@@ -55,7 +55,7 @@ def clear_collection(coll) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Index normalized LTAD skills")
     parser.add_argument(
-        "--input", type=Path, default=Path("data/processed/ltad_index.json"), help="Normalized skills JSON"
+        "--input", type=Path, default=Path("data/processed/ltad_skills_final.json"), help="Normalized skills JSON"
     )
     args = parser.parse_args()
 

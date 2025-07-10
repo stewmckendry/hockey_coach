@@ -144,7 +144,7 @@ def main() -> None:
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("data/processed/ltad_skills_processed.json"),
+        default=Path("data/processed/ltad_skills_final.json"),
         help="Input JSON file with LTAD skills",
     )
     parser.add_argument(
