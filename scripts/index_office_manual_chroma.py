@@ -33,18 +33,24 @@ def doc_text(entry: dict) -> str:
     ]
     return "\n".join(p for p in parts if p)
 
-
 def metadata_for(entry: dict) -> dict:
+    def safe_str(value) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, list):
+            return ", ".join(str(v) for v in value)
+        return str(value)
+
     return {
-        "title": entry.get("title"),
-        "category": entry.get("category"),
-        "focus_area": entry.get("focus_area"),
-        "progression_stage": entry.get("progression_stage"),
-        "teaching_complexity": entry.get("teaching_complexity"),
-        "equipment_needed": entry.get("equipment_needed"),
-        "age_recommendation": entry.get("age_recommendation"),
-        "source_pages": entry.get("source_pages"),
-        "source": entry.get("source", "off_ice_manual_hockey_canada_level1"),
+        "title": safe_str(entry.get("title")),
+        "category": safe_str(entry.get("category")),
+        "focus_area": safe_str(entry.get("focus_area")),
+        "progression_stage": safe_str(entry.get("progression_stage")),
+        "teaching_complexity": safe_str(entry.get("teaching_complexity")),
+        "equipment_needed": safe_str(entry.get("equipment_needed")),
+        "age_recommendation": safe_str(entry.get("age_recommendation")),
+        "source_pages": safe_str(entry.get("source_pages")),
+        "source": safe_str(entry.get("source", "off_ice_manual_hockey_canada_level1")),
         "type": "off_ice_training",
     }
 
