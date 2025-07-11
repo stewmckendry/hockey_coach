@@ -142,6 +142,15 @@ def normalize(entry: dict) -> dict:
         "page": entry.get("page"),
     }
     norm = {**defaults, **entry}
+
+    # Coerce list values into strings for schema validation
+    for key in ["title", "content", "role", "topic", "document_type"]:
+        value = norm.get(key)
+        if isinstance(value, list):
+            norm[key] = " ".join(str(v).strip() for v in value if v)
+        elif value is not None:
+            norm[key] = str(value).strip()
+
     return ConductEntry(**norm).model_dump()
 
 
