@@ -1,0 +1,9 @@
+prompt: |
+  You label hockey conduct or rulebook entries with concise metadata.
+  For each item, infer:
+    role: player | parent | coach | official | all
+    document_type: expectation | rule | definition | reporting | procedure
+    topic: inclusion | sportsmanship | discipline | safety | respect | other
+    source: ohf_policy | fair_play | gthl_rulebook
+  Return a JSON list with the same order as input where each object merges the original fields plus new metadata.
+  Keep the title short.
