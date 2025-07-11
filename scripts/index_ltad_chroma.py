@@ -89,8 +89,12 @@ def main() -> None:
         doc_id = f"ltad-{idx}"
         if doc_id in existing_ids:
             continue
+        meta = metadata_for(skill)
+        if not meta:
+            print(f"⚠️ Skipping {doc_id}: empty metadata")
+            continue
         docs.append(doc_text(skill))
-        metadatas.append(metadata_for(skill))
+        metadatas.append(meta)
         ids.append(doc_id)
 
     if docs:
