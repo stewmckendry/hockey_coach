@@ -14,7 +14,7 @@ from app.client.drill_planner import DrillPlannerManager
 
 async def run_pipeline(input_text: str):
     async with MCPServerSse(
-        name="Thunder MCP Server",
+        name="Drills MCP Server",
         params={"url": "http://localhost:8000/sse"},
     ) as mcp_server:
         trace_id = gen_trace_id()
@@ -34,9 +34,9 @@ def main():
     if not shutil.which("uv"):
         raise RuntimeError("Missing `uv`. Install it from https://docs.astral.sh/uv/")
 
-    print("🚀 Launching Thunder MCP SSE server at http://localhost:8000/sse ...")
+    print("🚀 Launching Drills MCP SSE server at http://localhost:8000/sse ...")
 
-    server_path = Path(__file__).resolve().parent.parent / "mcp_server" / "server.py"
+    server_path = Path(__file__).resolve().parent.parent / "mcp_server" / "drills_mcp_server.py"
     process: subprocess.Popen[Any] | None = subprocess.Popen(["uv", "run", str(server_path)])
     time.sleep(3)
 

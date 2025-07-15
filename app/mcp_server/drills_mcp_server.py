@@ -12,7 +12,7 @@ import os
 # Use absolute import to avoid ImportError when running as a script
 import video_tools  # noqa: F401
 
-mcp = FastMCP("Thunder DrillKB")
+mcp = FastMCP("Drills MCP Server")
 
 # === Drill Schema Definition ===
 class Drill(TypedDict):
@@ -40,90 +40,6 @@ class DrillResult(TypedDict):
     position: List[str]
     situation: List[str]
     source: str
-
-# === Drill Data Path ===
-DRILLS_PATH = Path(__file__).parent.parent / "outputs" / "drills_classified_full.json"
-
-def safe_join(val) -> str:
-    if isinstance(val, list):
-        return " ".join(val)
-    return str(val or "")
-
-
-#@mcp.tool(title="Search Drills by Keyword")
-def search_drills(
-    query: str,
-    skills: Optional[List[str]] = None,
-    position: Optional[List[str]] = None,
-    situation: Optional[List[str]] = None
-) -> List[DrillResult]:
-    """Search hockey drills by keyword (in title, summary, instructions, tags) and optional filters."""
-    query_keywords = [q.strip().lower() for q in query.split()] if query else []
-
-    with open(DRILLS_PATH, "r") as f:
-        drills = json.load(f)
-
-    results = []
-    for d in drills:
-        # Build searchable blob
-        searchable_text = (
-            safe_join(d.get("title")) + " " +
-            safe_join(d.get("summary")) + " " +
-            safe_join(d.get("instructions")) + " " +
-            safe_join(d.get("variations")) + " " +
-            safe_join(d.get("teaching_points")) + " " +
-            safe_join(d.get("tags")) + " " +
-            safe_join(d.get("situation")) + " " +
-            safe_join(d.get("hockey_skills"))
-        ).lower()
-
-        # Check if all keywords are in searchable blob
-        if not all(k in searchable_text for k in query_keywords):
-            continue
-
-        # Filter by skills
-        if skills:
-            drill_skills = set([s.lower() for s in d.get("hockey_skills", [])])
-            if not any(s.lower() in drill_skills for s in skills):
-                continue
-
-        # Filter by position
-        if position:
-            drill_pos = set([p.lower() for p in d.get("position", [])])
-            if not any(p.lower() in drill_pos for p in position):
-                continue
-
-        # Filter by situation
-        if situation:
-            drill_situ = set([s.lower() for s in d.get("situation", [])])
-            if not any(s.lower() in drill_situ for s in situation):
-                continue
-
-        # Build short result
-        results.append({
-            "title": d["title"],
-            "link": d.get("video_url") or d.get("image_url"),
-            "hockey_skills": d.get("hockey_skills", []),
-            "position": d.get("position", []),
-            "situation": d.get("situation", []),
-            "source": d.get("source", "")
-        })
-
-    return results
-
-
-# === Tool: Get Full Drill by Title ===
-@mcp.tool(title="Get Drill by Title")
-def get_drill(title: str) -> Optional[Drill]:
-    """Look up a drill by exact title."""
-    if not title:
-        return None
-
-    with open(DRILLS_PATH, "r") as f:
-        for drill in json.load(f):
-            if drill["title"].strip().lower() == title.strip().lower():
-                return drill
-    return None
 
 # === Resource: Schema ===
 @mcp.resource("schema://drills", title="Drill Metadata Schema")

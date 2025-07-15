@@ -29,6 +29,8 @@ google-api-python-client = "^2.126.0"
 more-itertools = "^10.1.0"
 beautifulsoup4 = "^4.12.3"
 lxml = "^5.2.1"  # or the latest version available
+fastapi = "^0.111.0"
+fastmcp = { git = "https://github.com/jlowin/fastmcp.git", tag = "v2.10.0" }
 
 [build-system]
 requires = ["poetry-core"]
