@@ -40,7 +40,7 @@ office_agent = Agent(
     instructions=_load_prompt(),
     handoffs=[],
     output_type=OffIceSearchResults,
-    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse"})],
+    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse", "timeout": 30})],
     model="gpt-4o",
 )
 

@@ -14,7 +14,7 @@ from app.client.agent.off_ice_planner import OffIcePlannerManager, OffIceSearchR
 async def run_pipeline(input_text: str) -> OffIceSearchResults:
     async with MCPServerSse(
         name="Off-Ice KB MCP Server",
-        params={"url": "http://localhost:8000/sse"},
+        params={"url": "http://localhost:8000/sse", "timeout": 30},
     ) as mcp_server:
         trace_id = gen_trace_id()
         with trace("off_ice_search", trace_id=trace_id):

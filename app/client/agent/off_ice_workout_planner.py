@@ -62,7 +62,7 @@ dryland_structure_agent = Agent(
     name="DrylandStructureAgent",
     instructions=_load_prompt("off_ice_workout_outline_prompt.yaml"),
     output_type=DrylandStructure,
-    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse"})],
+    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse", "timeout": 30})],
     model="gpt-4o",
 )
 
@@ -76,7 +76,7 @@ dryland_progression_agent = Agent(
     name="DrylandProgressionAgent",
     instructions=_load_prompt("off_ice_workout_progression_prompt.yaml"),
     output_type=DrylandProgression,
-    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse"})],
+    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse", "timeout": 30})],
     model="gpt-4o",
 )
 
