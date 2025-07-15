@@ -138,7 +138,7 @@ def summarize_office_by_category(n_per_category: int = 5) -> List[CategorySummar
     return summaries
 
 
-@mcp.tool("get_recommended_sequence")
+@mcp.tool("get_recommended_sequence", timeout=30)
 def get_recommended_sequence(prompt: str) -> List[SequencePhase]:
     """Generate a structured session sequence from a natural language prompt."""
     results = collection.query(
