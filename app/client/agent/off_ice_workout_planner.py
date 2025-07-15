@@ -12,7 +12,7 @@ import base64
 import binascii
 
 from agents import Agent, Runner, ImageGenerationTool, function_tool
-from agents.items import ToolCallOutputItem
+from agents.items import ToolCallItem, ImageGenerationCall, MessageOutputItem
 from .off_ice_planner import office_agent, OffIceSearchResults
 from app.mcp_server.chroma_utils import get_chroma_collection
 
@@ -214,14 +214,22 @@ class OffIceWorkoutPlannerManager:
         res = await Runner.run(polisher_agent, "", previous_response_id=prev_id)
         final_plan = res.final_output_as(FinalPlan)
 
-        # Extract image generation outputs from new_items
-        generated_images = []
+        # Collect captions from message items (assumed ordered)
+        captions = []
         for item in res.new_items:
-            if isinstance(item, ToolCallOutputItem) and item.type == "image_generation_call":
-                b64_data = item.output  # This is the raw base64 image
-                caption = ""
-                if hasattr(item, "input") and isinstance(item.input, dict):
-                    caption = item.input.get("caption", "")
+            if isinstance(item, MessageOutputItem):
+                for block in item.raw_item.content:
+                    if hasattr(block, "text"):
+                        captions.append(block.text.strip())
+        
+        # Extract base64 images and attach captions
+        generated_images = []
+        image_index = 0
+        for item in res.new_items:
+            if isinstance(item, ToolCallItem) and isinstance(item.raw_item, ImageGenerationCall):
+                b64_data = item.raw_item.result
+                caption = captions[image_index] if image_index < len(captions) else ""
+                image_index += 1
                 generated_images.append(PlanImage(caption=caption, b64_json=b64_data))
 
         # Patch into final_plan only if image tool returned something
