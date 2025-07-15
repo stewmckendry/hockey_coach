@@ -3,17 +3,17 @@ from __future__ import annotations
 """Multi-agent orchestration for generating an off-ice workout plan."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Any
 import hashlib
-from datetime import datetime, timedelta
-import dateparser
-from pydantic import BaseModel
+import json
+from datetime import datetime
 import base64
 import binascii
 
+from pydantic import BaseModel
 from agents import Agent, Runner, ImageGenerationTool, function_tool
 from agents.items import ToolCallItem, ImageGenerationCall, MessageOutputItem
-from .off_ice_planner import office_agent, OffIceSearchResults
+from agents.mcp import MCPServerSse
 from app.mcp_server.chroma_utils import get_chroma_collection
 
 PROMPTS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "prompts"
@@ -37,6 +37,7 @@ class StructuredInput(BaseModel):
     amenities: List[str]
     preferred_activities: List[str]
 
+
 @function_tool
 def get_current_date() -> str:
     """Return today's date in ISO format."""
@@ -52,41 +53,43 @@ input_structurer_agent = Agent(
 )
 
 
-# === Step 2: Plan Outliner ===
-class PlanOutline(BaseModel):
-    outline: str
+# === Step 2: Dryland Session Structure ===
+class DrylandStructure(BaseModel):
+    agenda: str
 
 
-plan_outliner_agent = Agent(
-    name="WorkoutPlanOutliner",
+dryland_structure_agent = Agent(
+    name="DrylandStructureAgent",
     instructions=_load_prompt("off_ice_workout_outline_prompt.yaml"),
-    output_type=PlanOutline,
+    output_type=DrylandStructure,
+    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse"})],
     model="gpt-4o",
 )
 
 
-# === Step 3: Research Planner ===
-class ResearchTopics(BaseModel):
-    topics: List[str]
+# === Step 3: Progression Planner ===
+class DrylandProgression(BaseModel):
+    progression: str
 
 
-research_planner_agent = Agent(
-    name="WorkoutResearchPlanner",
-    instructions=_load_prompt("off_ice_workout_research_prompt.yaml"),
-    output_type=ResearchTopics,
+dryland_progression_agent = Agent(
+    name="DrylandProgressionAgent",
+    instructions=_load_prompt("off_ice_workout_progression_prompt.yaml"),
+    output_type=DrylandProgression,
+    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse"})],
     model="gpt-4o",
 )
 
 
-# === Step 4: Web Researcher ===
+# === Step 4: Research Agent ===
 class ResearchSummary(BaseModel):
     bullets: List[str]
 
 
 from agents import WebSearchTool
 
-web_researcher_agent = Agent(
-    name="WorkoutWebResearcher",
+research_agent = Agent(
+    name="WorkoutResearcher",
     instructions=_load_prompt("off_ice_workout_web_prompt.yaml"),
     output_type=ResearchSummary,
     tools=[WebSearchTool()],
@@ -94,72 +97,58 @@ web_researcher_agent = Agent(
 )
 
 
-# === Step 6: Synthesizer (after retrieval) ===
-class DraftPlan(BaseModel):
-    draft: str
-
-
-synthesizer_agent = Agent(
-    name="WorkoutSynthesizer",
-    instructions=_load_prompt("off_ice_workout_synth_prompt.yaml"),
-    output_type=DraftPlan,
-    model="gpt-4o",
-)
-
-
-# === Step 7: Polisher ===
+# === Step 5: Writer ===
 class PlanImage(BaseModel):
     caption: Optional[str]
     b64_json: Optional[str]
+
 
 class FinalPlan(BaseModel):
     final: str
     images: Optional[List[PlanImage]] = None
 
 
-polisher_agent = Agent(
-    name="WorkoutPolisher",
-    instructions=_load_prompt("off_ice_workout_polish_prompt.yaml"),
-    output_type=FinalPlan,
-    model="gpt-4o",
-    tools=[
-        ImageGenerationTool(
-            tool_config={"type": "image_generation", 
-                         "quality": "low", 
-                         "size": "1024x1024"
-                         }
-        )
-    ]
-)
-
-def fix_base64_padding(b64: str) -> str:
-    return b64 + "=" * (-len(b64) % 4)
-
 class WorkoutPlanOutput(BaseModel):
     file_path: str
     plan: str
 
 
-class OffIceWorkoutPlannerManager:
-    def __init__(self, mcp_server=None, model=None) -> None:
-        agents = [
-            input_structurer_agent,
-            plan_outliner_agent,
-            research_planner_agent,
-            web_researcher_agent,
-            synthesizer_agent,
-            polisher_agent,
-            office_agent,
-        ]
-        office_agent.mcp_servers = [mcp_server] if mcp_server else office_agent.mcp_servers
+def fix_base64_padding(b64: str) -> str:
+    return b64 + "=" * (-len(b64) % 4)
 
-    async def run(
-        self, input_text: str, trace_id: str | None = None
-    ) -> WorkoutPlanOutput:
-        if trace_id:
-            print(
-                f"\n🔗 View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}\n"
+
+class OffIceWorkoutPlannerManager:
+    def __init__(self, mcp_server: MCPServerSse | None = None, model: str | None = None, generate_images: bool = False) -> None:
+        for agent in [dryland_structure_agent, dryland_progression_agent]:
+            if mcp_server:
+                agent.mcp_servers = [mcp_server]
+            if model:
+                agent.model = model
+
+        if mcp_server:
+            research_agent.mcp_servers = [mcp_server]
+        if model:
+            research_agent.model = model
+
+        tools: List[Any] = []
+        if generate_images:
+            tools.append(
+                ImageGenerationTool(
+                    tool_config={"type": "image_generation", "quality": "low", "size": "1024x1024"}
+                )
             )
+
+        self.writer_agent = Agent(
+            name="WorkoutWriter",
+            instructions=_load_prompt("off_ice_workout_synth_prompt.yaml"),
+            output_type=FinalPlan,
+            tools=tools,
+            model=model or "gpt-4o",
+        )
+
+    async def run(self, input_text: str, trace_id: str | None = None) -> WorkoutPlanOutput:
+        if trace_id:
+            print(f"\n🔗 View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}\n")
 
         # Step 1
         res = await Runner.run(input_structurer_agent, input_text)
@@ -167,64 +156,37 @@ class OffIceWorkoutPlannerManager:
         prev_id = res.last_response_id
 
         # Step 2
-        res = await Runner.run(
-            plan_outliner_agent,
-            "",
-            previous_response_id=prev_id,
-        )
-        outline = res.final_output_as(PlanOutline)
+        res = await Runner.run(dryland_structure_agent, "", previous_response_id=prev_id)
+        structure = res.final_output_as(DrylandStructure)
         prev_id = res.last_response_id
+        self._write_json("dryland_structure.json", structure.model_dump())
 
         # Step 3
-        res = await Runner.run(
-            research_planner_agent,
-            "",
-            previous_response_id=prev_id,
-        )
-        topics = res.final_output_as(ResearchTopics)
+        res = await Runner.run(dryland_progression_agent, "", previous_response_id=prev_id)
+        progression = res.final_output_as(DrylandProgression)
         prev_id = res.last_response_id
+        self._write_json("dryland_progression.json", progression.model_dump())
 
         # Step 4
-        res = await Runner.run(
-            web_researcher_agent,
-            "",
-            max_turns=10,
-            previous_response_id=prev_id,
-        )
+        res = await Runner.run(research_agent, "", max_turns=10, previous_response_id=prev_id)
         research = res.final_output_as(ResearchSummary)
         prev_id = res.last_response_id
 
-        # Step 5: Chroma retrieval using existing off-ice search agent
-        res = await Runner.run(
-            office_agent,
-            "",
-            previous_response_id=prev_id,
-        )
-        chroma_results = res.final_output_as(OffIceSearchResults)
-        prev_id = res.last_response_id
-
-        # Step 6
-        res = await Runner.run(
-            synthesizer_agent,
-            "",
-            previous_response_id=prev_id,
-        )
-        draft = res.final_output_as(DraftPlan)
-        prev_id = res.last_response_id
-
-        res = await Runner.run(polisher_agent, "", previous_response_id=prev_id)
+        # Step 5
+        res = await Runner.run(self.writer_agent, "", previous_response_id=prev_id)
         final_plan = res.final_output_as(FinalPlan)
 
-        # Collect captions from message items (assumed ordered)
-        captions = []
+        # Save draft
+        self._write_draft(final_plan.final)
+
+        captions: List[str] = []
         for item in res.new_items:
             if isinstance(item, MessageOutputItem):
                 for block in item.raw_item.content:
                     if hasattr(block, "text"):
                         captions.append(block.text.strip())
-        
-        # Extract base64 images and attach captions
-        generated_images = []
+
+        generated_images: List[PlanImage] = []
         image_index = 0
         for item in res.new_items:
             if isinstance(item, ToolCallItem) and isinstance(item.raw_item, ImageGenerationCall):
@@ -233,23 +195,29 @@ class OffIceWorkoutPlannerManager:
                 image_index += 1
                 generated_images.append(PlanImage(caption=caption, b64_json=b64_data))
 
-        # Patch into final_plan only if image tool returned something
         if generated_images:
             final_plan.images = generated_images
-    
-    
-        # Step 8: Save markdown
+
         file_path = self._save_markdown(final_plan, structured)
         self._index_plan(final_plan.final, structured, file_path)
         print(f"✅ Plan saved to {file_path}")
-
         return WorkoutPlanOutput(file_path=file_path, plan=final_plan.final)
 
-    def _save_markdown(self, plan: FinalPlan, meta: StructuredInput) -> str:
-        base = (
-            Path(__file__).resolve().parent.parent.parent.parent / "data" / "generated"
-        )
+    def _generated_base(self) -> Path:
+        base = Path(__file__).resolve().parent.parent.parent.parent / "data" / "generated"
         base.mkdir(parents=True, exist_ok=True)
+        return base
+
+    def _write_json(self, filename: str, data: Any) -> None:
+        path = self._generated_base() / filename
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    def _write_draft(self, text: str) -> None:
+        path = self._generated_base() / "draft_plan.md"
+        path.write_text(text, encoding="utf-8")
+
+    def _save_markdown(self, plan: FinalPlan, meta: StructuredInput) -> str:
+        base = self._generated_base()
         digest = hashlib.sha1(plan.final.encode("utf-8")).hexdigest()[:8]
         images_dir = base / "images"
         images_dir.mkdir(parents=True, exist_ok=True)
@@ -309,13 +277,9 @@ class OffIceWorkoutPlannerManager:
         }
         try:
             collection.add(documents=[text], metadatas=[metadata], ids=[doc_id])
-            indexed_dir = (
-                Path(__file__).resolve().parent.parent.parent.parent
-                / "data"
-                / "indexed"
-                / "plans"
-            )
+            indexed_dir = Path(__file__).resolve().parent.parent.parent.parent / "data" / "indexed" / "plans"
             indexed_dir.mkdir(parents=True, exist_ok=True)
             (indexed_dir / Path(file_path).name).write_text(text, encoding="utf-8")
         except Exception as e:
             print(f"❌ Failed to index plan into Chroma: {e}")
+

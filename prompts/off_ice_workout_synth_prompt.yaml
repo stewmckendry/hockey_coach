@@ -1,5 +1,4 @@
 prompt: |
-  Combine the outline, research insights, and exercise search results into a draft workout plan.
-  Provide a holistic seasonal overview instead of a week-by-week list.
-  Explain how the location and amenities shape each session and the progression strategy.
-  Keep it concise and age-appropriate.
+  Write the full dryland workout plan using the session structure, progression notes and research snippets.
+  Keep the tone friendly and concise so it is easy for kids, parents and coaches to follow.
+  Format the output in Markdown with clear headings and bullet points.
