@@ -8,8 +8,7 @@ from typing_extensions import TypedDict
 from mcp.server.fastmcp import FastMCP
 
 from chroma_utils import get_chroma_collection
-from .chroma_utils import get_chroma_collection
-from .tools import datetime_tools
+from tools import datetime_tools
 
 mcp = FastMCP("Off-Ice KB MCP Server")
 collection = get_chroma_collection()
