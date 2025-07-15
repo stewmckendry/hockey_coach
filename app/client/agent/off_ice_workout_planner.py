@@ -178,7 +178,7 @@ class OffIceWorkoutPlannerManager:
         topics = res.final_output_as(ResearchTopics)
 
         # Step 4
-        res = await Runner.run(web_researcher_agent, "\n".join(topics.topics))
+        res = await Runner.run(web_researcher_agent, "\n".join(topics.topics), max_turns=10)
         research = res.final_output_as(ResearchSummary)
 
         # Step 5: Chroma retrieval using existing off-ice search agent
