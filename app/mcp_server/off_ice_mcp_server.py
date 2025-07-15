@@ -8,12 +8,12 @@ from typing_extensions import TypedDict
 from mcp.server.fastmcp import FastMCP
 
 from chroma_utils import get_chroma_collection
-from tools import datetime_tools
 
 mcp = FastMCP("Off-Ice KB MCP Server")
 collection = get_chroma_collection()
-mcp.mount(datetime_tools.mcp)
 
+from tools.datetime_tools import get_current_date
+mcp.tool(get_current_date)
 
 class OffIceResult(TypedDict):
     title: str
