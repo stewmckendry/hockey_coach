@@ -125,8 +125,8 @@ class OffIceWorkoutPlannerManager:
             if model:
                 agent.model = model
 
-        if mcp_server:
-            research_agent.mcp_servers = [mcp_server]
+        # if mcp_server:
+        #     research_agent.mcp_servers = [mcp_server]
         if model:
             research_agent.model = model
 
