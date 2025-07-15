@@ -1,3 +1,17 @@
+---
+title: Off-Ice Workout Plan
+sport: Hockey
+age_group: Under 10
+date_range: 2025-07-20 to 2025-09-30
+frequency: Weekly
+goals: fast; strong; fun; bonding
+location: Riverdale park
+amenities: track; hill; grass field
+preferred_activities: workout; ball hockey
+---
+
+# Off-Ice Workout Overview
+
 ## U10 Hockey A Team Workout Plan
 
 ### Weekly Structure
