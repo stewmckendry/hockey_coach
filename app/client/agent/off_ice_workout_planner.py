@@ -124,9 +124,10 @@ polisher_agent = Agent(
     model="gpt-4o",
     tools=[
         ImageGenerationTool(
-            tool_config={
-                "type": "image_generation"
-            }
+            tool_config={"type": "image_generation", 
+                         "quality": "low", 
+                         "size": "1024x1024"
+                         }
         )
     ]
 )
