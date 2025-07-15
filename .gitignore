@@ -9,3 +9,4 @@ chroma_db/
 *.mp3
 data/generated/images/*
 !data/generated/images/.gitkeep
+*.png
