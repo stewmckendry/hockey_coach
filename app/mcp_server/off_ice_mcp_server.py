@@ -6,7 +6,7 @@ from typing import List, Optional
 from typing_extensions import TypedDict
 from pydantic import BaseModel
 import json
-import openai
+from openai import OpenAI
 
 from mcp.server.fastmcp import FastMCP
 
@@ -14,6 +14,7 @@ from chroma_utils import get_chroma_collection
 
 mcp = FastMCP("Off-Ice KB MCP Server")
 collection = get_chroma_collection()
+client = OpenAI()
 
 from tools.datetime_tools import get_current_date
 mcp.tool(get_current_date)
@@ -124,7 +125,7 @@ def summarize_office_by_category(n_per_category: int = 5) -> List[CategorySummar
             "category trains, when drills are best used during a session, and "
             "how difficulty progresses across stages."
         )
-        resp = openai.ChatCompletion.create(
+        resp = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -164,7 +165,7 @@ def get_recommended_sequence(prompt: str) -> List[SequencePhase]:
         "sequence. Return JSON list of objects with fields: phase, category, "
         "description."
     )
-    resp = openai.ChatCompletion.create(
+    resp = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": text}],
     )
@@ -182,13 +183,17 @@ STAGE_ORDER = {"Introductory": 0, "Developmental": 1, "Refinement": 2}
 @mcp.tool("get_progressions_for_focus_area")
 def get_progressions_for_focus_area(focus_area: str) -> FocusAreaProgression:
     """Summarize the progression path for a given focus area."""
-    results = collection.query(
-        query_texts=[focus_area],
-        n_results=20,
-        where={"focus_area": focus_area, "source": "off_ice_manual_hockey_canada_level1"},
+    data = collection.get(
+        where={
+            "$and": [
+                {"focus_area": focus_area},
+                {"source": "off_ice_manual_hockey_canada_level1"},
+            ]
+        },
+        include=["documents", "metadatas"],
     )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
+    docs = data.get("documents", [])
+    metas = data.get("metadatas", [])
 
     entries = sorted(
         zip(metas, docs),
@@ -204,7 +209,7 @@ def get_progressions_for_focus_area(focus_area: str) -> FocusAreaProgression:
         "Provide an overview of how this skill progresses from introductory to "
         "advanced. Mention example drills for each stage."
     )
-    resp = openai.ChatCompletion.create(
+    resp = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": text}],
     )
