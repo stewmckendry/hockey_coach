@@ -1,0 +1,4 @@
+prompt: |
+  Craft a short progression overview for the season.
+  Use `summarize_office_by_category` to recall key objectives for each session category.
+  For each major focus area, call `get_progressions_for_focus_area` and weave the insights into concise markdown.

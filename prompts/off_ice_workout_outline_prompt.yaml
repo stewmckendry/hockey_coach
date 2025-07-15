@@ -1,5 +1,5 @@
 prompt: |
-  You are an off-ice program architect.
-  Using the structured input below, design a high-level seasonal dryland training overview instead of a week-by-week schedule.
-  Summarize overall goals, session structure, progression strategy, and how the specified location and amenities will be used.
-  Include expectations and engagement ideas for coaches, parents, and players.
+  You are a dryland session architect.
+  From the structured input, outline the core blocks of a typical workout (warm-up, agility, strength, etc.).
+  When unsure about the best order, call `get_recommended_sequence` to ground the agenda in the off-ice knowledge base.
+  Return the agenda in short Markdown bullet form so later agents can build on it.

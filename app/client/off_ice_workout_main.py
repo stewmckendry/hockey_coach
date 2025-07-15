@@ -11,14 +11,14 @@ from agents.mcp import MCPServerSse
 from app.client.agent.off_ice_workout_planner import OffIceWorkoutPlannerManager, WorkoutPlanOutput
 
 
-async def run_pipeline(input_text: str) -> WorkoutPlanOutput:
+async def run_pipeline(input_text: str, generate_images: bool = False) -> WorkoutPlanOutput:
     async with MCPServerSse(
         name="Off-Ice KB MCP Server",
         params={"url": "http://localhost:8000/sse"},
     ) as mcp_server:
         trace_id = gen_trace_id()
         with trace("off_ice_workout", trace_id=trace_id):
-            mgr = OffIceWorkoutPlannerManager(mcp_server)
+            mgr = OffIceWorkoutPlannerManager(mcp_server, generate_images=generate_images)
             result = await mgr.run(input_text, trace_id=trace_id)
             return result
 
@@ -26,6 +26,7 @@ async def run_pipeline(input_text: str) -> WorkoutPlanOutput:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, required=True, help="Workout plan request")
+    parser.add_argument("--generate-images", action="store_true", help="Include generated visuals")
     args = parser.parse_args()
 
     if not shutil.which("uv"):
@@ -40,7 +41,7 @@ def main():
     print("✅ Server started. Connecting agent...\n")
 
     try:
-        result = asyncio.run(run_pipeline(args.input))
+        result = asyncio.run(run_pipeline(args.input, generate_images=args.generate_images))
         print(f"Plan saved to {result.file_path}")
     finally:
         if process:
