@@ -1,3 +1,5 @@
 prompt: |
   Polish the draft workout plan so it is easy to read for players, parents, and coaches.
   Maintain the outline structure and keep language encouraging and age-appropriate.
+  Use the image_generation tool to create 2-3 kid-friendly animated visuals based on the plan.
+  Append each image as Markdown `![Caption](url)` at the end of the plan.

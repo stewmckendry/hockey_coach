@@ -7,4 +7,11 @@ prompt: |
     - end_date (YYYY-MM-DD)
     - frequency
     - goals (list of words)
-  If dates are missing, call `get_current_date` to choose a reasonable start date.
+    - location
+    - amenities (list of words)
+    - preferred_activities (list of words, empty if none)
+  Always call `get_current_date` to get today's date and use it to interpret
+  relative phrases like "this coming Sunday", "next week", "mid August", or
+  ranges such as "from July 20 to September 30". If no explicit dates are
+  provided, default to the current month's first day as the start and three
+  months later as the end.
