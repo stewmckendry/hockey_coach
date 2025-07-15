@@ -2,14 +2,16 @@ from __future__ import annotations
 
 """MCP server exposing off-ice training search tools."""
 
-from typing import List, Optional, TypedDict
+from typing import List, Optional
+from typing_extensions import TypedDict
 
 from mcp.server.fastmcp import FastMCP
 
+from chroma_utils import get_chroma_collection
 from .chroma_utils import get_chroma_collection
 from .tools import datetime_tools
 
-mcp = FastMCP("Thunder Off-Ice KB")
+mcp = FastMCP("Off-Ice KB MCP Server")
 collection = get_chroma_collection()
 mcp.mount(datetime_tools.mcp)
 
