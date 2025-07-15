@@ -114,7 +114,14 @@ polisher_agent = Agent(
     instructions=_load_prompt("off_ice_workout_polish_prompt.yaml"),
     output_type=FinalPlan,
     model="gpt-4o",
-    tools=[ImageGenerationTool()],
+    tools=[
+        ImageGenerationTool(
+            tool_config={
+                "name": "generate_image",
+                "description": "Generates a fun, animated kid-friendly visual for the off-ice workout plan."
+            }
+        )
+    ],
 )
 
 
