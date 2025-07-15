@@ -34,7 +34,7 @@ input_structurer_agent = Agent(
     name="WorkoutInputStructurer",
     instructions=_load_prompt("off_ice_workout_input_prompt.yaml"),
     output_type=StructuredInput,
-    mcp_servers=[MCPServerSse(name="Thunder MCP Server", params={"url": "http://localhost:8000/sse"})],
+    mcp_servers=[MCPServerSse(name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse"})],
     model="gpt-4o",
 )
 

@@ -13,7 +13,7 @@ from app.client.agent.off_ice_workout_planner import OffIceWorkoutPlannerManager
 
 async def run_pipeline(input_text: str) -> WorkoutPlanOutput:
     async with MCPServerSse(
-        name="Thunder MCP Server",
+        name="Off-Ice KB MCP Server",
         params={"url": "http://localhost:8000/sse"},
     ) as mcp_server:
         trace_id = gen_trace_id()
