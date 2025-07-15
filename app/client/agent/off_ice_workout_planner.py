@@ -8,9 +8,9 @@ import hashlib
 from datetime import datetime, timedelta
 import dateparser
 from pydantic import BaseModel
+import base64
 
-from agents import Agent, Runner, ImageGenerationTool
-from agents.mcp import MCPServerSse
+from agents import Agent, Runner, ImageGenerationTool, function_tool
 from .off_ice_planner import office_agent, OffIceSearchResults
 from app.mcp_server.chroma_utils import get_chroma_collection
 
@@ -35,16 +35,17 @@ class StructuredInput(BaseModel):
     amenities: List[str]
     preferred_activities: List[str]
 
+@function_tool
+def get_current_date() -> str:
+    """Return today's date in ISO format."""
+    return datetime.now().date().isoformat()
+
 
 input_structurer_agent = Agent(
     name="WorkoutInputStructurer",
     instructions=_load_prompt("off_ice_workout_input_prompt.yaml"),
     output_type=StructuredInput,
-    mcp_servers=[
-        MCPServerSse(
-            name="Off-Ice KB MCP Server", params={"url": "http://localhost:8000/sse"}
-        )
-    ],
+    tools=[get_current_date],
     model="gpt-4o",
 )
 
@@ -117,11 +118,10 @@ polisher_agent = Agent(
     tools=[
         ImageGenerationTool(
             tool_config={
-                "name": "generate_image",
-                "description": "Generates a fun, animated kid-friendly visual for the off-ice workout plan."
+                "type": "image_generation"
             }
         )
-    ],
+    ]
 )
 
 
@@ -141,12 +141,7 @@ class OffIceWorkoutPlannerManager:
             polisher_agent,
             office_agent,
         ]
-        if model:
-            for a in agents:
-                a.model = model
-        if mcp_server:
-            for a in agents:
-                a.mcp_servers = [mcp_server]
+        office_agent.mcp_servers = [mcp_server] if mcp_server else office_agent.mcp_servers
 
     async def run(
         self, input_text: str, trace_id: str | None = None
@@ -159,12 +154,6 @@ class OffIceWorkoutPlannerManager:
         # Step 1
         res = await Runner.run(input_structurer_agent, input_text)
         structured = res.final_output_as(StructuredInput)
-        structured.start_date, structured.end_date = self._resolve_dates(
-            structured.start_date, structured.end_date
-        )
-        print(
-            f"\U0001f5d6 Resolved dates: {structured.start_date} to {structured.end_date}"
-        )
 
         # Step 2
         res = await Runner.run(
@@ -238,35 +227,6 @@ class OffIceWorkoutPlannerManager:
         body = "# Off-Ice Workout Overview\n\n" + text
         path.write_text(frontmatter + body, encoding="utf-8")
         return str(path)
-
-    def _resolve_dates(self, start: str, end: str) -> tuple[str, str]:
-        """Parse natural language dates with sensible defaults."""
-        today = datetime.utcnow().date()
-        start_dt = (
-            dateparser.parse(start, settings={"PREFER_DATES_FROM": "future"})
-            if start
-            else None
-        )
-        end_dt = (
-            dateparser.parse(end, settings={"PREFER_DATES_FROM": "future"})
-            if end
-            else None
-        )
-
-        if (start_dt is None or end_dt is None) and start:
-            from dateparser.search import search_dates
-
-            results = search_dates(start, settings={"PREFER_DATES_FROM": "future"})
-            if results and len(results) >= 2:
-                start_dt = results[0][1]
-                end_dt = results[1][1]
-
-        if start_dt is None:
-            start_dt = today.replace(day=1)
-        if end_dt is None:
-            end_dt = start_dt + timedelta(days=90)
-
-        return start_dt.date().isoformat(), end_dt.date().isoformat()
 
     def _index_plan(self, text: str, meta: StructuredInput, file_path: str) -> None:
         collection = get_chroma_collection()
