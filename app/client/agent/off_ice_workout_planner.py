@@ -106,9 +106,13 @@ synthesizer_agent = Agent(
 
 
 # === Step 7: Polisher ===
+class PlanImage(BaseModel):
+    caption: Optional[str]
+    b64_json: Optional[str]
+
 class FinalPlan(BaseModel):
     final: str
-    images: Optional[List[dict]] = None  # Each item: {"caption": ..., "b64_json": ...}
+    images: Optional[List[PlanImage]] = None
 
 
 polisher_agent = Agent(
