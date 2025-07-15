@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import dateparser
 from pydantic import BaseModel
 import base64
+import binascii
 
 from agents import Agent, Runner, ImageGenerationTool, function_tool
 from .off_ice_planner import office_agent, OffIceSearchResults
@@ -129,6 +130,8 @@ polisher_agent = Agent(
     ]
 )
 
+def fix_base64_padding(b64: str) -> str:
+    return b64 + "=" * (-len(b64) % 4)
 
 class WorkoutPlanOutput(BaseModel):
     file_path: str
@@ -253,7 +256,11 @@ class OffIceWorkoutPlannerManager:
             for i, img in enumerate(plan.images):
                 if not img.b64_json:
                     continue
-                img_data = base64.b64decode(img.b64_json)
+                try:
+                    img_data = base64.b64decode(fix_base64_padding(img.b64_json))
+                except (binascii.Error, ValueError) as e:
+                    print(f"⚠️ Skipping image {i} due to decode error: {e}")
+                    continue
                 img_filename = f"{digest}_{i}.png"
                 img_path = images_dir / img_filename
                 with open(img_path, "wb") as f:
