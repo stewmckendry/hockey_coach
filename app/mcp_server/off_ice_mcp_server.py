@@ -7,9 +7,11 @@ from typing import List, Optional, TypedDict
 from mcp.server.fastmcp import FastMCP
 
 from .chroma_utils import get_chroma_collection
+from .tools import datetime_tools
 
 mcp = FastMCP("Thunder Off-Ice KB")
 collection = get_chroma_collection()
+mcp.mount(datetime_tools.mcp)
 
 
 class OffIceResult(TypedDict):
