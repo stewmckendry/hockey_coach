@@ -251,13 +251,14 @@ class OffIceWorkoutPlannerManager:
         if plan.images:
             visuals_md += "\n\n### Visuals\n\n"
             for i, img in enumerate(plan.images):
-                img_data = base64.b64decode(img.get("b64_json", ""))
+                if not img.b64_json:
+                    continue
+                img_data = base64.b64decode(img.b64_json)
                 img_filename = f"{digest}_{i}.png"
                 img_path = images_dir / img_filename
                 with open(img_path, "wb") as f:
                     f.write(img_data)
-                caption = img.get("caption", "")
-                # Optional caption file
+                caption = img.caption or ""
                 (images_dir / f"{digest}_{i}_caption.txt").write_text(caption, encoding="utf-8")
                 visuals_md += f"![{caption}](images/{img_filename})\n"
 
