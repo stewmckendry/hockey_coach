@@ -3,7 +3,7 @@ from __future__ import annotations
 """Multi-agent orchestration for generating an off-ice workout plan."""
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import hashlib
 from datetime import datetime, timedelta
 import dateparser
@@ -108,6 +108,7 @@ synthesizer_agent = Agent(
 # === Step 7: Polisher ===
 class FinalPlan(BaseModel):
     final: str
+    images: Optional[List[dict]] = None  # Each item: {"caption": ..., "b64_json": ...}
 
 
 polisher_agent = Agent(
@@ -154,62 +155,78 @@ class OffIceWorkoutPlannerManager:
         # Step 1
         res = await Runner.run(input_structurer_agent, input_text)
         structured = res.final_output_as(StructuredInput)
+        prev_id = res.last_response_id
 
         # Step 2
         res = await Runner.run(
-            plan_outliner_agent, structured.model_dump_json(indent=2)
+            plan_outliner_agent,
+            "",
+            previous_response_id=prev_id,
         )
         outline = res.final_output_as(PlanOutline)
+        prev_id = res.last_response_id
 
         # Step 3
-        topics_input = f"Input:\n{structured.model_dump_json(indent=2)}\n\nOutline:\n{outline.outline}"
-        res = await Runner.run(research_planner_agent, topics_input)
+        res = await Runner.run(
+            research_planner_agent,
+            "",
+            previous_response_id=prev_id,
+        )
         topics = res.final_output_as(ResearchTopics)
+        prev_id = res.last_response_id
 
         # Step 4
-        res = await Runner.run(web_researcher_agent, "\n".join(topics.topics), max_turns=10)
+        res = await Runner.run(
+            web_researcher_agent,
+            "",
+            max_turns=10,
+            previous_response_id=prev_id,
+        )
         research = res.final_output_as(ResearchSummary)
+        prev_id = res.last_response_id
 
         # Step 5: Chroma retrieval using existing off-ice search agent
-        search_query = (
-            "; ".join(structured.goals)
-            + " "
-            + outline.outline
-            + " "
-            + structured.location
-            + " "
-            + " ".join(structured.amenities)
+        res = await Runner.run(
+            office_agent,
+            "",
+            previous_response_id=prev_id,
         )
-        res = await Runner.run(office_agent, search_query)
         chroma_results = res.final_output_as(OffIceSearchResults)
+        prev_id = res.last_response_id
 
         # Step 6
-        synth_input = (
-            f"STRUCTURED:\n{structured.model_dump_json(indent=2)}\n\n"
-            f"OUTLINE:\n{outline.outline}\n\n"
-            f"RESEARCH:\n{research.model_dump_json(indent=2)}\n\n"
-            f"EXERCISES:\n{chroma_results.model_dump_json(indent=2)}"
+        res = await Runner.run(
+            synthesizer_agent,
+            "",
+            previous_response_id=prev_id,
         )
-        res = await Runner.run(synthesizer_agent, synth_input)
         draft = res.final_output_as(DraftPlan)
+        prev_id = res.last_response_id
 
         # Step 7
-        res = await Runner.run(polisher_agent, draft.draft)
+        res = await Runner.run(
+            polisher_agent,
+            "",
+            previous_response_id=prev_id,
+        )
         final_plan = res.final_output_as(FinalPlan)
+        prev_id = res.last_response_id
 
         # Step 8: Save markdown
-        file_path = self._save_markdown(final_plan.final, structured)
+        file_path = self._save_markdown(final_plan, structured)
         self._index_plan(final_plan.final, structured, file_path)
         print(f"✅ Plan saved to {file_path}")
 
         return WorkoutPlanOutput(file_path=file_path, plan=final_plan.final)
 
-    def _save_markdown(self, text: str, meta: StructuredInput) -> str:
+    def _save_markdown(self, plan: FinalPlan, meta: StructuredInput) -> str:
         base = (
             Path(__file__).resolve().parent.parent.parent.parent / "data" / "generated"
         )
         base.mkdir(parents=True, exist_ok=True)
-        digest = hashlib.sha1(text.encode("utf-8")).hexdigest()[:8]
+        digest = hashlib.sha1(plan.final.encode("utf-8")).hexdigest()[:8]
+        images_dir = base / "images"
+        images_dir.mkdir(parents=True, exist_ok=True)
         path = base / f"workout_plan_{digest}.md"
         frontmatter = (
             "---\n"
@@ -224,8 +241,23 @@ class OffIceWorkoutPlannerManager:
             f"preferred_activities: {'; '.join(meta.preferred_activities)}\n"
             "---\n\n"
         )
-        body = "# Off-Ice Workout Overview\n\n" + text
-        path.write_text(frontmatter + body, encoding="utf-8")
+        body = "# Off-Ice Workout Overview\n\n" + plan.final
+
+        visuals_md = ""
+        if plan.images:
+            visuals_md += "\n\n### Visuals\n\n"
+            for i, img in enumerate(plan.images):
+                img_data = base64.b64decode(img.get("b64_json", ""))
+                img_filename = f"{digest}_{i}.png"
+                img_path = images_dir / img_filename
+                with open(img_path, "wb") as f:
+                    f.write(img_data)
+                caption = img.get("caption", "")
+                # Optional caption file
+                (images_dir / f"{digest}_{i}_caption.txt").write_text(caption, encoding="utf-8")
+                visuals_md += f"![{caption}](images/{img_filename})\n"
+
+        path.write_text(frontmatter + body + visuals_md, encoding="utf-8")
         return str(path)
 
     def _index_plan(self, text: str, meta: StructuredInput, file_path: str) -> None:
