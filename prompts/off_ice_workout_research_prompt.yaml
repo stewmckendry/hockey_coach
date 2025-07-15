@@ -1,3 +1,4 @@
 prompt: |
   Based on the structured input and outline, list 5-10 topics to research in order to craft the workouts.
+  Factor in the location, amenities, and any preferred activities mentioned.
   Return the topics as a bullet list.
