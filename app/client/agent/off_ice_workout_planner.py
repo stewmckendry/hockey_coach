@@ -12,6 +12,7 @@ import base64
 import binascii
 
 from agents import Agent, Runner, ImageGenerationTool, function_tool
+from agents.items import ToolCallOutputItem
 from .off_ice_planner import office_agent, OffIceSearchResults
 from app.mcp_server.chroma_utils import get_chroma_collection
 
@@ -210,15 +211,24 @@ class OffIceWorkoutPlannerManager:
         draft = res.final_output_as(DraftPlan)
         prev_id = res.last_response_id
 
-        # Step 7
-        res = await Runner.run(
-            polisher_agent,
-            "",
-            previous_response_id=prev_id,
-        )
+        res = await Runner.run(polisher_agent, "", previous_response_id=prev_id)
         final_plan = res.final_output_as(FinalPlan)
-        prev_id = res.last_response_id
 
+        # Extract image generation outputs from new_items
+        generated_images = []
+        for item in res.new_items:
+            if isinstance(item, ToolCallOutputItem) and item.type == "image_generation_call":
+                b64_data = item.output  # This is the raw base64 image
+                caption = ""
+                if hasattr(item, "input") and isinstance(item.input, dict):
+                    caption = item.input.get("caption", "")
+                generated_images.append(PlanImage(caption=caption, b64_json=b64_data))
+
+        # Patch into final_plan only if image tool returned something
+        if generated_images:
+            final_plan.images = generated_images
+    
+    
         # Step 8: Save markdown
         file_path = self._save_markdown(final_plan, structured)
         self._index_plan(final_plan.final, structured, file_path)
