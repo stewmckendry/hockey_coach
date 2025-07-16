@@ -10,6 +10,10 @@ from openai import OpenAI
 
 from mcp.server.fastmcp import FastMCP
 
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 from chroma_utils import get_chroma_collection
 
 mcp = FastMCP("Off-Ice KB MCP Server")

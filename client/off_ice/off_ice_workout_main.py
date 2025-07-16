@@ -8,7 +8,7 @@ from typing import Any
 
 from agents import gen_trace_id, trace
 from agents.mcp import MCPServerSse
-from app.client.agent.off_ice_workout_planner import OffIceWorkoutPlannerManager, WorkoutPlanOutput
+from .off_ice_workout_planner import OffIceWorkoutPlannerManager, WorkoutPlanOutput
 
 
 async def run_pipeline(input_text: str, generate_images: bool = False) -> WorkoutPlanOutput:
@@ -23,7 +23,7 @@ async def run_pipeline(input_text: str, generate_images: bool = False) -> Workou
             return result
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, required=True, help="Workout plan request")
     parser.add_argument("--generate-images", action="store_true", help="Include generated visuals")
@@ -34,7 +34,7 @@ def main():
 
     print("🚀 Launching Thunder MCP SSE server at http://localhost:8000/sse ...")
 
-    server_path = Path(__file__).resolve().parent.parent / "mcp_server" / "off_ice_mcp_server.py"
+    server_path = Path(__file__).resolve().parents[1] / "mcp_server" / "off_ice" / "off_ice_mcp_server.py"
     process: subprocess.Popen[Any] | None = subprocess.Popen(["uv", "run", str(server_path)])
     time.sleep(3)
 
