@@ -1,97 +1,65 @@
-from __future__ import annotations
+import argparse
 import asyncio
+import shutil
+import subprocess
+import time
+from datetime import date
 from pathlib import Path
-from pydantic import BaseModel
-from typing import Literal
+from typing import Any, Optional
 
-from agents import (
-    Agent,
-    Runner,
-    ItemHelpers,
-    function_tool,
-    ToolCallItem,
-    ToolCallOutputItem,
-    MessageOutputItem,
-    HandoffOutputItem,
-    RunContextWrapper,
-)
-from agents.items import TResponseInputItem
+from agents import gen_trace_id, trace
 from agents.mcp import MCPServerSse
 
-PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts" / "off_ice"
-
-def _load_prompt(name: str) -> str:
-    path = PROMPTS_DIR / name
-    with open(path, "r", encoding="utf-8") as f:
-        return "".join(f.readlines()[1:]).lstrip()
+from models.dryland_models import DrylandContext
+from .dryland_planner_agent import run_agent as run_plan_agent
+from .dryland_session_agent import run_agent as run_session_agent
 
 
-# 🧠 Shared persistent memory
-class PracticePlanningContext(BaseModel):
-    age_group: str | None = None
-    focus_area: str | None = None
-    equipment: list[str] = []
-    coach_notes: str | None = None
-    preferred_complexity: str | None = None
-
-
-# ✅ New tool to update context
-@function_tool
-async def set_practice_context_param(
-    ctx: RunContextWrapper[PracticePlanningContext],
-    key: Literal["age_group", "focus_area", "preferred_complexity", "coach_notes"],
-    value: str,
-) -> str:
-    setattr(ctx.context, key, value)
-    return f"Set {key} to {value}"
-
-mcp_server = MCPServerSse(
-    name="Off-Ice KB MCP Server",
-    params={"url": "http://localhost:8000/sse", "timeout": 30},
-)
-
-dryland_agent = Agent[PracticePlanningContext](
-    name="DrylandDrillPlanner",
-    instructions=_load_prompt("off_ice_search_prompt.yaml"),
-    model="gpt-4o",
-    output_type=None,
-    tools=[set_practice_context_param],  # 👈 registered tool
-    mcp_servers=[mcp_server],
-)
-
-async def main():
-    await mcp_server.connect()
-    context = PracticePlanningContext()
-    input_items: list[TResponseInputItem] = []
-    print("🏒 Dryland Drill Planning Assistant — Multi-Turn Mode")
-
+async def run_pipeline(session_date: Optional[date] = None) -> None:
     async with MCPServerSse(
         name="Off-Ice KB MCP Server",
         params={"url": "http://localhost:8000/sse", "timeout": 30},
-    ) as session:
-        while True:
-            user_input = input("\n👤 Coach: ").strip()
-            if user_input.lower() in {"exit", "quit"}:
-                print("👋 Exiting.")
-                break
+    ) as mcp_server:
+        ctx = DrylandContext()
+        trace_id = gen_trace_id()
+        with trace("dryland_plan", trace_id=trace_id):
+            plan = await run_plan_agent(ctx)
+            ctx.plan = plan
+        if session_date:
+            with trace("dryland_session", trace_id=trace_id):
+                session = await run_session_agent(session_date, ctx)
+                out_dir = Path("data/generated")
+                out_dir.mkdir(parents=True, exist_ok=True)
+                (out_dir / f"session_{session_date}.json").write_text(
+                    session.model_dump_json(indent=2), encoding="utf-8"
+                )
+                print(f"✅ Session for {session_date} saved")
 
-            input_items.append({"role": "user", "content": user_input})
-            result = await Runner.run(dryland_agent, input_items, context=context)
 
-            for item in result.new_items:
-                name = item.agent.name
-                if isinstance(item, MessageOutputItem):
-                    print(f"{name}: {ItemHelpers.text_message_output(item)}")
-                elif isinstance(item, ToolCallItem):
-                    print(f"{name} → Calling tool: {item.raw_item.name}")
-                elif isinstance(item, ToolCallOutputItem):
-                    print(f"{name} → Tool result: {item.output}")
-                elif isinstance(item, HandoffOutputItem):
-                    print(f"🔁 Handoff: {item.source_agent.name} → {item.target_agent.name}")
-                else:
-                    print(f"{name}: (Unhandled item: {item.__class__.__name__})")
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--date", type=str, help="Generate session for this date (YYYY-MM-DD)")
+    args = parser.parse_args()
 
-            input_items = result.to_input_list()
+    if not shutil.which("uv"):
+        raise RuntimeError("Missing `uv`. Install it from https://docs.astral.sh/uv/")
+
+    print("🚀 Launching Thunder MCP SSE server at http://localhost:8000/sse ...")
+
+    server_path = Path(__file__).resolve().parents[1] / "mcp_server" / "off_ice" / "off_ice_mcp_server.py"
+    process: subprocess.Popen[Any] | None = subprocess.Popen(["uv", "run", str(server_path)])
+    time.sleep(3)
+
+    print("✅ Server started. Connecting agent...\n")
+
+    try:
+        ses_date = date.fromisoformat(args.date) if args.date else None
+        asyncio.run(run_pipeline(ses_date))
+    finally:
+        if process:
+            print("\n🛑 Shutting down server...")
+            process.terminate()
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
