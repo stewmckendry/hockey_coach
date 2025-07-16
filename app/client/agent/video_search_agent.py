@@ -92,13 +92,14 @@ async def run_cli() -> None:
         outputs.append((args.query, args.output))
 
     if args.query_file:
+        prefix = "video_search_dryland_" if "dryland" in args.query_file.stem else "video_search_"
         with open(args.query_file, "r", encoding="utf-8") as f:
             for ln in f:
                 q = ln.strip()
                 if not q:
                     continue
                 slug = _slugify(q)
-                out_path = args.query_file.parent / f"video_search_{slug}.json"
+                out_path = args.query_file.parent / f"{prefix}{slug}.json"
                 outputs.append((q, out_path))
 
     for q, out_path in outputs:
