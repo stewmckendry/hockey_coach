@@ -1,0 +1,8 @@
+prompt: |
+  Summarize this segment of a dryland or athletic training video. Identify:
+  - Training goal or focus (for example mobility, core strength, conditioning)
+  - Key coaching points or cues
+  - Appropriate audience (youth, teens, advanced)
+  - Intensity or complexity level if mentioned
+  Avoid hockey-specific language unless the transcript explicitly references it.
+  Respond in JSON matching the VideoSummaryDrylandOutput model.
