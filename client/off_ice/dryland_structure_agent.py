@@ -35,9 +35,32 @@ dryland_structure_agent = Agent(
 )
 
 
-async def run_agent(data: StructuredInput) -> DrylandOutline:
-    res = await Runner.run(dryland_structure_agent, data.model_dump_json())
-    return res.final_output_as(DrylandOutline)
+async def run_agent(
+    data: StructuredInput, *, needs_approval: bool = False
+) -> tuple[DrylandOutline, str]:
+    """Run the structure agent and optionally require approval.
+
+    If ``needs_approval`` is True the run will pause for user feedback via the
+    Agents SDK approval flow. Any comment returned from the approval UI is
+    extracted from the ``MCPApprovalResponseItem`` and returned alongside the
+    parsed outline.
+    """
+    res = await Runner.run(
+        dryland_structure_agent, data.model_dump_json(), needs_approval=needs_approval
+    )
+    outline = res.final_output_as(DrylandOutline)
+
+    comment = ""
+    from agents.items import MCPApprovalResponseItem
+
+    for item in res.new_items:
+        if isinstance(item, MCPApprovalResponseItem):
+            try:
+                comment = item.raw_item.comment  # type: ignore[attr-defined]
+            except AttributeError:
+                comment = getattr(item.raw_item, "input", "[Feedback not found in raw_item.input]")
+
+    return outline, comment
 
 
 def main() -> None:
