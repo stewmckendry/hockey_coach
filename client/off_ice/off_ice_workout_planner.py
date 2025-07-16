@@ -59,13 +59,39 @@ class OffIceWorkoutPlannerManager:
         prev_id = res.last_response_id
 
         # Step 2
-        res = await Runner.run(dryland_structure_agent, "", previous_response_id=prev_id)
+        res = await Runner.run(
+            dryland_structure_agent,
+            "",
+            previous_response_id=prev_id,
+            needs_approval=True,
+        )
         outline = res.final_output_as(DrylandOutline)
+
+        comment = ""
+        from agents.items import MCPApprovalResponseItem
+
+        for item in res.new_items:
+            if isinstance(item, MCPApprovalResponseItem):
+                try:
+                    comment = item.raw_item.comment  # type: ignore[attr-defined]
+                except AttributeError:
+                    comment = getattr(item.raw_item, "input", "[Feedback not found in raw_item.input]")
+                print("\n✉️ Coach feedback received:", comment)
+
         prev_id = res.last_response_id
         self._write_json("dryland_structure.json", outline.model_dump())
+        self._write_feedback(comment)
 
         # Step 3
-        res = await Runner.run(dryland_progression_agent, "", previous_response_id=prev_id)
+        progression_input = json.dumps({
+            "prior_structure": outline.agenda,
+            "coach_comment": comment,
+        })
+        res = await Runner.run(
+            dryland_progression_agent,
+            progression_input,
+            previous_response_id=prev_id,
+        )
         progression = res.final_output_as(DrylandProgression)
         prev_id = res.last_response_id
         self._write_json("dryland_progression.json", progression.model_dump())
@@ -115,6 +141,12 @@ class OffIceWorkoutPlannerManager:
 
     def _write_video_summary(self, text: str) -> None:
         path = self._generated_base() / "dryland_video_summary.md"
+        path.write_text(text, encoding="utf-8")
+
+    def _write_feedback(self, text: str) -> None:
+        feedback_dir = Path(__file__).resolve().parents[2] / "data" / "feedback"
+        feedback_dir.mkdir(parents=True, exist_ok=True)
+        path = feedback_dir / "structure_feedback.txt"
         path.write_text(text, encoding="utf-8")
 
     def _save_markdown(self, plan: FinalPlan, meta: StructuredInput) -> str:
