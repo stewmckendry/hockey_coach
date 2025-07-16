@@ -18,6 +18,7 @@ from .input_structurer import StructuredInput
 from .dryland_structure_agent import DrylandOutline
 from .dryland_progression_agent import DrylandProgression
 from .research_agent import ResearchSummary
+from .dryland_video_summary_agent import VideoSummary
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts" / "off_ice"
 
@@ -51,6 +52,7 @@ async def run_agent(
     outline: DrylandOutline,
     progression: DrylandProgression,
     research: ResearchSummary,
+    video_summary: VideoSummary | None = None,
     generate_images: bool = False,
 ) -> FinalPlan:
     tools: List[ImageGenerationTool] = []
@@ -68,6 +70,10 @@ async def run_agent(
         "progression": progression.model_dump(),
         "research": research.model_dump(),
     }
+    if video_summary:
+        context["video_summary"] = (
+            video_summary.model_dump() if isinstance(video_summary, BaseModel) else video_summary
+        )
     res = await Runner.run(session_writer_agent, json.dumps(context))
     final_plan = res.final_output_as(FinalPlan)
 
@@ -122,6 +128,7 @@ def main() -> None:
     parser.add_argument("--research", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("workout_plan.md"))
     parser.add_argument("--generate-images", action="store_true")
+    parser.add_argument("--video-summary", type=Path, help="Optional video summary markdown")
     args = parser.parse_args()
 
     structured = StructuredInput.model_validate_json(args.structured.read_text())
@@ -129,8 +136,12 @@ def main() -> None:
     progression = DrylandProgression.model_validate_json(args.progression.read_text())
     research = ResearchSummary.model_validate_json(args.research.read_text())
 
+    video_summary = None
+    if args.video_summary and args.video_summary.exists():
+        video_summary = VideoSummary(markdown=args.video_summary.read_text())
+
     plan = asyncio.run(
-        run_agent(structured, outline, progression, research, generate_images=args.generate_images)
+        run_agent(structured, outline, progression, research, video_summary=video_summary, generate_images=args.generate_images)
     )
     save_plan(plan, args.output)
     print(f"✅ Final plan saved to {args.output}")
