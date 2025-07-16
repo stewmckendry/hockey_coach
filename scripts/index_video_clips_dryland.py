@@ -128,7 +128,7 @@ def main() -> None:
         files = [Path(__file__).parent.parent / "data" / "processed" / "video_clips_dryland.json"]
 
     # Wipe only existing dryland documents so drills remain intact
-    clear_chroma_collection(mode="type", prefix="dryland-")
+    #clear_chroma_collection(mode="type", prefix="dryland-")
     collection = get_chroma_collection()
 
     data, file_counts = load_clips(files)
