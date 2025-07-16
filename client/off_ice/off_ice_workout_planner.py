@@ -19,7 +19,8 @@ from .input_structurer import StructuredInput, input_structurer_agent
 from .dryland_structure_agent import DrylandOutline, dryland_structure_agent
 from .dryland_progression_agent import DrylandProgression, dryland_progression_agent
 from .research_agent import ResearchSummary, research_agent
-from .session_writer_agent import FinalPlan, PlanImage, session_writer_agent
+from .dryland_video_summary_agent import VideoSummary, dryland_video_summary_agent
+from .session_writer_agent import FinalPlan, PlanImage, session_writer_agent, run_agent as writer_run_agent
 
 
 class WorkoutPlanOutput(BaseModel):
@@ -33,13 +34,14 @@ def fix_base64_padding(b64: str) -> str:
 
 class OffIceWorkoutPlannerManager:
     def __init__(self, mcp_server: MCPServerSse | None = None, model: str | None = None, generate_images: bool = False) -> None:
-        for agent in [dryland_structure_agent, dryland_progression_agent]:
+        for agent in [dryland_structure_agent, dryland_progression_agent, dryland_video_summary_agent]:
             if mcp_server:
                 agent.mcp_servers = [mcp_server]
             if model:
                 agent.model = model
         if model:
             research_agent.model = model
+            dryland_video_summary_agent.model = model
         if generate_images:
             session_writer_agent.tools = [
                 ImageGenerationTool(
@@ -47,7 +49,7 @@ class OffIceWorkoutPlannerManager:
                 )
             ]
 
-    async def run(self, input_text: str, trace_id: str | None = None) -> WorkoutPlanOutput:
+    async def run(self, input_text: str, include_video: bool = False, trace_id: str | None = None) -> WorkoutPlanOutput:
         if trace_id:
             print(f"\n🔗 View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}\n")
 
@@ -73,30 +75,25 @@ class OffIceWorkoutPlannerManager:
         research = res.final_output_as(ResearchSummary)
         prev_id = res.last_response_id
 
+        video_summary: VideoSummary | None = None
+        if include_video:
+            res = await Runner.run(dryland_video_summary_agent, "", max_turns=10, previous_response_id=prev_id)
+            video_summary = res.final_output_as(VideoSummary)
+            prev_id = res.last_response_id
+            self._write_video_summary(video_summary.markdown)
+
         # Step 5
-        res = await Runner.run(session_writer_agent, "", previous_response_id=prev_id)
-        final_plan = res.final_output_as(FinalPlan)
+        final_plan = await writer_run_agent(
+            structured,
+            outline,
+            progression,
+            research,
+            video_summary=video_summary,
+            generate_images=bool(session_writer_agent.tools),
+        )
 
         self._write_draft(final_plan.final)
 
-        captions: List[str] = []
-        for item in res.new_items:
-            if isinstance(item, MessageOutputItem):
-                for block in item.raw_item.content:
-                    if hasattr(block, "text"):
-                        captions.append(block.text.strip())
-
-        images: List[PlanImage] = []
-        idx = 0
-        for item in res.new_items:
-            if isinstance(item, ToolCallItem) and isinstance(item.raw_item, ImageGenerationCall):
-                b64_data = item.raw_item.result
-                caption = captions[idx] if idx < len(captions) else ""
-                idx += 1
-                images.append(PlanImage(caption=caption, b64_json=b64_data))
-
-        if images:
-            final_plan.images = images
 
         file_path = self._save_markdown(final_plan, structured)
         self._index_plan(final_plan.final, structured, file_path)
@@ -114,6 +111,10 @@ class OffIceWorkoutPlannerManager:
 
     def _write_draft(self, text: str) -> None:
         path = self._generated_base() / "draft_plan.md"
+        path.write_text(text, encoding="utf-8")
+
+    def _write_video_summary(self, text: str) -> None:
+        path = self._generated_base() / "dryland_video_summary.md"
         path.write_text(text, encoding="utf-8")
 
     def _save_markdown(self, plan: FinalPlan, meta: StructuredInput) -> str:

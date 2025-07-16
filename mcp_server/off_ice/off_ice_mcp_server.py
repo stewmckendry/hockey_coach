@@ -184,6 +184,95 @@ def get_recommended_sequence(prompt: str) -> List[SequencePhase]:
 STAGE_ORDER = {"Introductory": 0, "Developmental": 1, "Refinement": 2}
 
 
+class VideoTitle(TypedDict):
+    video_id: str
+    title: str
+    clip_count: int
+    publish_time: Optional[str] | None
+
+
+class VideoClip(TypedDict):
+    video_id: str
+    title: str
+    start_time: str
+    end_time: str
+    summary: str | None
+    transcript: str | None
+    complexity: str | None
+
+
+@mcp.tool("list_dryland_video_titles")
+def list_dryland_video_titles() -> List[VideoTitle]:
+    """Return all unique dryland video titles with clip counts."""
+    data = collection.get(where={"type": "off_ice_video"}, include=["metadatas"])
+    titles: dict[tuple[str, str], VideoTitle] = {}
+    for meta in data.get("metadatas", []):
+        title = meta.get("title", "")
+        vid = meta.get("video_id", "")
+        key = (vid, title)
+        item = titles.setdefault(
+            key,
+            {
+                "video_id": vid,
+                "title": title,
+                "clip_count": 0,
+                "publish_time": meta.get("publish_time") or meta.get("published_at"),
+            },
+        )
+        item["clip_count"] += 1
+    return list(titles.values())
+
+
+@mcp.tool("get_video_clips_by_title")
+def get_video_clips_by_title(title: str) -> List[VideoClip]:
+    """Return all video clips matching a given title."""
+    data = collection.get(
+        where={"$and": [{"title": title}, {"type": "off_ice_video"}]},
+        include=["metadatas"],
+    )
+    clips: List[VideoClip] = []
+    for meta in data.get("metadatas", []):
+        clips.append(
+            {
+                "video_id": meta.get("video_id", ""),
+                "title": meta.get("title", ""),
+                "start_time": meta.get("start_time", ""),
+                "end_time": meta.get("end_time", ""),
+                "summary": meta.get("summary"),
+                "transcript": meta.get("transcript"),
+                "complexity": meta.get("complexity"),
+            }
+        )
+    return clips
+
+
+@mcp.tool("search_dryland_video_titles")
+def search_dryland_video_titles(query: str, n_results: int = 5) -> List[VideoTitle]:
+    """Semantic search over dryland video titles."""
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        where={"type": "off_ice_video"},
+    )
+    metas = results.get("metadatas", [[]])[0]
+    titles: dict[tuple[str, str], VideoTitle] = {}
+    for meta in metas:
+        title = meta.get("title", "")
+        vid = meta.get("video_id", "")
+        key = (vid, title)
+        item = titles.setdefault(
+            key,
+            {
+                "video_id": vid,
+                "title": title,
+                "clip_count": 0,
+                "publish_time": meta.get("publish_time") or meta.get("published_at"),
+            },
+        )
+        item["clip_count"] += 1
+    return list(titles.values())
+
+
 @mcp.tool("get_progressions_for_focus_area")
 def get_progressions_for_focus_area(focus_area: str) -> FocusAreaProgression:
     """Summarize the progression path for a given focus area."""
