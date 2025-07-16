@@ -35,7 +35,9 @@ def main():
 
     print("🚀 Launching Thunder MCP SSE server at http://localhost:8000/sse ...")
 
-    server_path = Path(__file__).resolve().parent.parent / "mcp_server" / "off_ice_mcp_server.py"
+    server_path = (
+        Path(__file__).resolve().parent.parent / "mcp_server" / "off_ice" / "off_ice_mcp_server.py"
+    )
     process: subprocess.Popen[Any] | None = subprocess.Popen(["uv", "run", str(server_path)])
     time.sleep(3)
 
