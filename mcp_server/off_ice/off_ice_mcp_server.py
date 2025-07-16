@@ -13,14 +13,15 @@ from mcp.server.fastmcp import FastMCP
 import sys
 from pathlib import Path
 
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from chroma_utils import get_chroma_collection
+from app.mcp_server.chroma_utils import get_chroma_collection
 
 mcp = FastMCP("Off-Ice KB MCP Server")
 collection = get_chroma_collection()
 client = OpenAI()
 
-from tools.datetime_tools import get_current_date
+from app.mcp_server.tools.datetime_tools import get_current_date
 mcp.tool(get_current_date)
 
 class OffIceResult(TypedDict):
@@ -73,7 +74,6 @@ def _parse_description(doc: str) -> str:
 
 @mcp.tool("semantic_search_office")
 def semantic_search_office(query: str, n_results: int = 5) -> List[OffIceResult]:
-    """Semantic search over off-ice training entries."""
     results = collection.query(
         query_texts=[query],
         n_results=n_results,
@@ -97,7 +97,6 @@ def semantic_search_office(query: str, n_results: int = 5) -> List[OffIceResult]
             }
         )
     return entries
-
 
 @mcp.tool("summarize_office_by_category")
 def summarize_office_by_category(n_per_category: int = 5) -> List[CategorySummary]:

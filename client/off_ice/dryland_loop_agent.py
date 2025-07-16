@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import argparse
 import asyncio
 import shutil
@@ -65,4 +63,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

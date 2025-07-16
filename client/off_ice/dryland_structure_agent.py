@@ -8,10 +8,11 @@ from pathlib import Path
 from typing import List
 
 from pydantic import BaseModel
-from agents import Agent, Runner
+from agents import Agent, Runner, RunState
 from agents.mcp import MCPServerSse
+from agents.items import MCPApprovalResponseItem
 
-from .input_structurer import StructuredInput
+from input_structurer import StructuredInput
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts" / "off_ice"
 
@@ -38,21 +39,27 @@ dryland_structure_agent = Agent(
 async def run_agent(
     data: StructuredInput, *, needs_approval: bool = False
 ) -> tuple[DrylandOutline, str]:
-    """Run the structure agent and optionally require approval.
+    """Run the structure agent and optionally require approval via manual interruption flow."""
+    res = await Runner.run(dryland_structure_agent, data.model_dump_json())
 
-    If ``needs_approval`` is True the run will pause for user feedback via the
-    Agents SDK approval flow. Any comment returned from the approval UI is
-    extracted from the ``MCPApprovalResponseItem`` and returned alongside the
-    parsed outline.
-    """
-    res = await Runner.run(
-        dryland_structure_agent, data.model_dump_json(), needs_approval=needs_approval
-    )
+    # Manual approval loop if interruptions are present
+    if needs_approval and res.interruptions:
+        state = RunState(agent=dryland_structure_agent, items=res.new_items)
+
+        for interruption in res.interruptions:
+            print(f"🛑 Agent requested tool: {interruption.raw_item.name}")
+            print(f"    Args: {interruption.raw_item.arguments}")
+            approval = input("Approve? (y/n): ").strip().lower()
+            if approval in ["y", "yes"]:
+                state.approve(interruption)
+            else:
+                state.reject(interruption)
+
+        res = await Runner.run(dryland_structure_agent, state)
+
+    # Parse output + extract comment from MCPApprovalResponseItem
     outline = res.final_output_as(DrylandOutline)
-
     comment = ""
-    from agents.items import MCPApprovalResponseItem
-
     for item in res.new_items:
         if isinstance(item, MCPApprovalResponseItem):
             try:
@@ -72,12 +79,15 @@ def main() -> None:
         default=Path("dryland_structure.json"),
         help="Where to save outline JSON",
     )
+    parser.add_argument("--needs-approval", action="store_true", help="Require approval for the outline")
     args = parser.parse_args()
 
     structured = StructuredInput.model_validate_json(args.input.read_text())
-    outline = asyncio.run(run_agent(structured))
+    outline, comment = asyncio.run(run_agent(structured, needs_approval=args.needs_approval))
     args.output.write_text(outline.model_dump_json(indent=2), encoding="utf-8")
     print(f"✅ Dryland outline saved to {args.output}")
+    if comment:
+        print(f"💬 Approval comment: {comment}")
 
 
 if __name__ == "__main__":
