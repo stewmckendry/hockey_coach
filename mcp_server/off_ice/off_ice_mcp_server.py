@@ -88,8 +88,8 @@ def _parse_description(doc: str) -> str:
     return ""
 
 
-@mcp.tool("semantic_search_office")
-def semantic_search_office(query: str, n_results: int = 5) -> List[OffIceResult]:
+@mcp.tool("find_dryland_drills")
+def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     results = collection.query(
         query_texts=[query],
         n_results=n_results,
@@ -115,8 +115,8 @@ def semantic_search_office(query: str, n_results: int = 5) -> List[OffIceResult]
     return entries
 
 
-@mcp.tool("search_dryland_video_titles")
-def search_dryland_video_titles(query: str, n_results: int = 5) -> List[VideoTitle]:
+@mcp.tool("find_dryland_drills")
+def find_dryland_video_titles(query: str, n_results: int = 5) -> List[VideoTitle]:
     """Semantic search over dryland video titles."""
     results = collection.query(
         query_texts=[query],
