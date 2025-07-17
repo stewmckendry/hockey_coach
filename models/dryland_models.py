@@ -40,4 +40,5 @@ class DrylandContext(BaseModel):
     weeks: Optional[int] = None  # ✅ New field added
     plan: Optional[DrylandPlanOutput] = None
     notes: Optional[str] = None
+    research_complete: bool = False
 

@@ -7,6 +7,8 @@ from typing import Optional
 
 from agents import Agent, Runner, WebSearchTool
 from agents.mcp import MCPServerSse
+from client.off_ice.research.dryland_research_agent import get_dryland_research_agent
+from client.off_ice.intake.dryland_intake_agent import get_dryland_intake_agent
 
 from models.dryland_models import DrylandContext, DrylandPlanOutput
 from dryland_context_tools import set_dryland_context_param
@@ -28,29 +30,22 @@ def get_dryland_planner_agent(mcp_servers) -> Agent:
         mcp_servers=[mcp_servers],
     )
 
-"""
-async def run_agent(context: DrylandContext, *, max_turns: int = 20) -> DrylandPlanOutput:
-    res = await Runner.run(dryland_planner_agent, "", context=context, max_turns=max_turns)
+async def run_agent(context: DrylandContext, mcp_servers: MCPServerSse, *, max_turns: int = 20) -> DrylandPlanOutput:
+    intake_agent = get_dryland_intake_agent()
+    intake_result = await Runner.run(intake_agent, "", context=context, max_turns=max_turns)
+    prev_id = intake_result.id
+
+    if not context.research_complete:
+        research_agent = get_dryland_research_agent(mcp_servers)
+        research_result = await Runner.run(
+            research_agent,
+            previous_response_id=intake_result.id,
+            context=context,
+        )
+        prev_id = research_result.id
+
+    planner_agent = get_dryland_planner_agent(mcp_servers)
+    res = await Runner.run(planner_agent, previous_response_id=prev_id, context=context)
     plan = res.final_output_as(DrylandPlanOutput)
     context.plan = plan
     return plan
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--context", type=Path, help="Optional context JSON")
-    parser.add_argument("--output", type=Path, default=Path("dryland_plan.json"))
-    args = parser.parse_args()
-
-    ctx = DrylandContext()
-    if args.context and args.context.exists():
-        ctx = DrylandContext.model_validate_json(args.context.read_text())
-
-    plan = asyncio.run(run_agent(ctx))
-    args.output.write_text(plan.model_dump_json(indent=2), encoding="utf-8")
-    print(f"✅ Plan saved to {args.output}")
-
-
-if __name__ == "__main__":
-    main()
-"""

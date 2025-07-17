@@ -21,3 +21,12 @@ def create_intake_agent(
         tools=tools,
         model="gpt-4o",
     )
+
+def create_research_agent(context_class: Type[C], prompt: str, tools: List, name: str, mcp_servers=None) -> Agent:
+    return Agent[context_class](
+        name=name,
+        instructions=prompt,
+        tools=tools,
+        mcp_servers=mcp_servers or [],
+        model="gpt-4o",
+    )
