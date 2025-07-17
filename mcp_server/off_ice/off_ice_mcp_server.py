@@ -53,8 +53,9 @@ class FocusAreaProgression(BaseModel):
 class VideoTitle(TypedDict):
     video_id: str
     title: str
-    clip_count: int
-    publish_time: Optional[str] | None
+    video_url: str
+    document: str
+    metadata: dict
 
 
 class VideoClip(TypedDict):
