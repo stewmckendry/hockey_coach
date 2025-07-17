@@ -50,6 +50,22 @@ class FocusAreaProgression(BaseModel):
     focus_area: str
     summary: str
 
+class VideoTitle(TypedDict):
+    video_id: str
+    title: str
+    clip_count: int
+    publish_time: Optional[str] | None
+
+
+class VideoClip(TypedDict):
+    video_id: str
+    title: str
+    start_time: str
+    end_time: str
+    summary: str | None
+    transcript: str | None
+    complexity: str | None
+
 
 @mcp.resource("schema://off_ice", title="Off-Ice Entry Schema")
 def get_office_schema() -> str:
@@ -98,7 +114,82 @@ def semantic_search_office(query: str, n_results: int = 5) -> List[OffIceResult]
         )
     return entries
 
-@mcp.tool("summarize_office_by_category")
+
+@mcp.tool("search_dryland_video_titles")
+def search_dryland_video_titles(query: str, n_results: int = 5) -> List[VideoTitle]:
+    """Semantic search over dryland video titles."""
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        where={"type": "off_ice_video"},
+    )
+    metas = results.get("metadatas", [[]])[0]
+    titles: dict[tuple[str, str], VideoTitle] = {}
+    for meta in metas:
+        title = meta.get("title", "")
+        vid = meta.get("video_id", "")
+        key = (vid, title)
+        item = titles.setdefault(
+            key,
+            {
+                "video_id": vid,
+                "title": title,
+                "clip_count": 0,
+                "publish_time": meta.get("publish_time") or meta.get("published_at"),
+            },
+        )
+        item["clip_count"] += 1
+    return list(titles.values())
+
+
+if __name__ == "__main__":
+    mcp.run(transport="sse")
+
+
+#---- Legacy MCP Server Code ----
+
+#@mcp.tool("get_recommended_sequence")
+def get_recommended_sequence(prompt: str) -> List[SequencePhase]:
+    """Generate a structured session sequence from a natural language prompt."""
+    results = collection.query(
+        query_texts=[prompt],
+        n_results=15,
+        where={"source": "off_ice_manual_hockey_canada_level1"},
+    )
+    docs = results.get("documents", [[]])[0]
+    metas = results.get("metadatas", [[]])[0]
+
+    grouped: dict[str, list[str]] = {}
+    for doc, meta in zip(docs, metas):
+        cat = meta.get("category", "")
+        stage = meta.get("progression_stage", "")
+        key = f"{cat} | {stage}"
+        grouped.setdefault(key, []).append(_parse_description(doc))
+
+    text = ""
+    for key, descs in grouped.items():
+        text += f"{key}\n" + "\n".join(f"- {d}" for d in descs) + "\n\n"
+
+    system_prompt = (
+        "Use the grouped drills below to create a phased off-ice session "
+        "sequence. Return JSON list of objects with fields: phase, category, "
+        "description."
+    )
+    resp = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": text}],
+    )
+    content = resp.choices[0].message.content.strip()
+    try:
+        phases = json.loads(content)
+    except Exception:
+        return []
+    return [SequencePhase(**p) for p in phases]
+
+
+STAGE_ORDER = {"Introductory": 0, "Developmental": 1, "Refinement": 2}
+
+#@mcp.tool("summarize_office_by_category")
 def summarize_office_by_category(n_per_category: int = 5) -> List[CategorySummary]:
     """Summarize indexed off-ice entries grouped by category."""
     data = collection.get(
@@ -140,67 +231,7 @@ def summarize_office_by_category(n_per_category: int = 5) -> List[CategorySummar
 
     return summaries
 
-
-@mcp.tool("get_recommended_sequence")
-def get_recommended_sequence(prompt: str) -> List[SequencePhase]:
-    """Generate a structured session sequence from a natural language prompt."""
-    results = collection.query(
-        query_texts=[prompt],
-        n_results=15,
-        where={"source": "off_ice_manual_hockey_canada_level1"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-
-    grouped: dict[str, list[str]] = {}
-    for doc, meta in zip(docs, metas):
-        cat = meta.get("category", "")
-        stage = meta.get("progression_stage", "")
-        key = f"{cat} | {stage}"
-        grouped.setdefault(key, []).append(_parse_description(doc))
-
-    text = ""
-    for key, descs in grouped.items():
-        text += f"{key}\n" + "\n".join(f"- {d}" for d in descs) + "\n\n"
-
-    system_prompt = (
-        "Use the grouped drills below to create a phased off-ice session "
-        "sequence. Return JSON list of objects with fields: phase, category, "
-        "description."
-    )
-    resp = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": text}],
-    )
-    content = resp.choices[0].message.content.strip()
-    try:
-        phases = json.loads(content)
-    except Exception:
-        return []
-    return [SequencePhase(**p) for p in phases]
-
-
-STAGE_ORDER = {"Introductory": 0, "Developmental": 1, "Refinement": 2}
-
-
-class VideoTitle(TypedDict):
-    video_id: str
-    title: str
-    clip_count: int
-    publish_time: Optional[str] | None
-
-
-class VideoClip(TypedDict):
-    video_id: str
-    title: str
-    start_time: str
-    end_time: str
-    summary: str | None
-    transcript: str | None
-    complexity: str | None
-
-
-@mcp.tool("list_dryland_video_titles")
+#@mcp.tool("list_dryland_video_titles")
 def list_dryland_video_titles() -> List[VideoTitle]:
     """Return all unique dryland video titles with clip counts."""
     data = collection.get(where={"type": "off_ice_video"}, include=["metadatas"])
@@ -222,7 +253,7 @@ def list_dryland_video_titles() -> List[VideoTitle]:
     return list(titles.values())
 
 
-@mcp.tool("get_video_clips_by_title")
+#@mcp.tool("get_video_clips_by_title")
 def get_video_clips_by_title(title: str) -> List[VideoClip]:
     """Return all video clips matching a given title."""
     data = collection.get(
@@ -244,35 +275,7 @@ def get_video_clips_by_title(title: str) -> List[VideoClip]:
         )
     return clips
 
-
-@mcp.tool("search_dryland_video_titles")
-def search_dryland_video_titles(query: str, n_results: int = 5) -> List[VideoTitle]:
-    """Semantic search over dryland video titles."""
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results,
-        where={"type": "off_ice_video"},
-    )
-    metas = results.get("metadatas", [[]])[0]
-    titles: dict[tuple[str, str], VideoTitle] = {}
-    for meta in metas:
-        title = meta.get("title", "")
-        vid = meta.get("video_id", "")
-        key = (vid, title)
-        item = titles.setdefault(
-            key,
-            {
-                "video_id": vid,
-                "title": title,
-                "clip_count": 0,
-                "publish_time": meta.get("publish_time") or meta.get("published_at"),
-            },
-        )
-        item["clip_count"] += 1
-    return list(titles.values())
-
-
-@mcp.tool("get_progressions_for_focus_area")
+#@mcp.tool("get_progressions_for_focus_area")
 def get_progressions_for_focus_area(focus_area: str) -> FocusAreaProgression:
     """Summarize the progression path for a given focus area."""
     data = collection.get(
@@ -307,7 +310,3 @@ def get_progressions_for_focus_area(focus_area: str) -> FocusAreaProgression:
     )
     summary = resp.choices[0].message.content.strip()
     return FocusAreaProgression(focus_area=focus_area, summary=summary)
-
-
-if __name__ == "__main__":
-    mcp.run(transport="sse")
