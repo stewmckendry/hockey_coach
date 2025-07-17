@@ -17,11 +17,14 @@ async def set_dryland_context_param(
         "equipment",
         "space",
         "weeks",
-        "notes"
+        "notes",
+        "research_complete"
     ],
-    value: Union[str, List[str]],
+    value: Union[str, List[str], bool],
 ) -> str:
     if isinstance(value, list):
+        setattr(ctx.context, key, value)
+    elif isinstance(value, bool):
         setattr(ctx.context, key, value)
     else:
         setattr(ctx.context, key, str(value))
