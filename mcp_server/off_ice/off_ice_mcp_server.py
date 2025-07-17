@@ -115,31 +115,26 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     return entries
 
 
-@mcp.tool("find_dryland_drills")
-def find_dryland_video_titles(query: str, n_results: int = 5) -> List[VideoTitle]:
+@mcp.tool("find_dryland_videos")
+def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     """Semantic search over dryland video titles."""
     results = collection.query(
         query_texts=[query],
         n_results=n_results,
         where={"type": "off_ice_video"},
     )
+    docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    titles: dict[tuple[str, str], VideoTitle] = {}
-    for meta in metas:
-        title = meta.get("title", "")
-        vid = meta.get("video_id", "")
-        key = (vid, title)
-        item = titles.setdefault(
-            key,
-            {
-                "video_id": vid,
-                "title": title,
-                "clip_count": 0,
-                "publish_time": meta.get("publish_time") or meta.get("published_at"),
-            },
-        )
-        item["clip_count"] += 1
-    return list(titles.values())
+    video_results: List[dict] = []
+    for doc, meta in zip(docs, metas):
+        video_results.append({
+            "video_id": meta.get("video_id", ""),
+            "title": meta.get("title", ""),
+            "video_url": meta.get("video_url", ""),
+            "document": doc,
+            "metadata": meta,
+        })
+    return video_results
 
 
 if __name__ == "__main__":

@@ -15,12 +15,12 @@ prompt: |
 
   3. Once all required inputs are collected and stored in context, begin planning.
 
-  4. Use the following tools to support the planning process:
+  4. Use **all** of the following tools to support the planning process:
     - `find_dryland_drills`: Search for relevant dryland drills to support each weekly focus
     - `find_training_videos`: Retrieve example videos related to drills or weekly goals
-    - `WebSearchTool`: Look up dryland trends or drills for specific skills
+    - `Web Search`: search web for dryland structure, best practices and trends for specific context
 
-    Always call these tools before finalizing a weekly schedule or template. Use the results to improve the specificity and realism of your plan.
+    Always call **all** of these tools before finalizing a weekly schedule or template. Use the results to improve the specificity and realism of your plan.
 
   5. Then generate a dryland training plan that includes:
     - A weekly schedule 
