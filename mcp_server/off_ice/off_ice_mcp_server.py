@@ -1,6 +1,7 @@
 import logging
 import os
 from typing import Dict, List, Any
+import uvicorn
 
 from fastmcp import FastMCP
 from openai import OpenAI
@@ -117,7 +118,7 @@ def main():
         raise ValueError("OPENAI_API_KEY must be set")
 
     server = create_server()
-    server.run(transport="sse", host="0.0.0.0", port=8000)
+    uvicorn.run(server.sse_app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
     main()
