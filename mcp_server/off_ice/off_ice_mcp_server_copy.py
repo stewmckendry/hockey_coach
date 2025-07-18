@@ -1,133 +1,137 @@
-from __future__ import annotations
+import logging
+import os
+import uvicorn
+from typing import Dict, List, Any
 
-"""MCP server exposing off-ice training search tools."""
-
-from typing import List, Optional
-from typing_extensions import TypedDict
-from pydantic import BaseModel
-import json
+from fastmcp import FastMCP
 from openai import OpenAI
-
-from mcp.server.fastmcp import FastMCP
-
-import sys
-from pathlib import Path
-
-
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 from chroma_utils import get_chroma_collection
-
-mcp = FastMCP("Off-Ice KB MCP Server")
-collection = get_chroma_collection()
-client = OpenAI()
-
 from datetime_tools import get_current_date
-mcp.tool(get_current_date)
 
-class OffIceResult(TypedDict):
-    title: str
-    category: str
-    focus_area: str
-    teaching_complexity: str
-    progression_stage: str
-    description: str
-    equipment_needed: Optional[str]
-    source_pages: str
+# Logging setup
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+# Env config
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+VECTOR_STORE_ID = os.getenv("VECTOR_STORE_ID", "")
 
-class CategorySummary(BaseModel):
-    category: str
-    summary: str
+client = OpenAI()
+collection = get_chroma_collection()
 
-class VideoTitle(TypedDict):
-    video_id: str
-    title: str
-    video_url: str
-    document: str
-    metadata: dict
+server_instructions = """
+This MCP server provides dryland training search tools for youth hockey coaches.
+Use the search tool to locate appropriate exercises or videos from Hockey Canada guidance,
+and use fetch to retrieve full content for context and citation.
+"""
 
+def create_server():
+    mcp = FastMCP(name="Dryland MCP Server", instructions=server_instructions)
 
-class VideoClip(TypedDict):
-    video_id: str
-    title: str
-    start_time: str
-    end_time: str
-    summary: str | None
-    transcript: str | None
-    complexity: str | None
+    mcp.description = "Off-ice hockey training assistant for drills and video clips."
+    mcp.version = "v1.0.0"
+    mcp.id = "dryland-mcp-server"
+    mcp.contact = {"name": "Stewart McKendry", "email": "your@email.com"}
+    mcp.license = {"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 
+    @mcp.tool(name="search")
+    async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
+        logger.info("✅ search tool invoked")
+        logger.info(f"Searching drills and videos for: {query}")
 
-@mcp.resource("schema://off_ice", title="Off-Ice Entry Schema")
-def get_office_schema() -> str:
-    return """{
-  \"title\": \"string\",
-  \"category\": \"string\",
-  \"focus_area\": \"string\",
-  \"teaching_complexity\": \"string\",
-  \"progression_stage\": \"string\",
-  \"description\": \"string\",
-  \"equipment_needed\": \"string | null\",
-  \"source_pages\": \"string\"
-}"""
+        try:
+            results = collection.query(
+                query_texts=[query],
+                n_results=10,
+                where={"$or": [
+                    {"source": "off_ice_manual_hockey_canada_level1"},
+                    {"type": "off_ice_video"}
+                ]},
+            )
 
+            docs = results.get("documents", [[]])[0]
+            metas = results.get("metadatas", [[]])[0]
+            ids = results.get("ids", [[]])[0]
 
-def _parse_description(doc: str) -> str:
+            entries = []
+            for doc, meta, uid in zip(docs, metas, ids):
+                is_video = meta.get("type") == "off_ice_video"
+                entry_id = f"video:{uid}" if is_video else f"drill:{uid}"
+                title = meta.get("title", "Untitled")
+                text = extract_description(doc)
+                url = meta.get("video_url") if is_video else f"https://your.site/drill/{uid}"
+
+                entries.append({
+                    "id": entry_id,
+                    "title": title,
+                    "text": text[:200] + "..." if len(text) > 200 else text,
+                    "url": url or "https://your.site"
+                })
+
+            logger.info(f"✅ search returned {len(entries)} results")
+            return {"results": entries}
+        except Exception as e:
+            logger.error(f"❌ search failed: {e}")
+            return {
+                "results": [
+                    {
+                        "id": "fallback:001",
+                        "title": "Sample fallback result",
+                        "text": "This is a fallback result due to an internal error.",
+                        "url": "https://example.com/fallback"
+                    }
+                ]
+            }
+
+    @mcp.tool(name="fetch")
+    async def fetch(id: str) -> Dict[str, Any]:
+        logger.info(f"Fetching item: {id}")
+
+        if id.startswith("drill:"):
+            raw_id = id.replace("drill:", "")
+            where_clause = {"source": "off_ice_manual_hockey_canada_level1"}
+        elif id.startswith("video:"):
+            raw_id = id.replace("video:", "")
+            where_clause = {"type": "off_ice_video"}
+        else:
+            raise ValueError("Invalid ID prefix")
+
+        data = collection.get(ids=[raw_id], where=where_clause, include=["documents", "metadatas"])
+        docs = data.get("documents", [""])
+        metas = data.get("metadatas", [{}])
+
+        if not docs or not metas:
+            raise ValueError(f"Item not found for ID: {id}")
+
+        doc = docs[0]
+        meta = metas[0]
+        is_video = id.startswith("video:")
+        title = meta.get("title", "Untitled")
+        url = meta.get("video_url") if is_video else f"https://your.site/drill/{raw_id}"
+
+        return {
+            "id": id,
+            "title": title,
+            "text": doc,
+            "url": url or "https://your.site",
+            "metadata": meta
+        }
+
+    return mcp
+
+def extract_description(doc: str) -> str:
     for line in doc.splitlines():
         if line.lower().startswith("description:"):
             return line.split(":", 1)[1].strip()
-    return ""
+    return doc[:300]
 
+def main():
+    logger.info("Starting Dryland MCP Server")
+    if not OPENAI_API_KEY:
+        raise ValueError("OPENAI_API_KEY must be set")
 
-@mcp.tool("find_dryland_drills")
-def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results,
-        where={"source": "off_ice_manual_hockey_canada_level1"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-
-    entries: List[OffIceResult] = []
-    for doc, meta in zip(docs, metas):
-        entries.append(
-            {
-                "title": meta.get("title", ""),
-                "category": meta.get("category", ""),
-                "focus_area": meta.get("focus_area", ""),
-                "teaching_complexity": meta.get("teaching_complexity", ""),
-                "progression_stage": meta.get("progression_stage", ""),
-                "description": _parse_description(doc),
-                "equipment_needed": meta.get("equipment_needed") or None,
-                "source_pages": meta.get("source_pages", ""),
-            }
-        )
-    return entries
-
-
-@mcp.tool("find_dryland_videos")
-def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
-    """Semantic search over dryland video titles."""
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results,
-        where={"type": "off_ice_video"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    video_results: List[dict] = []
-    for doc, meta in zip(docs, metas):
-        video_results.append({
-            "video_id": meta.get("video_id", ""),
-            "title": meta.get("title", ""),
-            "video_url": meta.get("video_url", ""),
-            "document": doc,
-            "metadata": meta,
-        })
-    return video_results
-
+    server = create_server()
+    uvicorn.run(server.sse_app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(mcp.sse_app, host="0.0.0.0", port=8000)
-
+    main()
