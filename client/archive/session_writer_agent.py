@@ -16,7 +16,7 @@ from agents.items import ImageGenerationCall, MessageOutputItem, ToolCallItem
 
 from .input_structurer import StructuredInput
 from .dryland_structure_agent import DrylandOutline
-from .dryland_progression_agent import DrylandProgression
+from ..archive.dryland_progression_agent import DrylandProgression
 from .research_agent import ResearchSummary
 from .dryland_video_summary_agent import VideoSummary
 

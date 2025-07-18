@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from agents import Agent, Runner
 from agents.mcp import MCPServerSse
 
-from .dryland_structure_agent import DrylandOutline
+from ..off_ice.dryland_structure_agent import DrylandOutline
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts" / "off_ice"
 

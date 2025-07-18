@@ -10,7 +10,7 @@ from typing import List
 from pydantic import BaseModel
 from agents import Agent, Runner, WebSearchTool
 
-from .dryland_progression_agent import DrylandProgression
+from ..archive.dryland_progression_agent import DrylandProgression
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts" / "off_ice"
 

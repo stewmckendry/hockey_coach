@@ -17,7 +17,7 @@ from mcp_server.chroma_utils import get_chroma_collection
 
 from .input_structurer import StructuredInput, input_structurer_agent
 from .dryland_structure_agent import DrylandOutline, dryland_structure_agent
-from .dryland_progression_agent import DrylandProgression, dryland_progression_agent
+from ..archive.dryland_progression_agent import DrylandProgression, dryland_progression_agent
 from .research_agent import ResearchSummary, research_agent
 from .dryland_video_summary_agent import VideoSummary, dryland_video_summary_agent
 from .session_writer_agent import FinalPlan, PlanImage, session_writer_agent, run_agent as writer_run_agent

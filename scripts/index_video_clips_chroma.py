@@ -8,7 +8,7 @@ import tiktoken
 
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from app.mcp_server.chroma_utils import (
+from mcp_server.off_ice.chroma_utils import (
     get_chroma_collection,
     clear_chroma_collection,
 )
