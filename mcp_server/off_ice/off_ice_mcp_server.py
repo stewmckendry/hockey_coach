@@ -1,7 +1,7 @@
 import logging
 import os
-from typing import Dict, List, Any
 import uvicorn
+from typing import Dict, List, Any
 
 from fastmcp import FastMCP
 from openai import OpenAI
@@ -34,41 +34,54 @@ def create_server():
     mcp.contact = {"name": "Stewart McKendry", "email": "your@email.com"}
     mcp.license = {"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 
-    #mcp.tool(get_current_date)
-
     @mcp.tool(name="search")
     async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
+        logger.info("✅ search tool invoked")
         logger.info(f"Searching drills and videos for: {query}")
 
-        results = collection.query(
-            query_texts=[query],
-            n_results=10,
-            where={"$or": [
-                {"source": "off_ice_manual_hockey_canada_level1"},
-                {"type": "off_ice_video"}
-            ]},
-        )
+        try:
+            results = collection.query(
+                query_texts=[query],
+                n_results=10,
+                where={"$or": [
+                    {"source": "off_ice_manual_hockey_canada_level1"},
+                    {"type": "off_ice_video"}
+                ]},
+            )
 
-        docs = results.get("documents", [[]])[0]
-        metas = results.get("metadatas", [[]])[0]
-        ids = results.get("ids", [[]])[0]
+            docs = results.get("documents", [[]])[0]
+            metas = results.get("metadatas", [[]])[0]
+            ids = results.get("ids", [[]])[0]
 
-        entries = []
-        for doc, meta, uid in zip(docs, metas, ids):
-            is_video = meta.get("type") == "off_ice_video"
-            entry_id = f"video:{uid}" if is_video else f"drill:{uid}"
-            title = meta.get("title", "Untitled")
-            text = extract_description(doc)
-            url = meta.get("video_url") if is_video else f"https://your.site/drill/{uid}"
+            entries = []
+            for doc, meta, uid in zip(docs, metas, ids):
+                is_video = meta.get("type") == "off_ice_video"
+                entry_id = f"video:{uid}" if is_video else f"drill:{uid}"
+                title = meta.get("title", "Untitled")
+                text = extract_description(doc)
+                url = meta.get("video_url") if is_video else f"https://your.site/drill/{uid}"
 
-            entries.append({
-                "id": entry_id,
-                "title": title,
-                "text": text[:200] + "..." if len(text) > 200 else text,
-                "url": url or "https://your.site"
-            })
+                entries.append({
+                    "id": entry_id,
+                    "title": title,
+                    "text": text[:200] + "..." if len(text) > 200 else text,
+                    "url": url or "https://your.site"
+                })
 
-        return {"results": entries}
+            logger.info(f"✅ search returned {len(entries)} results")
+            return {"results": entries}
+        except Exception as e:
+            logger.error(f"❌ search failed: {e}")
+            return {
+                "results": [
+                    {
+                        "id": "fallback:001",
+                        "title": "Sample fallback result",
+                        "text": "This is a fallback result due to an internal error.",
+                        "url": "https://example.com/fallback"
+                    }
+                ]
+            }
 
     @mcp.tool(name="fetch")
     async def fetch(id: str) -> Dict[str, Any]:
