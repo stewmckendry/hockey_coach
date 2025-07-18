@@ -139,7 +139,9 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="sse", host="0.0.0.0", port=8000)
+    import uvicorn
+    uvicorn.run("off_ice_mcp_server:mcp", host="0.0.0.0", port=8000, factory=True)
+
 
 
 #---- Legacy MCP Server Code ----
