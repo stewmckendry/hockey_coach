@@ -1,310 +1,123 @@
-from __future__ import annotations
+import logging
+import os
+from typing import Dict, List, Any
 
-"""MCP server exposing off-ice training search tools."""
-
-from typing import List, Optional
-from typing_extensions import TypedDict
-from pydantic import BaseModel
-import json
+from fastmcp import FastMCP
 from openai import OpenAI
-
-from mcp.server.fastmcp import FastMCP
-
-import sys
-from pathlib import Path
-
-
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 from chroma_utils import get_chroma_collection
-
-mcp = FastMCP("Off-Ice KB MCP Server")
-collection = get_chroma_collection()
-client = OpenAI()
-
 from datetime_tools import get_current_date
-mcp.tool(get_current_date)
 
-class OffIceResult(TypedDict):
-    title: str
-    category: str
-    focus_area: str
-    teaching_complexity: str
-    progression_stage: str
-    description: str
-    equipment_needed: Optional[str]
-    source_pages: str
+# Logging setup
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+# Env config
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+VECTOR_STORE_ID = os.getenv("VECTOR_STORE_ID", "")
 
-class CategorySummary(BaseModel):
-    category: str
-    summary: str
+client = OpenAI()
+collection = get_chroma_collection()
 
+server_instructions = """
+This MCP server provides dryland training search tools for youth hockey coaches.
+Use the search tool to locate appropriate exercises or videos from Hockey Canada guidance,
+and use fetch to retrieve full content for context and citation.
+"""
 
-class SequencePhase(BaseModel):
-    phase: str
-    category: str
-    description: str
+def create_server():
+    mcp = FastMCP(name="Dryland MCP Server", instructions=server_instructions)
 
+    mcp.description = "Off-ice hockey training assistant for drills and video clips."
+    mcp.version = "v1.0.0"
+    mcp.id = "dryland-mcp-server"
+    mcp.contact = {"name": "Stewart McKendry", "email": "your@email.com"}
+    mcp.license = {"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 
-class FocusAreaProgression(BaseModel):
-    focus_area: str
-    summary: str
+    mcp.tool(get_current_date)
 
-class VideoTitle(TypedDict):
-    video_id: str
-    title: str
-    video_url: str
-    document: str
-    metadata: dict
+    @mcp.tool(name="search")
+    async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
+        logger.info(f"Searching drills and videos for: {query}")
 
+        results = collection.query(
+            query_texts=[query],
+            n_results=10,
+            where={"$or": [
+                {"source": "off_ice_manual_hockey_canada_level1"},
+                {"type": "off_ice_video"}
+            ]},
+        )
 
-class VideoClip(TypedDict):
-    video_id: str
-    title: str
-    start_time: str
-    end_time: str
-    summary: str | None
-    transcript: str | None
-    complexity: str | None
+        docs = results.get("documents", [[]])[0]
+        metas = results.get("metadatas", [[]])[0]
+        ids = results.get("ids", [[]])[0]
 
+        entries = []
+        for doc, meta, uid in zip(docs, metas, ids):
+            is_video = meta.get("type") == "off_ice_video"
+            entry_id = f"video:{uid}" if is_video else f"drill:{uid}"
+            title = meta.get("title", "Untitled")
+            text = extract_description(doc)
+            url = meta.get("video_url") if is_video else f"https://your.site/drill/{uid}"
 
-@mcp.resource("schema://off_ice", title="Off-Ice Entry Schema")
-def get_office_schema() -> str:
-    return """{
-  \"title\": \"string\",
-  \"category\": \"string\",
-  \"focus_area\": \"string\",
-  \"teaching_complexity\": \"string\",
-  \"progression_stage\": \"string\",
-  \"description\": \"string\",
-  \"equipment_needed\": \"string | null\",
-  \"source_pages\": \"string\"
-}"""
+            entries.append({
+                "id": entry_id,
+                "title": title,
+                "text": text[:200] + "..." if len(text) > 200 else text,
+                "url": url or "https://your.site"
+            })
 
+        return {"results": entries}
 
-def _parse_description(doc: str) -> str:
+    @mcp.tool(name="fetch")
+    async def fetch(id: str) -> Dict[str, Any]:
+        logger.info(f"Fetching item: {id}")
+
+        if id.startswith("drill:"):
+            raw_id = id.replace("drill:", "")
+            where_clause = {"source": "off_ice_manual_hockey_canada_level1"}
+        elif id.startswith("video:"):
+            raw_id = id.replace("video:", "")
+            where_clause = {"type": "off_ice_video"}
+        else:
+            raise ValueError("Invalid ID prefix")
+
+        data = collection.get(ids=[raw_id], where=where_clause, include=["documents", "metadatas"])
+        docs = data.get("documents", [""])
+        metas = data.get("metadatas", [{}])
+
+        if not docs or not metas:
+            raise ValueError(f"Item not found for ID: {id}")
+
+        doc = docs[0]
+        meta = metas[0]
+        is_video = id.startswith("video:")
+        title = meta.get("title", "Untitled")
+        url = meta.get("video_url") if is_video else f"https://your.site/drill/{raw_id}"
+
+        return {
+            "id": id,
+            "title": title,
+            "text": doc,
+            "url": url or "https://your.site",
+            "metadata": meta
+        }
+
+    return mcp
+
+def extract_description(doc: str) -> str:
     for line in doc.splitlines():
         if line.lower().startswith("description:"):
             return line.split(":", 1)[1].strip()
-    return ""
+    return doc[:300]
 
+def main():
+    logger.info("Starting Dryland MCP Server")
+    if not OPENAI_API_KEY:
+        raise ValueError("OPENAI_API_KEY must be set")
 
-@mcp.tool("find_dryland_drills")
-def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results,
-        where={"source": "off_ice_manual_hockey_canada_level1"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-
-    entries: List[OffIceResult] = []
-    for doc, meta in zip(docs, metas):
-        entries.append(
-            {
-                "title": meta.get("title", ""),
-                "category": meta.get("category", ""),
-                "focus_area": meta.get("focus_area", ""),
-                "teaching_complexity": meta.get("teaching_complexity", ""),
-                "progression_stage": meta.get("progression_stage", ""),
-                "description": _parse_description(doc),
-                "equipment_needed": meta.get("equipment_needed") or None,
-                "source_pages": meta.get("source_pages", ""),
-            }
-        )
-    return entries
-
-
-@mcp.tool("find_dryland_videos")
-def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
-    """Semantic search over dryland video titles."""
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results,
-        where={"type": "off_ice_video"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    video_results: List[dict] = []
-    for doc, meta in zip(docs, metas):
-        video_results.append({
-            "video_id": meta.get("video_id", ""),
-            "title": meta.get("title", ""),
-            "video_url": meta.get("video_url", ""),
-            "document": doc,
-            "metadata": meta,
-        })
-    return video_results
-
+    server = create_server()
+    server.run(transport="sse", host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(mcp.sse_app, host="0.0.0.0", port=8000)
-
-
-
-#---- Legacy MCP Server Code ----
-
-#@mcp.tool("get_recommended_sequence")
-def get_recommended_sequence(prompt: str) -> List[SequencePhase]:
-    """Generate a structured session sequence from a natural language prompt."""
-    results = collection.query(
-        query_texts=[prompt],
-        n_results=15,
-        where={"source": "off_ice_manual_hockey_canada_level1"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-
-    grouped: dict[str, list[str]] = {}
-    for doc, meta in zip(docs, metas):
-        cat = meta.get("category", "")
-        stage = meta.get("progression_stage", "")
-        key = f"{cat} | {stage}"
-        grouped.setdefault(key, []).append(_parse_description(doc))
-
-    text = ""
-    for key, descs in grouped.items():
-        text += f"{key}\n" + "\n".join(f"- {d}" for d in descs) + "\n\n"
-
-    system_prompt = (
-        "Use the grouped drills below to create a phased off-ice session "
-        "sequence. Return JSON list of objects with fields: phase, category, "
-        "description."
-    )
-    resp = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": text}],
-    )
-    content = resp.choices[0].message.content.strip()
-    try:
-        phases = json.loads(content)
-    except Exception:
-        return []
-    return [SequencePhase(**p) for p in phases]
-
-
-STAGE_ORDER = {"Introductory": 0, "Developmental": 1, "Refinement": 2}
-
-#@mcp.tool("summarize_office_by_category")
-def summarize_office_by_category(n_per_category: int = 5) -> List[CategorySummary]:
-    """Summarize indexed off-ice entries grouped by category."""
-    data = collection.get(
-        where={"source": "off_ice_manual_hockey_canada_level1"},
-        include=["documents", "metadatas"],
-    )
-    categories: dict[str, list[tuple[str, dict]]] = {}
-    docs = data.get("documents", [])
-    metas = data.get("metadatas", [])
-    for doc, meta in zip(docs, metas):
-        cat = (meta.get("category") or "").strip()
-        if not cat:
-            continue
-        categories.setdefault(cat, []).append((doc, meta))
-
-    summaries: List[CategorySummary] = []
-    for cat, items in categories.items():
-        entries_text = ""
-        for doc, meta in items[:n_per_category]:
-            desc = _parse_description(doc)
-            title = meta.get("title", "")
-            stage = meta.get("progression_stage", "")
-            entries_text += f"Title: {title}\nStage: {stage}\n{desc}\n\n"
-
-        system_prompt = (
-            "You are an expert off-ice hockey trainer. Summarize what this "
-            "category trains, when drills are best used during a session, and "
-            "how difficulty progresses across stages."
-        )
-        resp = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Category: {cat}\n\n" + entries_text},
-            ],
-        )
-        summary = resp.choices[0].message.content.strip()
-        summaries.append(CategorySummary(category=cat, summary=summary))
-
-    return summaries
-
-#@mcp.tool("list_dryland_video_titles")
-def list_dryland_video_titles() -> List[VideoTitle]:
-    """Return all unique dryland video titles with clip counts."""
-    data = collection.get(where={"type": "off_ice_video"}, include=["metadatas"])
-    titles: dict[tuple[str, str], VideoTitle] = {}
-    for meta in data.get("metadatas", []):
-        title = meta.get("title", "")
-        vid = meta.get("video_id", "")
-        key = (vid, title)
-        item = titles.setdefault(
-            key,
-            {
-                "video_id": vid,
-                "title": title,
-                "clip_count": 0,
-                "publish_time": meta.get("publish_time") or meta.get("published_at"),
-            },
-        )
-        item["clip_count"] += 1
-    return list(titles.values())
-
-
-#@mcp.tool("get_video_clips_by_title")
-def get_video_clips_by_title(title: str) -> List[VideoClip]:
-    """Return all video clips matching a given title."""
-    data = collection.get(
-        where={"$and": [{"title": title}, {"type": "off_ice_video"}]},
-        include=["metadatas"],
-    )
-    clips: List[VideoClip] = []
-    for meta in data.get("metadatas", []):
-        clips.append(
-            {
-                "video_id": meta.get("video_id", ""),
-                "title": meta.get("title", ""),
-                "start_time": meta.get("start_time", ""),
-                "end_time": meta.get("end_time", ""),
-                "summary": meta.get("summary"),
-                "transcript": meta.get("transcript"),
-                "complexity": meta.get("complexity"),
-            }
-        )
-    return clips
-
-#@mcp.tool("get_progressions_for_focus_area")
-def get_progressions_for_focus_area(focus_area: str) -> FocusAreaProgression:
-    """Summarize the progression path for a given focus area."""
-    data = collection.get(
-        where={
-            "$and": [
-                {"focus_area": focus_area},
-                {"source": "off_ice_manual_hockey_canada_level1"},
-            ]
-        },
-        include=["documents", "metadatas"],
-    )
-    docs = data.get("documents", [])
-    metas = data.get("metadatas", [])
-
-    entries = sorted(
-        zip(metas, docs),
-        key=lambda x: STAGE_ORDER.get(x[0].get("progression_stage", ""), 99),
-    )
-    text = ""
-    for meta, doc in entries:
-        stage = meta.get("progression_stage", "")
-        title = meta.get("title", "")
-        text += f"Stage: {stage}\nTitle: {title}\n{_parse_description(doc)}\n\n"
-
-    system_prompt = (
-        "Provide an overview of how this skill progresses from introductory to "
-        "advanced. Mention example drills for each stage."
-    )
-    resp = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": text}],
-    )
-    summary = resp.choices[0].message.content.strip()
-    return FocusAreaProgression(focus_area=focus_area, summary=summary)
+    main()
