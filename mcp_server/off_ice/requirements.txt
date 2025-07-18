@@ -1,0 +1,21 @@
+# Core MCP server dependencies
+fastmcp @ git+https://github.com/jlowin/fastmcp.git@v2.10.0
+
+# Data models and typing
+pydantic>=2.0.0
+typing-extensions>=4.0.0
+
+# OpenAI integration
+openai>=1.0.0
+
+# Database and vector storage
+chromadb>=1.0.15
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Standard library dependencies (included with Python)
+# json - built-in
+# sys - built-in  
+# pathlib - built-in
+# typing - built-in
