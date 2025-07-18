@@ -1,5 +1,5 @@
 # Core MCP server dependencies
-fastmcp @ git+https://github.com/jlowin/fastmcp.git@v2.10.0
+fastmcp @ git+https://github.com/jlowin/fastmcp.git@v2.11.1
 
 # Data models and typing
 pydantic>=2.0.0
