@@ -140,7 +140,7 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(mcp, host="0.0.0.0", port=8000)
+    uvicorn.run(mcp.app, host="0.0.0.0", port=8000)
 
 
 
