@@ -33,7 +33,7 @@ def create_server():
     mcp.contact = {"name": "Stewart McKendry", "email": "your@email.com"}
     mcp.license = {"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 
-    mcp.tool(get_current_date)
+    #mcp.tool(get_current_date)
 
     @mcp.tool(name="search")
     async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
