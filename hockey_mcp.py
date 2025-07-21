@@ -170,7 +170,7 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [])
+    ids = results.get("ids", [[]])[0]
     logger.info("find_dryland_drills retrieved %s records from chroma", len(docs))
 
     entries: List[OffIceResult] = []
@@ -218,7 +218,7 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [])
+    ids = results.get("ids", [[]])[0]
     logger.info("find_dryland_videos retrieved %s records from chroma", len(docs))
     video_results: List[dict] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
@@ -257,7 +257,7 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
     results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [])
+    ids = results.get("ids", [[]])[0]
     logger.info("find_hockey_drills retrieved %s records from chroma", len(docs))
 
     drills: List[DrillResult] = []
@@ -308,7 +308,7 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [])
+    ids = results.get("ids", [[]])[0]
     logger.info("find_hockey_videos retrieved %s records from chroma", len(docs))
 
     clips: List[VideoClipResult] = []
@@ -354,7 +354,7 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
     results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [])
+    ids = results.get("ids", [[]])[0]
     logger.info("find_hockey_skills retrieved %s records from chroma", len(docs))
 
     skills: List[LTADSkillResult] = []
@@ -399,7 +399,7 @@ def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
     results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [])
+    ids = results.get("ids", [[]])[0]
     logger.info("find_nhl_interviews retrieved %s records from chroma", len(docs))
 
     insights: List[NHLInsight] = []
@@ -445,7 +445,7 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [])
+    ids = results.get("ids", [[]])[0]
     logger.info("find_hockey_rules retrieved %s records from chroma", len(docs))
 
     policies: List[ConductPolicy] = []
