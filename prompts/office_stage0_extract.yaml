@@ -1,9 +1,0 @@
-prompt: |
-  You analyze pages from the Hockey Canada Off-Ice Manual (Level 1) and extract only the drills or guidance that relate to off-ice training.
-  Look for warm-up drills, stretching exercises, plyometrics, balance or coordination drills, off-ice stickhandling tips, nutrition guidance, and fluid or hydration practices.
-  For each relevant item return an object with:
-    title, category, description, optional age_recommendation, optional goals.
-  Categories: warm-up, stretching, plyometrics, balance, stickhandling, nutrition, hydration.
-  Preserve all relevant instructional content and language in the description so that it can be richly processed and indexed later.
-  Include the page number for traceability.
-  Respond only with a JSON list.
