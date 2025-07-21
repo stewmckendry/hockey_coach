@@ -176,13 +176,11 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     entries: List[OffIceResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
         prefix = _get_prefix(doc_id)
-        logger.info("find_dryland_drills record id=%s prefix=%s", doc_id, prefix)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("dryland-"):
-            logger.info(
-                "find_dryland_drills skipping id=%s with prefix=%s", doc_id, prefix
-            )
+            logger.info("Skipping non-dryland id: %s", doc_id)
             continue
-        logger.info("find_dryland_drills keeping id=%s with prefix=%s", doc_id, prefix)
+        logger.info("Keeping dryland id: %s", doc_id)
         entries.append(
             {
                 "title": meta.get("title", ""),
@@ -225,13 +223,11 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     video_results: List[dict] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
         prefix = _get_prefix(doc_id)
-        logger.info("find_dryland_videos record id=%s prefix=%s", doc_id, prefix)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("dryland-"):
-            logger.info(
-                "find_dryland_videos skipping id=%s with prefix=%s", doc_id, prefix
-            )
+            logger.info("Skipping non-dryland id: %s", doc_id)
             continue
-        logger.info("find_dryland_videos keeping id=%s with prefix=%s", doc_id, prefix)
+        logger.info("Keeping dryland id: %s", doc_id)
         video_results.append(
             {
                 "video_id": meta.get("video_id", ""),
@@ -266,16 +262,12 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
 
     drills: List[DrillResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
-        logger.info(
-            "Processing record id=%s with prefix=%s",
-            doc_id,
-            _get_prefix(doc_id),
-        )
+        prefix = _get_prefix(doc_id)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("drill-"):
             logger.info("Skipping non-drill id: %s", doc_id)
             continue
-        else:
-            logger.info("Keeping drill id: %s", doc_id)
+        logger.info("Keeping drill id: %s", doc_id)
         drills.append(
             {
                 "title": meta.get("title", ""),
@@ -322,13 +314,11 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
     clips: List[VideoClipResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
         prefix = _get_prefix(doc_id)
-        logger.info("find_hockey_videos record id=%s prefix=%s", doc_id, prefix)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("video-"):
-            logger.info(
-                "find_hockey_videos skipping id=%s with prefix=%s", doc_id, prefix
-            )
+            logger.info("Skipping non-video id: %s", doc_id)
             continue
-        logger.info("find_hockey_videos keeping id=%s with prefix=%s", doc_id, prefix)
+        logger.info("Keeping video id: %s", doc_id)
         clips.append(
             {
                 "title": meta.get("title", ""),
@@ -370,13 +360,11 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
     skills: List[LTADSkillResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
         prefix = _get_prefix(doc_id)
-        logger.info("find_hockey_skills record id=%s prefix=%s", doc_id, prefix)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("ltad-"):
-            logger.info(
-                "find_hockey_skills skipping id=%s with prefix=%s", doc_id, prefix
-            )
+            logger.info("Skipping non-ltad id: %s", doc_id)
             continue
-        logger.info("find_hockey_skills keeping id=%s with prefix=%s", doc_id, prefix)
+        logger.info("Keeping ltad id: %s", doc_id)
         skills.append(
             {
                 "skill_name": meta.get("skill_name", ""),
@@ -417,13 +405,11 @@ def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
     insights: List[NHLInsight] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
         prefix = _get_prefix(doc_id)
-        logger.info("find_nhl_interviews record id=%s prefix=%s", doc_id, prefix)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("insight-"):
-            logger.info(
-                "find_nhl_interviews skipping id=%s with prefix=%s", doc_id, prefix
-            )
+            logger.info("Skipping non-insight id: %s", doc_id)
             continue
-        logger.info("find_nhl_interviews keeping id=%s with prefix=%s", doc_id, prefix)
+        logger.info("Keeping insight id: %s", doc_id)
         insights.append(
             {
                 "speaker": meta.get("speaker", ""),
@@ -465,13 +451,11 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
     policies: List[ConductPolicy] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
         prefix = _get_prefix(doc_id)
-        logger.info("find_hockey_rules record id=%s prefix=%s", doc_id, prefix)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("conduct-"):
-            logger.info(
-                "find_hockey_rules skipping id=%s with prefix=%s", doc_id, prefix
-            )
+            logger.info("Skipping non-conduct id: %s", doc_id)
             continue
-        logger.info("find_hockey_rules keeping id=%s with prefix=%s", doc_id, prefix)
+        logger.info("Keeping conduct id: %s", doc_id)
         policies.append(
             {
                 "title": meta.get("title", ""),
