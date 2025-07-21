@@ -25,6 +25,7 @@ mcp = FastMCP("Hockey MCP Server")
 collection = get_chroma_collection()
 client = OpenAI()
 
+
 class OffIceResult(TypedDict):
     title: str
     category: str
@@ -39,6 +40,7 @@ class OffIceResult(TypedDict):
 class CategorySummary(BaseModel):
     category: str
     summary: str
+
 
 class VideoTitle(TypedDict):
     video_id: str
@@ -151,9 +153,16 @@ def _parse_field(doc: str, label: str) -> str:
     return ""
 
 
+def _get_prefix(doc_id: str) -> str:
+    """Return the prefix of a Chroma document ID."""
+    return str(doc_id).split("-", 1)[0] if doc_id is not None else ""
+
+
 @mcp.tool("find_dryland_drills")
 def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
-    logger.info("find_dryland_drills called with query=%s n_results=%s", query, n_results)
+    logger.info(
+        "find_dryland_drills called with query=%s n_results=%s", query, n_results
+    )
     results = collection.query(
         query_texts=[query],
         n_results=n_results * 4,
@@ -166,8 +175,14 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
 
     entries: List[OffIceResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("find_dryland_drills record id=%s prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("dryland-"):
+            logger.info(
+                "find_dryland_drills skipping id=%s with prefix=%s", doc_id, prefix
+            )
             continue
+        logger.info("find_dryland_drills keeping id=%s with prefix=%s", doc_id, prefix)
         entries.append(
             {
                 "title": meta.get("title", ""),
@@ -195,7 +210,9 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
 @mcp.tool("find_dryland_videos")
 def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     """Semantic search over dryland video titles."""
-    logger.info("find_dryland_videos called with query=%s n_results=%s", query, n_results)
+    logger.info(
+        "find_dryland_videos called with query=%s n_results=%s", query, n_results
+    )
     results = collection.query(
         query_texts=[query],
         n_results=n_results * 4,
@@ -207,15 +224,23 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     logger.info("find_dryland_videos retrieved %s records from chroma", len(docs))
     video_results: List[dict] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("find_dryland_videos record id=%s prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("dryland-"):
+            logger.info(
+                "find_dryland_videos skipping id=%s with prefix=%s", doc_id, prefix
+            )
             continue
-        video_results.append({
-            "video_id": meta.get("video_id", ""),
-            "title": meta.get("title", ""),
-            "video_url": meta.get("video_url", ""),
-            "document": doc,
-            "metadata": meta,
-        })
+        logger.info("find_dryland_videos keeping id=%s with prefix=%s", doc_id, prefix)
+        video_results.append(
+            {
+                "video_id": meta.get("video_id", ""),
+                "title": meta.get("title", ""),
+                "video_url": meta.get("video_url", ""),
+                "document": doc,
+                "metadata": meta,
+            }
+        )
         if len(video_results) >= n_results:
             break
     if len(video_results) < n_results:
@@ -230,7 +255,9 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
 
 @mcp.tool("find_hockey_drills")
 def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
-    logger.info("find_hockey_drills called with query=%s n_results=%s", query, n_results)
+    logger.info(
+        "find_hockey_drills called with query=%s n_results=%s", query, n_results
+    )
     results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
@@ -239,8 +266,14 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
 
     drills: List[DrillResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("find_hockey_drills record id=%s prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("drill-"):
+            logger.info(
+                "find_hockey_drills skipping id=%s with prefix=%s", doc_id, prefix
+            )
             continue
+        logger.info("find_hockey_drills keeping id=%s with prefix=%s", doc_id, prefix)
         drills.append(
             {
                 "title": meta.get("title", ""),
@@ -270,7 +303,9 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
 
 @mcp.tool("find_hockey_videos")
 def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
-    logger.info("find_hockey_videos called with query=%s n_results=%s", query, n_results)
+    logger.info(
+        "find_hockey_videos called with query=%s n_results=%s", query, n_results
+    )
     results = collection.query(
         query_texts=[query],
         n_results=n_results * 4,
@@ -283,8 +318,14 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
 
     clips: List[VideoClipResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("find_hockey_videos record id=%s prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("video-"):
+            logger.info(
+                "find_hockey_videos skipping id=%s with prefix=%s", doc_id, prefix
+            )
             continue
+        logger.info("find_hockey_videos keeping id=%s with prefix=%s", doc_id, prefix)
         clips.append(
             {
                 "title": meta.get("title", ""),
@@ -314,7 +355,9 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
 
 @mcp.tool("find_hockey_skills")
 def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
-    logger.info("find_hockey_skills called with query=%s n_results=%s", query, n_results)
+    logger.info(
+        "find_hockey_skills called with query=%s n_results=%s", query, n_results
+    )
     results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
@@ -323,8 +366,14 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
 
     skills: List[LTADSkillResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("find_hockey_skills record id=%s prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("ltad-"):
+            logger.info(
+                "find_hockey_skills skipping id=%s with prefix=%s", doc_id, prefix
+            )
             continue
+        logger.info("find_hockey_skills keeping id=%s with prefix=%s", doc_id, prefix)
         skills.append(
             {
                 "skill_name": meta.get("skill_name", ""),
@@ -353,7 +402,9 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
 
 @mcp.tool("find_nhl_interviews")
 def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
-    logger.info("find_nhl_interviews called with query=%s n_results=%s", query, n_results)
+    logger.info(
+        "find_nhl_interviews called with query=%s n_results=%s", query, n_results
+    )
     results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
@@ -362,8 +413,14 @@ def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
 
     insights: List[NHLInsight] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("find_nhl_interviews record id=%s prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("insight-"):
+            logger.info(
+                "find_nhl_interviews skipping id=%s with prefix=%s", doc_id, prefix
+            )
             continue
+        logger.info("find_nhl_interviews keeping id=%s with prefix=%s", doc_id, prefix)
         insights.append(
             {
                 "speaker": meta.get("speaker", ""),
@@ -404,8 +461,14 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
 
     policies: List[ConductPolicy] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("find_hockey_rules record id=%s prefix=%s", doc_id, prefix)
         if not str(doc_id).startswith("conduct-"):
+            logger.info(
+                "find_hockey_rules skipping id=%s with prefix=%s", doc_id, prefix
+            )
             continue
+        logger.info("find_hockey_rules keeping id=%s with prefix=%s", doc_id, prefix)
         policies.append(
             {
                 "title": meta.get("title", ""),
@@ -431,6 +494,5 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(mcp.sse_app, host="0.0.0.0", port=8000)
-
-
