@@ -156,15 +156,18 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     logger.info("find_dryland_drills called with query=%s n_results=%s", query, n_results)
     results = collection.query(
         query_texts=[query],
-        n_results=n_results,
+        n_results=n_results * 4,
         where={"source": "off_ice_manual_hockey_canada_level1"},
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
+    ids = results.get("ids", [])
     logger.info("find_dryland_drills retrieved %s records from chroma", len(docs))
 
     entries: List[OffIceResult] = []
-    for doc, meta in zip(docs, metas):
+    for doc, meta, doc_id in zip(docs, metas, ids):
+        if not str(doc_id).startswith("dryland-"):
+            continue
         entries.append(
             {
                 "title": meta.get("title", ""),
@@ -177,6 +180,14 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
                 "source_pages": meta.get("source_pages", ""),
             }
         )
+        if len(entries) >= n_results:
+            break
+    if len(entries) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_dryland_drills",
+            len(entries),
+            n_results,
+        )
     logger.info("find_dryland_drills response: %s", entries)
     return entries
 
@@ -187,14 +198,17 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     logger.info("find_dryland_videos called with query=%s n_results=%s", query, n_results)
     results = collection.query(
         query_texts=[query],
-        n_results=n_results,
+        n_results=n_results * 4,
         where={"type": "off_ice_video"},
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
+    ids = results.get("ids", [])
     logger.info("find_dryland_videos retrieved %s records from chroma", len(docs))
     video_results: List[dict] = []
-    for doc, meta in zip(docs, metas):
+    for doc, meta, doc_id in zip(docs, metas, ids):
+        if not str(doc_id).startswith("dryland-"):
+            continue
         video_results.append({
             "video_id": meta.get("video_id", ""),
             "title": meta.get("title", ""),
@@ -202,6 +216,14 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
             "document": doc,
             "metadata": meta,
         })
+        if len(video_results) >= n_results:
+            break
+    if len(video_results) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_dryland_videos",
+            len(video_results),
+            n_results,
+        )
     logger.info("find_dryland_videos response: %s", video_results)
     return video_results
 
@@ -372,15 +394,18 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
     logger.info("find_hockey_rules called with query=%s n_results=%s", query, n_results)
     results = collection.query(
         query_texts=[query],
-        n_results=n_results,
+        n_results=n_results * 4,
         where={"type": "conduct_policy"},
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
+    ids = results.get("ids", [])
     logger.info("find_hockey_rules retrieved %s records from chroma", len(docs))
 
     policies: List[ConductPolicy] = []
-    for doc, meta in zip(docs, metas):
+    for doc, meta, doc_id in zip(docs, metas, ids):
+        if not str(doc_id).startswith("conduct-"):
+            continue
         policies.append(
             {
                 "title": meta.get("title", ""),
@@ -391,6 +416,14 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
                 "source": meta.get("source", ""),
                 "type": "conduct_policy",
             }
+        )
+        if len(policies) >= n_results:
+            break
+    if len(policies) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_hockey_rules",
+            len(policies),
+            n_results,
         )
     logger.info("find_hockey_rules response: %s", policies)
     return policies
