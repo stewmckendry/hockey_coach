@@ -15,14 +15,11 @@ from pathlib import Path
 
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from chroma_utils import get_chroma_collection
+from utils.chroma_utils import get_chroma_collection
 
-mcp = FastMCP("Off-Ice KB MCP Server")
+mcp = FastMCP("Hockey MCP Server")
 collection = get_chroma_collection()
 client = OpenAI()
-
-from datetime_tools import get_current_date
-mcp.tool(get_current_date)
 
 class OffIceResult(TypedDict):
     title: str
