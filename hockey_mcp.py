@@ -266,14 +266,16 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
 
     drills: List[DrillResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("find_hockey_drills record id=%s prefix=%s", doc_id, prefix)
+        logger.info(
+            "Processing record id=%s with prefix=%s",
+            doc_id,
+            _get_prefix(doc_id),
+        )
         if not str(doc_id).startswith("drill-"):
-            logger.info(
-                "find_hockey_drills skipping id=%s with prefix=%s", doc_id, prefix
-            )
+            logger.info("Skipping non-drill id: %s", doc_id)
             continue
-        logger.info("find_hockey_drills keeping id=%s with prefix=%s", doc_id, prefix)
+        else:
+            logger.info("Keeping drill id: %s", doc_id)
         drills.append(
             {
                 "title": meta.get("title", ""),
@@ -297,6 +299,7 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
             len(drills),
             n_results,
         )
+    logger.info("Final drill result titles: %s", [d["title"] for d in drills])
     logger.info("find_hockey_drills response: %s", drills)
     return drills
 
