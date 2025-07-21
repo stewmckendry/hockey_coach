@@ -209,7 +209,7 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
 @mcp.tool("find_hockey_drills")
 def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
     logger.info("find_hockey_drills called with query=%s n_results=%s", query, n_results)
-    results = collection.query(query_texts=[query], n_results=n_results)
+    results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [])
@@ -236,6 +236,12 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
         )
         if len(drills) >= n_results:
             break
+    if len(drills) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_hockey_drills",
+            len(drills),
+            n_results,
+        )
     logger.info("find_hockey_drills response: %s", drills)
     return drills
 
@@ -245,7 +251,7 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
     logger.info("find_hockey_videos called with query=%s n_results=%s", query, n_results)
     results = collection.query(
         query_texts=[query],
-        n_results=n_results,
+        n_results=n_results * 4,
         where={"clip_type": {"$ne": "off_ice_video"}},
     )
     docs = results.get("documents", [[]])[0]
@@ -274,6 +280,12 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
         )
         if len(clips) >= n_results:
             break
+    if len(clips) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_hockey_videos",
+            len(clips),
+            n_results,
+        )
     logger.info("find_hockey_videos response: %s", clips)
     return clips
 
@@ -281,7 +293,7 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
 @mcp.tool("find_hockey_skills")
 def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
     logger.info("find_hockey_skills called with query=%s n_results=%s", query, n_results)
-    results = collection.query(query_texts=[query], n_results=n_results)
+    results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [])
@@ -307,6 +319,12 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
         )
         if len(skills) >= n_results:
             break
+    if len(skills) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_hockey_skills",
+            len(skills),
+            n_results,
+        )
     logger.info("find_hockey_skills response: %s", skills)
     return skills
 
@@ -314,7 +332,7 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
 @mcp.tool("find_nhl_interviews")
 def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
     logger.info("find_nhl_interviews called with query=%s n_results=%s", query, n_results)
-    results = collection.query(query_texts=[query], n_results=n_results)
+    results = collection.query(query_texts=[query], n_results=n_results * 4)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [])
@@ -339,6 +357,12 @@ def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
         )
         if len(insights) >= n_results:
             break
+    if len(insights) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_nhl_interviews",
+            len(insights),
+            n_results,
+        )
     logger.info("find_nhl_interviews response: %s", insights)
     return insights
 
