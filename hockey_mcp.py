@@ -6,7 +6,11 @@ from typing import List, Optional
 from typing_extensions import TypedDict
 from pydantic import BaseModel
 import json
+import logging
 from openai import OpenAI
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from mcp.server.fastmcp import FastMCP
 
@@ -149,6 +153,7 @@ def _parse_field(doc: str, label: str) -> str:
 
 @mcp.tool("find_dryland_drills")
 def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
+    logger.info("find_dryland_drills called with query=%s n_results=%s", query, n_results)
     results = collection.query(
         query_texts=[query],
         n_results=n_results,
@@ -156,6 +161,7 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
+    logger.info("find_dryland_drills retrieved %s records from chroma", len(docs))
 
     entries: List[OffIceResult] = []
     for doc, meta in zip(docs, metas):
@@ -171,12 +177,14 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
                 "source_pages": meta.get("source_pages", ""),
             }
         )
+    logger.info("find_dryland_drills response: %s", entries)
     return entries
 
 
 @mcp.tool("find_dryland_videos")
 def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     """Semantic search over dryland video titles."""
+    logger.info("find_dryland_videos called with query=%s n_results=%s", query, n_results)
     results = collection.query(
         query_texts=[query],
         n_results=n_results,
@@ -184,6 +192,7 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
+    logger.info("find_dryland_videos retrieved %s records from chroma", len(docs))
     video_results: List[dict] = []
     for doc, meta in zip(docs, metas):
         video_results.append({
@@ -193,15 +202,18 @@ def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
             "document": doc,
             "metadata": meta,
         })
+    logger.info("find_dryland_videos response: %s", video_results)
     return video_results
 
 
 @mcp.tool("find_hockey_drills")
 def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
+    logger.info("find_hockey_drills called with query=%s n_results=%s", query, n_results)
     results = collection.query(query_texts=[query], n_results=n_results)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [[]])[0]
+    logger.info("find_hockey_drills retrieved %s records from chroma", len(docs))
 
     drills: List[DrillResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
@@ -224,15 +236,18 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
         )
         if len(drills) >= n_results:
             break
+    logger.info("find_hockey_drills response: %s", drills)
     return drills
 
 
 @mcp.tool("find_hockey_videos")
 def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
+    logger.info("find_hockey_videos called with query=%s n_results=%s", query, n_results)
     results = collection.query(query_texts=[query], n_results=n_results)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [[]])[0]
+    logger.info("find_hockey_videos retrieved %s records from chroma", len(docs))
 
     clips: List[VideoClipResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
@@ -255,15 +270,18 @@ def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
         )
         if len(clips) >= n_results:
             break
+    logger.info("find_hockey_videos response: %s", clips)
     return clips
 
 
 @mcp.tool("find_hockey_skills")
 def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
+    logger.info("find_hockey_skills called with query=%s n_results=%s", query, n_results)
     results = collection.query(query_texts=[query], n_results=n_results)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [[]])[0]
+    logger.info("find_hockey_skills retrieved %s records from chroma", len(docs))
 
     skills: List[LTADSkillResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
@@ -285,15 +303,18 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
         )
         if len(skills) >= n_results:
             break
+    logger.info("find_hockey_skills response: %s", skills)
     return skills
 
 
 @mcp.tool("find_nhl_interviews")
 def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
+    logger.info("find_nhl_interviews called with query=%s n_results=%s", query, n_results)
     results = collection.query(query_texts=[query], n_results=n_results)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [[]])[0]
+    logger.info("find_nhl_interviews retrieved %s records from chroma", len(docs))
 
     insights: List[NHLInsight] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
@@ -314,11 +335,13 @@ def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
         )
         if len(insights) >= n_results:
             break
+    logger.info("find_nhl_interviews response: %s", insights)
     return insights
 
 
 @mcp.tool("find_hockey_rules")
 def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
+    logger.info("find_hockey_rules called with query=%s n_results=%s", query, n_results)
     results = collection.query(
         query_texts=[query],
         n_results=n_results,
@@ -326,6 +349,7 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
+    logger.info("find_hockey_rules retrieved %s records from chroma", len(docs))
 
     policies: List[ConductPolicy] = []
     for doc, meta in zip(docs, metas):
@@ -340,6 +364,7 @@ def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
                 "type": "conduct_policy",
             }
         )
+    logger.info("find_hockey_rules response: %s", policies)
     return policies
 
 
