@@ -212,7 +212,7 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
     results = collection.query(query_texts=[query], n_results=n_results)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
+    ids = results.get("ids", [])
     logger.info("find_hockey_drills retrieved %s records from chroma", len(docs))
 
     drills: List[DrillResult] = []
@@ -243,15 +243,19 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
 @mcp.tool("find_hockey_videos")
 def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
     logger.info("find_hockey_videos called with query=%s n_results=%s", query, n_results)
-    results = collection.query(query_texts=[query], n_results=n_results)
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        where={"clip_type": {"$ne": "off_ice_video"}},
+    )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
+    ids = results.get("ids", [])
     logger.info("find_hockey_videos retrieved %s records from chroma", len(docs))
 
     clips: List[VideoClipResult] = []
     for doc, meta, doc_id in zip(docs, metas, ids):
-        if meta.get("clip_type") == "off_ice_video":
+        if not str(doc_id).startswith("video-"):
             continue
         clips.append(
             {
@@ -280,7 +284,7 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
     results = collection.query(query_texts=[query], n_results=n_results)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
+    ids = results.get("ids", [])
     logger.info("find_hockey_skills retrieved %s records from chroma", len(docs))
 
     skills: List[LTADSkillResult] = []
@@ -313,7 +317,7 @@ def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
     results = collection.query(query_texts=[query], n_results=n_results)
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
+    ids = results.get("ids", [])
     logger.info("find_nhl_interviews retrieved %s records from chroma", len(docs))
 
     insights: List[NHLInsight] = []
