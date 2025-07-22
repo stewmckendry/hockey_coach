@@ -10,3 +10,4 @@ chroma_db/
 data/generated/images/*
 !data/generated/images/.gitkeep
 *.png
+*.html
