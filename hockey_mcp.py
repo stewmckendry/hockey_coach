@@ -267,7 +267,7 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
         if not str(doc_id).startswith("drill-"):
             logger.info("Skipping non-drill id: %s", doc_id)
             continue
-        logger.info("Keeping drill id: %s", doc_id)
+        logger. info("Keeping drill id: %s", doc_id)
         drills.append(
             {
                 "title": meta.get("title", ""),
