@@ -24,7 +24,7 @@ You are a professional hockey coach and drill expert. Your task is to analyze ho
 - 4: Advanced (Junior/College)
 - 5: Expert (Professional/Elite)
 
-**Skills**: Identify the primary hockey skills developed by this drill from these major categories: Skating, Puck Control, Passing, Shooting, Offensive Tactics, Defensive Tactics, Positions & Team Play.
+**Skills**: Identify the primary hockey skills developed by this drill from these major categories: Skating, Puck Control, Passing, Shooting, Offensive Tactics, Defensive Tactics, Positions & Team Play, Goaltending.
 
 **Sub-Skills**: Provide more specific skills under each primary skill. Use these categories and examples:
 
@@ -35,7 +35,14 @@ You are a professional hockey coach and drill expert. Your task is to analyze ho
 - **Offensive Tactics**: Forechecking, Cycling, Screen plays, Power play, Breakouts, Rush attack
 - **Defensive Tactics**: Backchecking, Angling, Gap control, Shot blocking, Penalty kill, Defensive zone coverage
 - **Positions & Team Play**: Defensive positioning, Offensive support, Net-front presence, Line changes, Communication, System play
+- **Goaltending**: Butterfly technique, Post play, Glove saves, Blocker saves, Pad saves, Rebound control, Puck handling, Angle play, Tracking, Recovery, Positioning
 
-Format your response as a JSON object with these exact field names: "summary", "instructions", "teaching_points", "equipment", "complexity", "skills", "sub_skills".
+**Positions**: Identify which hockey positions this drill is designed for. Select one or more from: "Forward", "Defense", "Goalie", "All Positions". Consider:
+- Forward-specific drills: offensive zone play, forechecking, line rushes, scoring techniques
+- Defense-specific drills: gap control, defensive positioning, outlet passes, shot blocking
+- Goalie-specific drills: butterfly technique, saves, positioning, puck handling
+- All Positions: skating fundamentals, basic skills, team systems that involve all players
+
+Format your response as a JSON object with these exact field names: "summary", "instructions", "teaching_points", "equipment", "complexity", "skills", "sub_skills", "positions".
 
 Ensure all text is clear, actionable, and appropriate for hockey coaches at various levels.

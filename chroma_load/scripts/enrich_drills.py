@@ -172,6 +172,7 @@ Please provide a JSON response with an array of {len(batch)} objects, each conta
                     "complexity": enriched_meta.get("complexity", 3),
                     "skills": enriched_meta.get("skills", []),
                     "sub_skills": enriched_meta.get("sub_skills", []),
+                    "positions": enriched_meta.get("positions", []),
                     "original_data": original_drill["original_data"]
                 }
                 enriched_drills.append(enriched_drill)
@@ -192,6 +193,7 @@ Please provide a JSON response with an array of {len(batch)} objects, each conta
                 "complexity": 3,
                 "skills": [],
                 "sub_skills": [],
+                "positions": [],
                 "original_data": drill["original_data"],
                 "enrichment_error": str(e)
             } for drill in batch]
@@ -243,9 +245,12 @@ Please provide a JSON response with an array of {len(batch)} objects, each conta
                         sample = enriched_batch[0]
                         print(f"      ✅ Enriched sample:")
                         print(f"         Summary: {sample['summary'][:100]}...")
+                        print(f"         Instructions: {sample['instructions'][:300]}...")
+                        print(f"         Teaching Points: {sample['teaching_points'][:100]}...")
                         print(f"         Complexity: {sample['complexity']}")
                         print(f"         Skills: {sample['skills']}")
                         print(f"         Sub-Skills: {sample['sub_skills']}")
+                        print(f"         Positions: {sample['positions']}")
                     
                     all_enriched.extend(enriched_batch)
                     processed_count += len(batch)
@@ -280,6 +285,7 @@ Please provide a JSON response with an array of {len(batch)} objects, each conta
                             "complexity": 3,
                             "skills": [],
                             "sub_skills": [],
+                            "positions": [],
                             "original_data": drill["original_data"],
                             "enrichment_error": str(result)
                         } for drill in batch]
