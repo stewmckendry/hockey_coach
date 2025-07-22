@@ -1,0 +1,2 @@
+1. Change the outer line border of the rink from blue to black
+2. Keep the inner horizontal lines the same colors (blue and red)

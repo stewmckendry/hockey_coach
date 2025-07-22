@@ -1,0 +1,3 @@
+Move the 4 red dots to be between the centre red line and the blue lines:
+- 2 red dots are above the red line and 2 red dots are below the red line.
+- All 4 red dots are between the blue lines.

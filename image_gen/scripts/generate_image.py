@@ -5,6 +5,7 @@ from pathlib import Path
 from openai import AsyncOpenAI
 import base64
 import glob
+import time
 
 # Configuration parameters
 MODEL = "gpt-4o"
@@ -41,13 +42,15 @@ def load_prompts(prompts_dir):
 
 async def generate_image(prompt_name, prompt_text, input_image_path, output_dir, force=False):
     """Generate a single image using the responses API."""
+    start_time = time.time()
     try:
         output_path = os.path.join(output_dir, f"{prompt_name}_output.png")
         
         # Check if output already exists (unless force is True)
         if not force and os.path.exists(output_path):
+            elapsed_time = time.time() - start_time
             print(f"⏭️  Skipping {prompt_name}: Output already exists at {output_path}")
-            return {"prompt_name": prompt_name, "status": "skipped", "output_path": output_path}
+            return {"prompt_name": prompt_name, "status": "skipped", "output_path": output_path, "duration": elapsed_time}
         
         print(f"🎨 Starting generation for: {prompt_name}")
         
@@ -88,16 +91,19 @@ async def generate_image(prompt_name, prompt_text, input_image_path, output_dir,
             image_base64 = image_data[0]
             with open(output_path, "wb") as f:
                 f.write(base64.b64decode(image_base64))
-            print(f"✅ Image saved: {output_path}")
-            return {"prompt_name": prompt_name, "status": "success", "output_path": output_path}
+            elapsed_time = time.time() - start_time
+            print(f"✅ Image saved: {output_path} (⏱️ {elapsed_time:.1f}s)")
+            return {"prompt_name": prompt_name, "status": "success", "output_path": output_path, "duration": elapsed_time}
         else:
-            print(f"❌ No image generated for {prompt_name}")
+            elapsed_time = time.time() - start_time
+            print(f"❌ No image generated for {prompt_name} (⏱️ {elapsed_time:.1f}s)")
             print(f"Response: {response.output.content}")
-            return {"prompt_name": prompt_name, "status": "failed", "error": "No image generated"}
+            return {"prompt_name": prompt_name, "status": "failed", "error": "No image generated", "duration": elapsed_time}
             
     except Exception as e:
-        print(f"❌ Error generating image for {prompt_name}: {str(e)}")
-        return {"prompt_name": prompt_name, "status": "error", "error": str(e)}
+        elapsed_time = time.time() - start_time
+        print(f"❌ Error generating image for {prompt_name}: {str(e)} (⏱️ {elapsed_time:.1f}s)")
+        return {"prompt_name": prompt_name, "status": "error", "error": str(e), "duration": elapsed_time}
 
 async def main():
     parser = argparse.ArgumentParser(description="Generate hockey diagram images using OpenAI Responses API")
@@ -157,6 +163,9 @@ async def main():
     print(f"📝 Prompts: {list(prompts.keys())}")
     print("-" * 50)
     
+    # Track total execution time
+    total_start_time = time.time()
+    
     # Run all image generations in parallel
     tasks = [
         generate_image(prompt_name, prompt_text, args.input_image, args.output_dir, args.force)
@@ -164,6 +173,8 @@ async def main():
     ]
     
     results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    total_elapsed_time = time.time() - total_start_time
     
     # Print summary
     print("\n" + "=" * 50)
@@ -173,22 +184,34 @@ async def main():
     successful = 0
     failed = 0
     skipped = 0
+    total_generation_time = 0
     
     for result in results:
         if isinstance(result, Exception):
             print(f"❌ Exception: {result}")
             failed += 1
         elif result["status"] == "success":
-            print(f"✅ {result['prompt_name']}: {result['output_path']}")
+            duration = result.get("duration", 0)
+            total_generation_time += duration
+            print(f"✅ {result['prompt_name']}: {result['output_path']} (⏱️ {duration:.1f}s)")
             successful += 1
         elif result["status"] == "skipped":
             print(f"⏭️  {result['prompt_name']}: {result['output_path']} (already exists)")
             skipped += 1
         else:
-            print(f"❌ {result['prompt_name']}: {result.get('error', 'Unknown error')}")
+            duration = result.get("duration", 0)
+            print(f"❌ {result['prompt_name']}: {result.get('error', 'Unknown error')} (⏱️ {duration:.1f}s)")
             failed += 1
     
+    # Calculate average generation time (excluding skipped)
+    actual_generations = successful + failed
+    avg_generation_time = total_generation_time / actual_generations if actual_generations > 0 else 0
+    
     print(f"\n📊 Results: {successful} successful, {skipped} skipped, {failed} failed")
+    print(f"⏱️  Total time: {total_elapsed_time:.1f}s")
+    if actual_generations > 0:
+        print(f"⏱️  Average generation time: {avg_generation_time:.1f}s")
+        print(f"⏱️  Total generation time: {total_generation_time:.1f}s")
 
 if __name__ == "__main__":
     asyncio.run(main())
