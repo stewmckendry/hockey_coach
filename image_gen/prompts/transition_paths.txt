@@ -1,0 +1,5 @@
+Add blue arrows showing the optimal skating path for a defenseman transitioning from defensive to offensive play:
+- Start from the defensive zone corner
+- Curve through the neutral zone 
+- End at the offensive blue line
+Include dotted lines to show alternative passing lanes.

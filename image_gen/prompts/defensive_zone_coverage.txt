@@ -1,0 +1,4 @@
+Draw a transparent light red box over the right defensive zone with boundaries:
+- Vertically: from the blue line to the goal line
+- Horizontally: from the boards to the center ice line
+The box should highlight the defensive coverage area for the right defenseman.

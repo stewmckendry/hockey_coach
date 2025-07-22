@@ -1,0 +1,5 @@
+Highlight the forechecking pressure points with yellow circles:
+- One circle at the corner boards in the offensive zone
+- One circle at the hash marks near the goal
+- One circle at the point position
+Add red arrows showing the direction of forechecking pressure from each point.
