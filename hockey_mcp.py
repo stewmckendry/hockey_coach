@@ -29,12 +29,15 @@ client = OpenAI()
 class OffIceResult(TypedDict):
     title: str
     category: str
-    focus_area: str
-    teaching_complexity: str
-    progression_stage: str
-    description: str
-    equipment_needed: Optional[str]
-    source_pages: str
+    summary: str
+    instructions: str
+    teaching_points: str
+    equipment: str
+    complexity: str
+    source: str
+    age_recommendation: str
+    source_page: str
+    type: str  # fixed as "off_ice_workout"
 
 
 class CategorySummary(BaseModel):
@@ -181,7 +184,7 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     results = collection.query(
         query_texts=[query],
         n_results=n_results * 4,
-        where={"source": "off_ice_manual_hockey_canada_level1"},
+        where={"document_type": "off_ice_workout"},
     )
     docs = results.get("documents", [[]])[0]
     metas = results.get("metadatas", [[]])[0]
@@ -192,20 +195,23 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
     for doc, meta, doc_id in zip(docs, metas, ids):
         prefix = _get_prefix(doc_id)
         logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("dryland-"):
-            logger.info("Skipping non-dryland id: %s", doc_id)
+        if not str(doc_id).startswith("office-"):
+            logger.info("Skipping non-office id: %s", doc_id)
             continue
-        logger.info("Keeping dryland id: %s", doc_id)
+        logger.info("Keeping office id: %s", doc_id)
         entries.append(
             {
                 "title": meta.get("title", ""),
                 "category": meta.get("category", ""),
-                "focus_area": meta.get("focus_area", ""),
-                "teaching_complexity": meta.get("teaching_complexity", ""),
-                "progression_stage": meta.get("progression_stage", ""),
-                "description": _parse_description(doc),
-                "equipment_needed": meta.get("equipment_needed") or None,
-                "source_pages": meta.get("source_pages", ""),
+                "summary": meta.get("summary", ""),
+                "instructions": meta.get("instructions", ""),
+                "teaching_points": meta.get("teaching_points", ""),
+                "equipment": meta.get("equipment", ""),
+                "complexity": meta.get("complexity", ""),
+                "source": meta.get("source", ""),
+                "age_recommendation": meta.get("age_recommendation", ""),
+                "source_page": meta.get("source_page", ""),
+                "type": "off_ice_workout",
             }
         )
         if len(entries) >= n_results:
