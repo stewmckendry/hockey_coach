@@ -425,7 +425,7 @@ def _parse_field(doc: str, label: str) -> str:
     return ""
 
 # Resources for better integration
-@mcp.resource("schema://unified_hockey_result")
+@mcp.resource("hockey://schema/unified_result")
 def get_unified_schema() -> str:
     """Schema for unified hockey knowledge results."""
     return json.dumps({
@@ -447,7 +447,7 @@ def get_unified_schema() -> str:
         }
     })
 
-@mcp.resource("coaching_tips://daily")
+@mcp.resource("hockey://tips/daily")
 def get_daily_coaching_tip() -> str:
     """Provide a daily coaching tip based on current content."""
     # This could rotate through different tips or be based on seasonal focus
