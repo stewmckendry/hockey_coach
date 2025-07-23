@@ -11,3 +11,4 @@ data/generated/images/*
 !data/generated/images/.gitkeep
 *.png
 *.html
+node_modules/
