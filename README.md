@@ -1,35 +1,70 @@
-# 🏒 Hockey Coach Playbook: AI-Powered Drill Search Assistant
+# 🏒 Hockey Coach Playbook: AI-Powered Coaching Assistant
 
-The Hockey Coach Playbook is an intelligent assistant that helps coaches and players discover hockey drills using natural language. It leverages AI agents, a semantic vector database (Chroma), and structured metadata to provide high-quality, context-aware recommendations.
+The Hockey Coach Playbook is a comprehensive hockey coaching platform that combines AI-powered knowledge search, practice planning, player development, and visual aids. It leverages an MCP (Model Context Protocol) server, semantic vector database (ChromaDB), and AI agents to provide intelligent coaching recommendations and generate hockey diagrams.
 
 ---
 
 ## 🔍 What It Does
 
-- 💬 **Understands Coaching Goals**: Accepts natural language queries like "I want drills that teach backchecking and speed."
-- 🧠 **Expands the Query**: Uses an LLM to broaden searches with synonyms, hockey-specific terms, and coaching language.
-- 🔎 **Searches Semantically**: Matches expanded queries against a Chroma vector DB of 1000+ drills.
-- 🏅 **Reranks Results with LLM**: A second agent reranks and filters results for coaching relevance.
-- 📋 **Summarizes and Explains**: Presents a friendly summary and a curated list of drills with rationale.
+- 🏒 **Hockey Knowledge Search**: Semantic search across 1000+ hockey drills, tactics, skills, and coaching resources
+- 📋 **Practice Planning**: AI-generated practice plans with custom time allocations and skill focuses  
+- 👤 **Player Development**: Personalized development plans with skill progression tracking
+- 🎯 **Coaching Recommendations**: Context-aware advice for specific coaching situations
+- 🖼️ **Visual Aids**: AI-generated hockey diagrams and instructional images for kids
+- 📊 **Comprehensive Logging**: Production-ready monitoring and debugging capabilities
+
+---
+
+## 🛠 MCP Tools Available
+
+| Tool | Purpose | Description |
+|------|---------|-------------|
+| `search_hockey_knowledge` | Knowledge Discovery | Search across all hockey content types with semantic matching |
+| `get_coaching_recommendations` | AI Coaching Advice | Get personalized coaching recommendations based on context |
+| `create_practice_plan` | Practice Planning | Generate structured practice plans with time allocations |
+| `analyze_player_development` | Player Development | Create personalized skill development plans and progressions |
+
+---
+
+## 📚 Hockey Knowledge Sources (ChromaDB Collections)
+
+| Collection Prefix | Content Type | Description |
+|-------------------|--------------|-------------|
+| `conduct-` | Hockey Rules & Ethics | Hockey rules, code of conduct, fair play guidelines |
+| `drill-` | On-Ice Drills | Hockey on-ice practice drills and exercises |
+| `ltad-` | Development Skills | Long-term athlete development skills and progressions |
+| `insight-` | Expert Knowledge | NHL coach and player interview quotes and insights |
+| `office-` | Off-Ice Training | Off-ice dryland workout drills and conditioning |
+| `tactics-` | Team Systems | Hockey plays, systems, positioning, zone coverage tactics |
+| `video-` | Instructional Content | YouTube hockey instructional video transcripts |
+| `dryland-` | Training Videos | YouTube dryland training video clip transcripts |
 
 ---
 
 ## 🗂 Project Structure
 
 ```bash
-hockey_coach_playbook/
-├── data/                # Drill datasets (raw, interim, processed)
-│   ├── raw/             # Source JSON/CSV
-│   ├── interim/         # Sampled or revised versions
-│   └── processed/       # Final merged/classified datasets
-├── mcp_server/          # AI agents, server tools, prompts
-│   ├── server.py        # FastMCP server
-│   ├── drill_planner.py # Orchestrator agent
-│   ├── main.py          # CLI entrypoint
-│   ├── chroma_utils.py  # Chroma helpers
-│   └── prompts/         # Agent prompt YAMLs
-├── scripts/             # ETL scripts (indexing, cleaning, analysis)
-├── outputs/             # Chroma-ready/exportable files
+thunder_playbook/
+├── hockey_mcp.py        # Main MCP server with coaching tools
+├── models/              # Pydantic data models
+│   ├── conduct.py       # Rule and conduct models
+│   ├── ltad.py         # Skill development models  
+│   ├── dryland_models.py # Off-ice training models
+│   └── ...             # Other domain models
+├── chroma_load/         # ChromaDB data pipeline
+│   ├── raw/            # Original source data
+│   ├── processed/      # Enriched and structured data
+│   ├── indexed/        # ChromaDB-ready files
+│   ├── scripts/        # Data processing and indexing scripts
+│   └── prompts/        # LLM enrichment prompts
+├── image_gen/          # Hockey diagram generation
+│   ├── image_agent/    # AI-powered image generation
+│   │   └── hockey_image_iterative.py # Two-agent image system
+│   ├── prompts/        # External agent prompt files
+│   └── outputs/        # Generated hockey diagrams
+├── utils/              # Shared utilities
+│   ├── chroma_utils.py # ChromaDB helper functions
+│   └── datetime_tools.py # Date/time utilities
 └── README.md
 ```
 
@@ -37,66 +72,136 @@ hockey_coach_playbook/
 
 ## 🚀 How to Run It
 
-1. **Set up environment**
-    ```bash
-    uv venv
-    uv pip install -r mcp_server/requirements.txt
-    ```
+### Prerequisites
+```bash
+# Install dependencies
+pip install -r requirements.txt
+# or
+uv sync
+```
 
-2. **Start Chroma (local)**
-    ```bash
-    chroma run --host 0.0.0.0 --port 8000 --no-auth
-    ```
+### 1. Start ChromaDB Server
+```bash
+# Install and start ChromaDB
+pip install chromadb
+chroma run --host localhost --port 8000 --no-auth
+```
 
-3. **Index drills into Chroma**
-    ```bash
-    uv run scripts/index_drills_chroma.py
-    ```
+### 2. Index Hockey Knowledge (First Time Setup)
+```bash
+# Index all hockey content into ChromaDB collections
+python chroma_load/scripts/index_drills_chroma.py
+python chroma_load/scripts/index_ltad_chroma.py  
+python chroma_load/scripts/index_tactics.py
+python chroma_load/scripts/index_conduct_chroma.py
+python chroma_load/scripts/index_nhl_insights_chroma.py
+python chroma_load/scripts/index_office_manual_chroma.py
+python chroma_load/scripts/index_video_clips_chroma.py
+python chroma_load/scripts/index_video_clips_dryland.py
+```
 
-4. **Run the AI assistant**
-    ```bash
-    uv run mcp_server/main.py --input "transition drills for forwards"
-    ```
+### 3. Start the MCP Server
+```bash
+# Run the hockey coaching MCP server
+python hockey_mcp.py
+```
+
+### 4. Generate Hockey Diagrams (Optional)
+```bash
+# Generate instructional hockey images
+python image_gen/image_agent/hockey_image_iterative.py
+```
 
 ---
 
-## 🧠 Agents Overview
+## 🧠 AI Agents Overview
 
-| Agent Name    | Purpose                                 |
-|---------------|-----------------------------------------|
-| query_agent   | Expands user input with synonyms        |
-| search_agent  | Searches Chroma DB with embeddings      |
-| reranker      | Reorders results based on LLM review    |
-| summarizer    | Summarizes results in coach language    |
-| drill_planner | Orchestrates the full pipeline          |
+| Component | Status | Description |
+|-----------|---------|-------------|
+| **Hockey MCP Server** | ✅ **Production Ready** | Complete coaching toolkit with 4 main tools |
+| **Hockey Image Generator** | ✅ **Available** | `image_gen/image_agent/hockey_image_iterative.py` |
+| **Other Agents** | 🚧 **Under Construction** | Additional specialized coaching agents in development |
+
+The hockey image generator uses a two-agent system:
+- **Generator Agent**: Creates hockey diagrams based on coaching requests
+- **Reviewer Agent**: Evaluates and iteratively improves image quality
+- **External Prompts**: Maintainable prompt files in `image_gen/prompts/`
 
 ---
 
 ## 🛠 Tech Stack
 
-- **OpenAI GPT-4** – LLM agent reasoning
-- **MCP SDK** – Agent framework and orchestration
-- **Chroma** – Local vector DB for semantic search
-- **Python + uv** – Fast dependency and script management
+- **FastMCP** – Model Context Protocol server framework
+- **OpenAI GPT-4** – LLM for coaching recommendations and practice planning
+- **ChromaDB** – Vector database for semantic hockey knowledge search
+- **Pydantic** – Type-safe data models and validation
+- **Python Logging** – Comprehensive debugging and monitoring
+- **OpenAI Agents SDK** – Two-agent image generation system
 
 ---
 
 ## ✅ Status
 
-- ✅ Query expansion
-- ✅ Chroma search
-- ✅ LLM reranking
-- ✅ Final summary output
+### Core Platform
+- ✅ **MCP Server Tools** - Complete coaching toolkit (search, recommendations, planning, development)
+- ✅ **ChromaDB Integration** - 8 hockey knowledge collections with 1000+ items
+- ✅ **Comprehensive Logging** - Production-ready monitoring and debugging
+- ✅ **Type Safety** - Pydantic models for all data structures
 
-*🧪 Optional: feedback loop, UI frontend, tagging enhancements*
+### Knowledge Base  
+- ✅ **On-Ice Drills** - Searchable drill database with skill categorization
+- ✅ **Tactical Systems** - Hockey plays, positioning, and zone coverage
+- ✅ **Player Development** - LTAD-based skill progressions  
+- ✅ **Off-Ice Training** - Dryland and conditioning exercises
+- ✅ **Rules & Conduct** - Hockey rules and fair play guidelines
+- ✅ **Expert Insights** - NHL coach and player interview content
+
+### AI Features
+- ✅ **Semantic Search** - Natural language queries across all content
+- ✅ **Practice Planning** - Custom time allocations and skill focuses
+- ✅ **Player Development Plans** - Personalized progression tracking
+- ✅ **Visual Aids** - AI-generated hockey diagrams for instruction
+
+### In Development
+- 🚧 **Advanced Agent Workflows** - Specialized coaching agents
+- 🚧 **Web Interface** - Coach-friendly UI for easier interaction
+- 🚧 **Mobile App** - On-ice coaching assistant
 
 ---
 
-## 🧼 Cleanup Tips
+## 🔧 Configuration
 
-- Keep only `drills_classified_full.json` (final merged dataset)
-- Remove/archive `*_sample.json`, `*_page1.csv`, `*_revised.*`
-- Use `.gitignore` to skip outputs and cache
+### Environment Variables
+```bash
+OPENAI_API_KEY=your_openai_api_key
+CHROMA_HOST=localhost
+CHROMA_PORT=8000
+LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR
+```
+
+### ChromaDB Collections
+The system automatically creates and manages these collections:
+- `drills` - On-ice hockey drills  
+- `ltad` - Skill development progressions
+- `tactics` - Team systems and plays
+- `conduct` - Rules and fair play
+- `nhl_insights` - Expert coaching knowledge
+- `office_manual` - Off-ice training
+- `video_clips` - Instructional content
+- `video_clips_dryland` - Dryland training content
+
+---
+
+## 📊 Logging & Monitoring
+
+The system includes comprehensive logging with:
+- 🔍 **Search Operations** - Query processing and result tracking
+- 🤖 **AI Interactions** - OpenAI API calls and response monitoring  
+- ✅ **Success Tracking** - Operation completion and result counts
+- ❌ **Error Handling** - Detailed error reporting with fallback mechanisms
+- ⚠️ **Warnings** - Time allocation mismatches and data quality issues
+
+Log levels can be configured via `LOG_LEVEL` environment variable.
 
 ---
 
