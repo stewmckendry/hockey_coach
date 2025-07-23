@@ -61,7 +61,7 @@ class SkillEnricher:
         else:
             raise FileNotFoundError(f"LTAD skill file not found: {skill_file}")
     
-    def derive_age_group(self, source: str) -> str:
+    def derive_age_group(self, source: str, skill_category: str = "") -> str:
         """Derive age group from source field using specified rules."""
         source_lower = source.lower()
         
@@ -78,14 +78,25 @@ class SkillEnricher:
         if 'goaltending' in source_lower:
             return "All Ages - Goalies"
         
+        # Rule 4: Check for checking skills
+        if skill_category.lower() == 'checking':
+            # Special case: Body Checking Drills.html is for U15
+            if source.lower() == 'body checking drills.html':
+                return "U15"
+            else:
+                return "All Ages - Checking"
+        
         # Default
         return "All Ages"
     
     def prepare_skill_for_enrichment(self, skill: Dict[str, Any]) -> Dict[str, Any]:
         """Prepare a skill record for enrichment."""
         
-        # Derive age group from source
-        age_group = self.derive_age_group(skill.get("source", ""))
+        # Derive age group from source and skill category
+        age_group = self.derive_age_group(
+            skill.get("source", ""), 
+            skill.get("skill_category", "")
+        )
         
         return {
             "skill_name": skill.get("skill_name", ""),

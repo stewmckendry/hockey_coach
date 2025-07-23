@@ -83,8 +83,17 @@ def main() -> None:
     # Determine input file
     if args.file:
         input_file = Path(args.file)
-        if not input_file.is_absolute():
-            input_file = args.input / args.file
+        
+        # If the provided path already exists as-is, use it directly
+        if input_file.exists():
+            pass  # Use input_file as-is
+        # If it's not absolute and doesn't exist as-is, try relative to input dir
+        elif not input_file.is_absolute():
+            candidate = args.input / args.file
+            if candidate.exists():
+                input_file = candidate
+            # If neither exists, keep the original for a clear error message
+        # If it's absolute but doesn't exist, keep it for a clear error message
     else:
         # Find the most recent enriched LTAD skills file
         pattern = "enriched_ltad_skills_*.json"
