@@ -154,48 +154,54 @@ def get_coaching_recommendations(
         team_size: Number of players
         equipment_available: List of available equipment
     """
-    logger.info(f"Getting coaching recommendations for {team_age} team, focus: {skill_focus}")
-    
-    # Search for relevant content
-    skill_results = search_hockey_knowledge(
-        query=f"{skill_focus} {team_age}",
-        content_types=["drill", "skill"],
-        n_results=15
-    )
-    
-    # Search for dryland exercises
-    dryland_results = search_hockey_knowledge(
-        query=f"{skill_focus} off ice training",
-        content_types=["dryland"],
-        n_results=5
-    )
-    
-    # Use OpenAI to generate structured recommendations
-    recommendation_prompt = f"""
-    Based on the following hockey training content, create coaching recommendations for:
-    - Team Age: {team_age}
-    - Skill Focus: {skill_focus}
-    - Practice Time: {available_time} minutes
-    - Team Size: {team_size} players
-    - Equipment: {equipment_available}
-    
-    Available drills and skills:
-    {json.dumps([r for r in skill_results[:10]], indent=2)}
-    
-    Available dryland exercises:
-    {json.dumps([r for r in dryland_results], indent=2)}
-    
-    Please provide:
-    1. 3-5 recommended drills with time allocations
-    2. Teaching points for coaches
-    3. Common mistakes to watch for
-    4. Progression suggestions
-    5. Equipment setup tips
-    
-    Format as structured JSON.
-    """
+    logger.info(f"📋 Getting coaching recommendations - Age: {team_age}, Skill: {skill_focus}, Time: {available_time}min, Players: {team_size}")
+    logger.debug(f"Equipment available: {equipment_available}")
     
     try:
+        # Search for relevant content
+        logger.debug(f"Searching for skill content: '{skill_focus} {team_age}'")
+        skill_results = search_hockey_knowledge(
+            query=f"{skill_focus} {team_age}",
+            content_types=["drill", "skill"],
+            n_results=15
+        )
+        logger.info(f"Found {len(skill_results)} skill-related results")
+        
+        # Search for dryland exercises
+        logger.debug(f"Searching for dryland content: '{skill_focus} off ice training'")
+        dryland_results = search_hockey_knowledge(
+            query=f"{skill_focus} off ice training",
+            content_types=["dryland"],
+            n_results=5
+        )
+        logger.info(f"Found {len(dryland_results)} dryland-related results")
+        
+        # Use OpenAI to generate structured recommendations
+        logger.debug("Generating AI recommendations with OpenAI")
+        recommendation_prompt = f"""
+        Based on the following hockey training content, create coaching recommendations for:
+        - Team Age: {team_age}
+        - Skill Focus: {skill_focus}
+        - Practice Time: {available_time} minutes
+        - Team Size: {team_size} players
+        - Equipment: {equipment_available}
+        
+        Available drills and skills:
+        {json.dumps([r for r in skill_results[:10]], indent=2)}
+        
+        Available dryland exercises:
+        {json.dumps([r for r in dryland_results], indent=2)}
+        
+        Please provide:
+        1. 3-5 recommended drills with time allocations
+        2. Teaching points for coaches
+        3. Common mistakes to watch for
+        4. Progression suggestions
+        5. Equipment setup tips
+        
+        Format as structured JSON.
+        """
+        
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -204,6 +210,7 @@ def get_coaching_recommendations(
             ],
             temperature=0.7
         )
+        logger.debug("OpenAI response received successfully")
         
         recommendations = json.loads(response.choices[0].message.content)
         recommendations['source_content'] = {
@@ -211,14 +218,22 @@ def get_coaching_recommendations(
             'dryland_options': len(dryland_results)
         }
         
+        logger.info(f"✅ Successfully generated coaching recommendations for {team_age} {skill_focus}")
         return recommendations
         
-    except Exception as e:
-        logger.error(f"Error generating recommendations: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ JSON parsing error in coaching recommendations: {e}")
         return {
-            "error": "Could not generate recommendations",
+            "error": "Could not parse AI recommendations",
             "available_drills": skill_results[:5],
             "available_dryland": dryland_results[:3]
+        }
+    except Exception as e:
+        logger.error(f"❌ Error generating coaching recommendations: {e}")
+        return {
+            "error": "Could not generate recommendations",
+            "available_drills": skill_results[:5] if 'skill_results' in locals() else [],
+            "available_dryland": dryland_results[:3] if 'dryland_results' in locals() else []
         }
 
 # ===== PRACTICE PLAN TOOLS =====
@@ -250,105 +265,140 @@ def create_practice_plan(
         equipment_available: Available equipment constraints
         coaching_priorities: Additional coaching notes/priorities
     """
-    logger.info(f"Creating flexible practice plan for {age_group}: {skill_focus_areas}")
+    logger.info(f"🏒 Creating practice plan - Age: {age_group}, Duration: {duration_minutes}min, Players: {number_of_players}")
+    logger.info(f"Skill focus areas: {[area['skill'] for area in skill_focus_areas]}")
+    logger.debug(f"Practice context: {practice_context}")
+    logger.debug(f"Team systems focus: {team_systems_focus}")
+    logger.debug(f"Include dryland: {include_dryland}")
+    logger.debug(f"Equipment available: {equipment_available}")
     
-    # Calculate time allocations
-    total_skill_time = sum(area.get('time_minutes', 0) for area in skill_focus_areas)
-    warmup_time = max(8, duration_minutes * 0.12)  # 12% minimum 8 min
-    cooldown_time = max(5, duration_minutes * 0.08)  # 8% minimum 5 min
-    available_main_time = duration_minutes - warmup_time - cooldown_time
-    
-    # Validate time allocation
-    if total_skill_time > available_main_time:
-        logger.warning(f"Requested skill time ({total_skill_time} min) exceeds available time ({available_main_time} min)")
-        # Proportionally adjust if over time
-        adjustment_factor = available_main_time / total_skill_time
-        for area in skill_focus_areas:
-            area['time_minutes'] = int(area['time_minutes'] * adjustment_factor)
-    
-    # Comprehensive knowledge gathering for all requested skills
-    knowledge_sources = {
-        'on_ice_drills': [],
-        'development_skills': [], 
-        'tactical_systems': [],
-        'video_instructions': [],
-        'dryland_exercises': [],
-        'coaching_insights': [],
-        'team_systems': []
-    }
-    
-    # Search for each skill area
-    all_skills = [area['skill'] for area in skill_focus_areas]
-    for skill_area in skill_focus_areas:
-        skill = skill_area['skill']
-        time_requested = skill_area['time_minutes']
+    try:
+        # Calculate time allocations
+        total_skill_time = sum(area.get('time_minutes', 0) for area in skill_focus_areas)
+        warmup_time = max(8, duration_minutes * 0.12)  # 12% minimum 8 min
+        cooldown_time = max(5, duration_minutes * 0.08)  # 8% minimum 5 min
+        available_main_time = duration_minutes - warmup_time - cooldown_time
         
-        logger.info(f"Gathering knowledge for {skill} ({time_requested} min)")
+        logger.debug(f"Time breakdown - Warmup: {warmup_time:.1f}min, Main: {available_main_time:.1f}min, Cooldown: {cooldown_time:.1f}min")
+        logger.debug(f"Total requested skill time: {total_skill_time}min vs available: {available_main_time:.1f}min")
         
-        # On-ice drill search - get more results for skills with more time
-        drill_count = max(3, min(8, time_requested // 5))  # 3-8 drills based on time
-        drill_results = collection.query(
-            query_texts=[f"{skill} {age_group} drill practice"],
-            n_results=drill_count * 2,  # Get extras to filter
-            where={"document_type": {"$ne": "off_ice_workout"}}
-        )
+        # Validate time allocation
+        if total_skill_time > available_main_time:
+            logger.warning(f"⚠️ Requested skill time ({total_skill_time} min) exceeds available time ({available_main_time:.1f} min)")
+            # Proportionally adjust if over time
+            adjustment_factor = available_main_time / total_skill_time
+            logger.info(f"Applying adjustment factor: {adjustment_factor:.2f}")
+            for area in skill_focus_areas:
+                original_time = area['time_minutes']
+                area['time_minutes'] = int(area['time_minutes'] * adjustment_factor)
+                logger.debug(f"Adjusted {area['skill']}: {original_time}min → {area['time_minutes']}min")
         
-        # LTAD skills search
-        skill_results = collection.query(
-            query_texts=[f"{skill} {age_group} development technique"],
-            n_results=4
-        )
+        # Comprehensive knowledge gathering for all requested skills
+        knowledge_sources = {
+            'on_ice_drills': [],
+            'development_skills': [], 
+            'tactical_systems': [],
+            'video_instructions': [],
+            'dryland_exercises': [],
+            'coaching_insights': [],
+            'team_systems': []
+        }
         
-        # Video instruction search
-        video_results = collection.query(
-            query_texts=[f"{skill} instruction teaching technique"],
-            n_results=3,
-            where={"clip_type": {"$ne": "off_ice_video"}}
-        )
+        logger.info(f"🔍 Gathering knowledge for {len(skill_focus_areas)} skill areas...")
         
-        # Coaching insights
-        insight_results = collection.query(
-            query_texts=[f"{skill} coaching tips advice NHL"],
-            n_results=2
-        )
-        
-        # Add to knowledge sources with skill tagging
-        knowledge_sources['on_ice_drills'].extend(_process_search_results(drill_results, skill, "drill"))
-        knowledge_sources['development_skills'].extend(_process_search_results(skill_results, skill, "skill"))
-        knowledge_sources['video_instructions'].extend(_process_search_results(video_results, skill, "video"))
-        knowledge_sources['coaching_insights'].extend(_process_search_results(insight_results, skill, "insight"))
-    
-    # Search for team systems if specified
-    if team_systems_focus:
-        for system in team_systems_focus:
-            system_results = collection.query(
-                query_texts=[f"{system} hockey system tactic positioning"],
-                n_results=4
-            )
-            knowledge_sources['team_systems'].extend(_process_search_results(system_results, system, "tactic"))
-    
-    # Search for dryland if requested
-    if include_dryland:
+        # Search for each skill area
+        all_skills = [area['skill'] for area in skill_focus_areas]
         for skill_area in skill_focus_areas:
             skill = skill_area['skill']
-            dryland_results = collection.query(
-                query_texts=[f"{skill} off ice training dryland"],
-                n_results=3,
-                where={"document_type": "off_ice_workout"}
+            time_requested = skill_area['time_minutes']
+            
+            logger.debug(f"Gathering knowledge for '{skill}' ({time_requested} min)")
+            
+            # On-ice drill search - get more results for skills with more time
+            drill_count = max(3, min(8, time_requested // 5))  # 3-8 drills based on time
+            logger.debug(f"Searching for {drill_count} drills for '{skill}'")
+            
+            drill_results = collection.query(
+                query_texts=[f"{skill} {age_group} drill practice"],
+                n_results=drill_count * 2,  # Get extras to filter
+                where={"document_type": {"$ne": "off_ice_workout"}}
             )
-            knowledge_sources['dryland_exercises'].extend(_process_search_results(dryland_results, skill, "dryland"))
-    
-    # Get context-specific insights if practice context provided
-    context_insights = []
-    if practice_context:
-        context_results = collection.query(
-            query_texts=[f"{practice_context} coaching advice preparation"],
-            n_results=3
-        )
-        context_insights = _process_search_results(context_results, "context", "insight")
-    
-    # Build comprehensive prompt
-    plan_prompt = f"""
+            
+            # LTAD skills search
+            skill_results = collection.query(
+                query_texts=[f"{skill} {age_group} development technique"],
+                n_results=4
+            )
+            
+            # Video instruction search
+            video_results = collection.query(
+                query_texts=[f"{skill} instruction teaching technique"],
+                n_results=3,
+                where={"clip_type": {"$ne": "off_ice_video"}}
+            )
+            
+            # Coaching insights
+            insight_results = collection.query(
+                query_texts=[f"{skill} coaching tips advice NHL"],
+                n_results=2
+            )
+            
+            # Add to knowledge sources with skill tagging
+            knowledge_sources['on_ice_drills'].extend(_process_search_results(drill_results, skill, "drill"))
+            knowledge_sources['development_skills'].extend(_process_search_results(skill_results, skill, "skill"))
+            knowledge_sources['video_instructions'].extend(_process_search_results(video_results, skill, "video"))
+            knowledge_sources['coaching_insights'].extend(_process_search_results(insight_results, skill, "insight"))
+            
+            logger.debug(f"Found knowledge for '{skill}': {len(drill_results.get('documents', [[]])[0])} drills, {len(skill_results.get('documents', [[]])[0])} skills, {len(video_results.get('documents', [[]])[0])} videos, {len(insight_results.get('documents', [[]])[0])} insights")
+        
+        # Search for team systems if specified
+        if team_systems_focus:
+            logger.info(f"🎯 Searching for team systems: {team_systems_focus}")
+            for system in team_systems_focus:
+                logger.debug(f"Searching for system: '{system}'")
+                system_results = collection.query(
+                    query_texts=[f"{system} hockey system tactic positioning"],
+                    n_results=4
+                )
+                knowledge_sources['team_systems'].extend(_process_search_results(system_results, system, "tactic"))
+                logger.debug(f"Found {len(system_results.get('documents', [[]])[0])} results for system '{system}'")
+        
+        # Search for dryland if requested
+        if include_dryland:
+            logger.info("🏋️ Including dryland exercises")
+            for skill_area in skill_focus_areas:
+                skill = skill_area['skill']
+                logger.debug(f"Searching dryland for skill: '{skill}'")
+                dryland_results = collection.query(
+                    query_texts=[f"{skill} off ice training dryland"],
+                    n_results=3,
+                    where={"document_type": "off_ice_workout"}
+                )
+                knowledge_sources['dryland_exercises'].extend(_process_search_results(dryland_results, skill, "dryland"))
+                logger.debug(f"Found {len(dryland_results.get('documents', [[]])[0])} dryland exercises for '{skill}'")
+        
+        # Get context-specific insights if practice context provided
+        context_insights = []
+        if practice_context:
+            logger.debug(f"Searching for context-specific insights: '{practice_context}'")
+            context_results = collection.query(
+                query_texts=[f"{practice_context} coaching advice preparation"],
+                n_results=3
+            )
+            context_insights = _process_search_results(context_results, "context", "insight")
+            logger.debug(f"Found {len(context_insights)} context-specific insights")
+        
+        # Log knowledge source summary
+        total_sources = sum(len(v) for v in knowledge_sources.values())
+        logger.info(f"📚 Knowledge gathered: {total_sources} total sources")
+        for source_type, sources in knowledge_sources.items():
+            if sources:
+                logger.debug(f"  {source_type}: {len(sources)} items")
+        
+        logger.info("🤖 Generating practice plan with OpenAI...")
+        
+        # Build comprehensive prompt
+        plan_prompt = f"""
     Create a detailed {duration_minutes}-minute hockey practice plan for {age_group} with {number_of_players} players.
     
     COACH'S SPECIFIC REQUIREMENTS:
@@ -452,40 +502,57 @@ def create_practice_plan(
     - Ensure activities flow logically and build on each other
     """
     
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are an expert hockey coach with access to comprehensive hockey knowledge. Create practice plans that precisely match the coach's time allocations and integrate wisdom from multiple sources. Always respect the specific time requests and context provided."},
-                {"role": "user", "content": plan_prompt}
-            ],
-            temperature=0.6
-        )
-        
-        plan_data = json.loads(response.choices[0].message.content)
-        
-        # Validate time allocations match requests
-        if 'main_activities' in plan_data:
-            _validate_time_allocations(plan_data, skill_focus_areas)
-        
-        # Add metadata about knowledge utilization
-        plan_data['knowledge_sources_used'] = {
-            'total_sources': sum(len(v) for v in knowledge_sources.values()),
-            'drills': len(knowledge_sources['on_ice_drills']),
-            'ltad_skills': len(knowledge_sources['development_skills']),
-            'videos': len(knowledge_sources['video_instructions']),
-            'nhl_insights': len(knowledge_sources['coaching_insights']),
-            'team_systems': len(knowledge_sources['team_systems']),
-            'dryland': len(knowledge_sources['dryland_exercises']) if include_dryland else 0
-        }
-        
-        return CoachingPlan(**plan_data)
-        
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert hockey coach with access to comprehensive hockey knowledge. Create practice plans that precisely match the coach's time allocations and integrate wisdom from multiple sources. Always respect the specific time requests and context provided."},
+                    {"role": "user", "content": plan_prompt}
+                ],
+                temperature=0.6
+            )
+            logger.debug("OpenAI response received successfully")
+            
+            plan_data = json.loads(response.choices[0].message.content)
+            logger.debug("Practice plan JSON parsed successfully")
+            
+            # Validate time allocations match requests
+            if 'main_activities' in plan_data:
+                _validate_time_allocations(plan_data, skill_focus_areas)
+            
+            # Add metadata about knowledge utilization
+            plan_data['knowledge_sources_used'] = {
+                'total_sources': sum(len(v) for v in knowledge_sources.values()),
+                'drills': len(knowledge_sources['on_ice_drills']),
+                'ltad_skills': len(knowledge_sources['development_skills']),
+                'videos': len(knowledge_sources['video_instructions']),
+                'nhl_insights': len(knowledge_sources['coaching_insights']),
+                'team_systems': len(knowledge_sources['team_systems']),
+                'dryland': len(knowledge_sources['dryland_exercises']) if include_dryland else 0
+            }
+            
+            logger.info(f"✅ Successfully created practice plan for {age_group} ({duration_minutes}min)")
+            return CoachingPlan(**plan_data)
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ JSON parsing error in practice plan: {e}")
+            logger.error(f"Raw response: {response.choices[0].message.content[:500]}..." if 'response' in locals() else "No response received")
+            return _create_flexible_fallback_plan(
+                age_group, duration_minutes, skill_focus_areas, 
+                practice_context, knowledge_sources, include_dryland
+            )
+        except Exception as e:
+            logger.error(f"❌ Error creating practice plan: {e}")
+            return _create_flexible_fallback_plan(
+                age_group, duration_minutes, skill_focus_areas, 
+                practice_context, knowledge_sources, include_dryland
+            )
+    
     except Exception as e:
-        logger.error(f"Error creating flexible practice plan: {e}")
+        logger.error(f"❌ Critical error in create_practice_plan: {e}")
         return _create_flexible_fallback_plan(
             age_group, duration_minutes, skill_focus_areas, 
-            practice_context, knowledge_sources, include_dryland
+            practice_context, {}, include_dryland
         )
 
 # ====== Player DEVELOPMENT TOOLS ======
@@ -500,38 +567,47 @@ def analyze_player_development(
     """
     Create an individual player development plan with specific drills and progression.
     """
-    logger.info(f"Creating development plan for {player_position}: {current_skills} -> {target_skills}")
-    
-    # Search for position-specific and skill-specific content
-    development_content = []
-    for skill in target_skills:
-        content = search_hockey_knowledge(
-            query=f"{skill} {player_position} development training",
-            content_types=["drill", "skill", "dryland"],
-            n_results=5
-        )
-        development_content.extend(content)
-    
-    # Generate development plan using AI
-    dev_prompt = f"""
-    Create a {timeline_weeks}-week individual development plan for a {player_position} player.
-    Current skills: {current_skills}
-    Target skills: {target_skills}
-    
-    Available training content:
-    {json.dumps(development_content[:20], indent=2)}
-    
-    Include:
-    - Progressive skill development over {timeline_weeks} weeks
-    - Specific on-ice drills
-    - Off-ice/dryland exercises
-    - Measurable progress markers
-    - Position-specific focuses
-    
-    Return as JSON matching PlayerDevelopmentPlan structure.
-    """
+    logger.info(f"👤 Creating development plan - Position: {player_position}, Timeline: {timeline_weeks} weeks")
+    logger.debug(f"Current skills: {current_skills}")
+    logger.debug(f"Target skills: {target_skills}")
     
     try:
+        # Search for position-specific and skill-specific content
+        development_content = []
+        logger.info(f"🔍 Searching for development content for {len(target_skills)} target skills...")
+        
+        for skill in target_skills:
+            logger.debug(f"Searching for skill: '{skill}' for position '{player_position}'")
+            content = search_hockey_knowledge(
+                query=f"{skill} {player_position} development training",
+                content_types=["drill", "skill", "dryland"],
+                n_results=5
+            )
+            development_content.extend(content)
+            logger.debug(f"Found {len(content)} development items for '{skill}'")
+        
+        logger.info(f"📚 Total development content found: {len(development_content)} items")
+        
+        # Generate development plan using AI
+        logger.debug("Generating AI development plan with OpenAI")
+        dev_prompt = f"""
+        Create a {timeline_weeks}-week individual development plan for a {player_position} player.
+        Current skills: {current_skills}
+        Target skills: {target_skills}
+        
+        Available training content:
+        {json.dumps(development_content[:20], indent=2)}
+        
+        Include:
+        - Progressive skill development over {timeline_weeks} weeks
+        - Specific on-ice drills
+        - Off-ice/dryland exercises
+        - Measurable progress markers
+        - Position-specific focuses
+        
+        Return as JSON matching PlayerDevelopmentPlan structure.
+        """
+        
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -540,12 +616,16 @@ def analyze_player_development(
             ],
             temperature=0.6
         )
+        logger.debug("OpenAI response received successfully")
         
         plan_data = json.loads(response.choices[0].message.content)
+        logger.info(f"✅ Successfully created development plan for {player_position} player")
+        
         return PlayerDevelopmentPlan(**plan_data)
         
-    except Exception as e:
-        logger.error(f"Error creating development plan: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ JSON parsing error in development plan: {e}")
+        logger.error(f"Raw response: {response.choices[0].message.content[:500]}..." if 'response' in locals() else "No response received")
         # Return basic fallback
         return PlayerDevelopmentPlan(
             player_name="Player",
@@ -557,11 +637,50 @@ def analyze_player_development(
             timeline_weeks=timeline_weeks,
             progress_markers=[f"Improve {skill} technique" for skill in target_skills]
         )
+    except Exception as e:
+        logger.error(f"❌ Error creating development plan: {e}")
+        # Return basic fallback
+        return PlayerDevelopmentPlan(
+            player_name="Player",
+            position=player_position,
+            current_level="Developing",
+            target_skills=target_skills,
+            recommended_drills=[content["title"] for content in development_content[:5] if content.get("content_type") == "drill"] if 'development_content' in locals() else [],
+            dryland_exercises=[content["title"] for content in development_content[:3] if content.get("content_type") == "dryland"] if 'development_content' in locals() else [],
+            timeline_weeks=timeline_weeks,
+            progress_markers=[f"Improve {skill} technique" for skill in target_skills]
+        )
 
 # ====== Utility Functions ======
 
+def _process_search_results(search_results: dict, collection_name: str) -> List[HockeyKnowledgeResult]:
+    """Process ChromaDB search results into unified HockeyKnowledgeResult format."""
+    logger.debug(f"🔄 Processing search results from collection: {collection_name}")
+    
+    docs = search_results.get("documents", [[]])[0]
+    metas = search_results.get("metadatas", [[]])[0]
+    ids = search_results.get("ids", [[]])[0]
+    
+    logger.debug(f"Raw results: {len(docs)} docs, {len(metas)} metadata, {len(ids)} IDs")
+    
+    results = []
+    for doc, meta, doc_id in zip(docs, metas, ids):
+        try:
+            content_type = _determine_content_type(doc_id)
+            unified_result = _create_unified_result(doc, meta, doc_id, content_type)
+            results.append(unified_result)
+            logger.debug(f"Processed: {unified_result['title']} ({content_type})")
+        except Exception as e:
+            logger.warning(f"⚠️ Error processing result {doc_id}: {e}")
+            continue
+    
+    logger.debug(f"Successfully processed {len(results)}/{len(docs)} results from {collection_name}")
+    return results
+
 def _determine_content_type(doc_id: str) -> str:
     """Determine content type from document ID prefix."""
+    logger.debug(f"Determining content type for doc_id: {doc_id}")
+    
     prefix = doc_id.split("-")[0] if "-" in doc_id else doc_id.split("_")[0]
     
     type_mapping = {
@@ -575,15 +694,20 @@ def _determine_content_type(doc_id: str) -> str:
         "dryland": "dryland"
     }
     
-    return type_mapping.get(prefix, "unknown")
+    content_type = type_mapping.get(prefix, "unknown")
+    logger.debug(f"Doc '{doc_id}' -> prefix '{prefix}' -> type '{content_type}'")
+    
+    return content_type
 
 def _create_unified_result(doc: str, meta: Dict, doc_id: str, content_type: str) -> HockeyKnowledgeResult:
     """Create a unified result structure from any content type."""
+    logger.debug(f"Creating unified result for {content_type} document: {doc_id}")
     
     # Extract common fields with fallbacks
+    title = meta.get("title", meta.get("skill_name", meta.get("tactic_name", "Untitled")))
     base_result = {
         "id": doc_id,
-        "title": meta.get("title", meta.get("skill_name", meta.get("tactic_name", "Untitled"))),
+        "title": title,
         "content_type": content_type,
         "summary": meta.get("summary", _parse_field(doc, "description") or doc[:200] + "..."),
         "complexity": meta.get("complexity", "intermediate"),
@@ -597,18 +721,27 @@ def _create_unified_result(doc: str, meta: Dict, doc_id: str, content_type: str)
         "metadata": meta
     }
     
+    logger.debug(f"Unified result created: '{title}' ({content_type})")
     return base_result
 
 def _parse_field(doc: str, label: str) -> str:
     """Extract a value for ``label`` from an indexed document."""
+    logger.debug(f"Parsing field '{label}' from document")
+    
     prefix = label.lower() + ":"
     for line in doc.splitlines():
         if line.lower().startswith(prefix):
-            return line.split(":", 1)[1].strip()
+            value = line.split(":", 1)[1].strip()
+            logger.debug(f"Found {label}: {value[:50]}{'...' if len(value) > 50 else ''}")
+            return value
+    
+    logger.debug(f"Field '{label}' not found in document")
     return ""
 
 def _validate_time_allocations(plan_data: dict, requested_allocations: List[Dict]) -> None:
     """Validate that the generated plan respects time allocations."""
+    logger.debug("Validating time allocations in generated plan")
+    
     for skill_request in requested_allocations:
         skill = skill_request['skill']
         requested_time = skill_request['time_minutes']
@@ -618,18 +751,23 @@ def _validate_time_allocations(plan_data: dict, requested_allocations: List[Dict
                            if a.get('skill_focus', '').lower() == skill.lower()]
         
         if not skill_activities:
-            logger.warning(f"No activities found for requested skill: {skill}")
+            logger.warning(f"⚠️ No activities found for requested skill: {skill}")
         else:
             # Sum up time for this skill (rough validation)
             total_time = sum(_extract_minutes(a.get('duration', '0 min')) for a in skill_activities)
             if abs(total_time - requested_time) > 5:  # Allow 5 min variance
-                logger.warning(f"Time allocation mismatch for {skill}: requested {requested_time} min, got ~{total_time} min")
+                logger.warning(f"⚠️ Time allocation mismatch for {skill}: requested {requested_time} min, got ~{total_time} min")
+            else:
+                logger.debug(f"✅ Time allocation OK for {skill}: {total_time}min (~{requested_time}min requested)")
 
 def _extract_minutes(duration_str: str) -> int:
     """Extract minutes from duration string like '15 min'."""
     try:
-        return int(duration_str.split()[0])
-    except:
+        minutes = int(duration_str.split()[0])
+        logger.debug(f"Extracted {minutes} minutes from '{duration_str}'")
+        return minutes
+    except Exception as e:
+        logger.debug(f"Could not extract minutes from '{duration_str}': {e}")
         return 0
 
 def _create_flexible_fallback_plan(
@@ -641,6 +779,8 @@ def _create_flexible_fallback_plan(
     include_dryland: bool
 ) -> CoachingPlan:
     """Create a fallback plan that still respects the coach's time allocations."""
+    logger.warning(f"⚠️ Creating fallback practice plan for {age_group} ({duration_minutes}min)")
+    logger.debug(f"Fallback context: {practice_context}, dryland: {include_dryland}")
     
     main_activities = []
     
@@ -649,8 +789,10 @@ def _create_flexible_fallback_plan(
         skill = skill_area['skill']
         time_requested = skill_area['time_minutes']
         
+        logger.debug(f"Creating fallback activity for {skill} ({time_requested}min)")
+        
         # Find best available content for this skill
-        skill_drills = [d for d in knowledge_sources['on_ice_drills'] 
+        skill_drills = [d for d in knowledge_sources.get('on_ice_drills', []) 
                        if skill.lower() in d.get('addresses_skill', '').lower()]
         
         if skill_drills:
@@ -664,6 +806,7 @@ def _create_flexible_fallback_plan(
                 "teaching_points": drill.get('teaching_points', ''),
                 "setup": f"Equipment: {drill.get('equipment', 'Standard')}"
             }
+            logger.debug(f"Using drill '{drill['title']}' for {skill}")
         else:
             # Generic fallback maintaining time allocation
             activity = {
@@ -674,10 +817,11 @@ def _create_flexible_fallback_plan(
                 "source_type": "generic",
                 "teaching_points": f"Emphasize proper {skill} technique and progression"
             }
+            logger.debug(f"Using generic activity for {skill}")
         
         main_activities.append(activity)
     
-    return CoachingPlan(
+    fallback_plan = CoachingPlan(
         title=f"{age_group} Custom Practice - {practice_context or 'Multi-Skill Focus'}",
         age_group=age_group,
         duration_minutes=duration_minutes,
@@ -696,6 +840,9 @@ def _create_flexible_fallback_plan(
         equipment_needed=["Pucks", "Cones", "Nets", "Boards"],
         coaching_notes=f"Fallback plan honoring coach's time allocations. Context: {practice_context}. Total knowledge sources: {sum(len(v) for v in knowledge_sources.values())}"
     )
+    
+    logger.info(f"✅ Fallback plan created with {len(main_activities)} main activities")
+    return fallback_plan
 
 # ====== RESOURCES ======
 # Resources for better integration
@@ -736,15 +883,28 @@ def get_daily_coaching_tip() -> str:
     import random
     return random.choice(tips)
 
-# Enhanced error handling and logging
-def _safe_search(query: str, **kwargs) -> List[Dict]:
-    """Wrapper for safe searching with error handling."""
-    try:
-        return collection.query(query_texts=[query], **kwargs)
-    except Exception as e:
-        logger.error(f"Search error for query '{query}': {e}")
-        return {"documents": [[]], "metadatas": [[]], "ids": [[]]}
-
 if __name__ == "__main__":
+    logger.info("🚀 Starting Hockey MCP Server...")
+    
+    # Test ChromaDB connection
+    try:
+        collections = client.list_collections()
+        logger.info(f"✅ ChromaDB connected - {len(collections)} collections available")
+        for collection in collections:
+            count = collection.count()
+            logger.debug(f"  - {collection.name}: {count} documents")
+    except Exception as e:
+        logger.error(f"❌ ChromaDB connection failed: {e}")
+    
+    # Test OpenAI connection
+    try:
+        import openai
+        test_client = openai.OpenAI()
+        logger.info("✅ OpenAI client initialized")
+    except Exception as e:
+        logger.error(f"❌ OpenAI initialization failed: {e}")
+    
+    logger.info("🏒 Hockey MCP Server ready for coaching!")
+    
     import uvicorn
     uvicorn.run(mcp.sse_app, host="0.0.0.0", port=8000)
