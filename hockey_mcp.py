@@ -65,6 +65,8 @@ class PlayerDevelopmentPlan(BaseModel):
     timeline_weeks: int
     progress_markers: List[str]
 
+# ====== SEARCH TOOLS ======
+
 # Enhanced search function that searches across all content types
 @mcp.tool("search_hockey_knowledge")
 def search_hockey_knowledge(
@@ -219,72 +221,274 @@ def get_coaching_recommendations(
             "available_dryland": dryland_results[:3]
         }
 
+# ===== PRACTICE PLAN TOOLS =====
+
 @mcp.tool("create_practice_plan")
 def create_practice_plan(
     age_group: str,
     duration_minutes: int,
-    focus_skills: List[str],
-    number_of_players: int
+    skill_focus_areas: List[Dict[str, Union[str, int]]],  # [{"skill": "skating", "time_minutes": 20}, {"skill": "shooting", "time_minutes": 15}]
+    number_of_players: int,
+    practice_context: str = "",  # Free text: "first practice back", "preparing for tournament", "working on power play", etc.
+    team_systems_focus: Optional[List[str]] = None,  # ["breakouts", "forechecking", "power play"]
+    include_dryland: bool = False,
+    equipment_available: Optional[List[str]] = None,
+    coaching_priorities: Optional[str] = None  # Free text coaching notes
 ) -> CoachingPlan:
     """
-    Generate a complete practice plan with warm-up, main activities, and cool-down.
+    Create a flexible practice plan based on coach's specific time allocations and priorities.
+    
+    Args:
+        age_group: Age group (e.g., "U8", "U12", "U16") 
+        duration_minutes: Total practice time
+        skill_focus_areas: List of skills with desired time allocation
+            Example: [{"skill": "skating", "time_minutes": 20}, {"skill": "shooting", "time_minutes": 15}, {"skill": "puck_handling", "time_minutes": 10}]
+        number_of_players: Team size
+        practice_context: Open text describing practice purpose/context
+        team_systems_focus: Optional systems to emphasize (breakouts, forechecking, etc.)
+        include_dryland: Include off-ice component
+        equipment_available: Available equipment constraints
+        coaching_priorities: Additional coaching notes/priorities
     """
-    logger.info(f"Creating practice plan for {age_group}, {duration_minutes} min, skills: {focus_skills}")
+    logger.info(f"Creating flexible practice plan for {age_group}: {skill_focus_areas}")
     
-    # Search for relevant content for each focus skill
-    all_activities = []
-    for skill in focus_skills:
-        activities = search_hockey_knowledge(
-            query=f"{skill} {age_group} drill",
-            content_types=["drill", "skill"],
-            n_results=5
+    # Calculate time allocations
+    total_skill_time = sum(area.get('time_minutes', 0) for area in skill_focus_areas)
+    warmup_time = max(8, duration_minutes * 0.12)  # 12% minimum 8 min
+    cooldown_time = max(5, duration_minutes * 0.08)  # 8% minimum 5 min
+    available_main_time = duration_minutes - warmup_time - cooldown_time
+    
+    # Validate time allocation
+    if total_skill_time > available_main_time:
+        logger.warning(f"Requested skill time ({total_skill_time} min) exceeds available time ({available_main_time} min)")
+        # Proportionally adjust if over time
+        adjustment_factor = available_main_time / total_skill_time
+        for area in skill_focus_areas:
+            area['time_minutes'] = int(area['time_minutes'] * adjustment_factor)
+    
+    # Comprehensive knowledge gathering for all requested skills
+    knowledge_sources = {
+        'on_ice_drills': [],
+        'development_skills': [], 
+        'tactical_systems': [],
+        'video_instructions': [],
+        'dryland_exercises': [],
+        'coaching_insights': [],
+        'team_systems': []
+    }
+    
+    # Search for each skill area
+    all_skills = [area['skill'] for area in skill_focus_areas]
+    for skill_area in skill_focus_areas:
+        skill = skill_area['skill']
+        time_requested = skill_area['time_minutes']
+        
+        logger.info(f"Gathering knowledge for {skill} ({time_requested} min)")
+        
+        # On-ice drill search - get more results for skills with more time
+        drill_count = max(3, min(8, time_requested // 5))  # 3-8 drills based on time
+        drill_results = collection.query(
+            query_texts=[f"{skill} {age_group} drill practice"],
+            n_results=drill_count * 2,  # Get extras to filter
+            where={"document_type": {"$ne": "off_ice_workout"}}
         )
-        all_activities.extend(activities)
+        
+        # LTAD skills search
+        skill_results = collection.query(
+            query_texts=[f"{skill} {age_group} development technique"],
+            n_results=4
+        )
+        
+        # Video instruction search
+        video_results = collection.query(
+            query_texts=[f"{skill} instruction teaching technique"],
+            n_results=3,
+            where={"clip_type": {"$ne": "off_ice_video"}}
+        )
+        
+        # Coaching insights
+        insight_results = collection.query(
+            query_texts=[f"{skill} coaching tips advice NHL"],
+            n_results=2
+        )
+        
+        # Add to knowledge sources with skill tagging
+        knowledge_sources['on_ice_drills'].extend(_process_search_results(drill_results, skill, "drill"))
+        knowledge_sources['development_skills'].extend(_process_search_results(skill_results, skill, "skill"))
+        knowledge_sources['video_instructions'].extend(_process_search_results(video_results, skill, "video"))
+        knowledge_sources['coaching_insights'].extend(_process_search_results(insight_results, skill, "insight"))
     
-    # Use AI to structure the practice plan
+    # Search for team systems if specified
+    if team_systems_focus:
+        for system in team_systems_focus:
+            system_results = collection.query(
+                query_texts=[f"{system} hockey system tactic positioning"],
+                n_results=4
+            )
+            knowledge_sources['team_systems'].extend(_process_search_results(system_results, system, "tactic"))
+    
+    # Search for dryland if requested
+    if include_dryland:
+        for skill_area in skill_focus_areas:
+            skill = skill_area['skill']
+            dryland_results = collection.query(
+                query_texts=[f"{skill} off ice training dryland"],
+                n_results=3,
+                where={"document_type": "off_ice_workout"}
+            )
+            knowledge_sources['dryland_exercises'].extend(_process_search_results(dryland_results, skill, "dryland"))
+    
+    # Get context-specific insights if practice context provided
+    context_insights = []
+    if practice_context:
+        context_results = collection.query(
+            query_texts=[f"{practice_context} coaching advice preparation"],
+            n_results=3
+        )
+        context_insights = _process_search_results(context_results, "context", "insight")
+    
+    # Build comprehensive prompt
     plan_prompt = f"""
     Create a detailed {duration_minutes}-minute hockey practice plan for {age_group} with {number_of_players} players.
-    Focus skills: {focus_skills}
     
-    Available activities:
-    {json.dumps(all_activities[:15], indent=2)}
+    COACH'S SPECIFIC REQUIREMENTS:
+    Practice Context: {practice_context}
+    Skill Focus Areas with Time Allocation:
+    {json.dumps(skill_focus_areas, indent=2)}
     
-    Structure the practice with:
-    - Warm-up (10-15% of time)
-    - Main activities (70-80% of time) 
-    - Cool-down (10-15% of time)
+    Team Systems Focus: {team_systems_focus or "None specified"}
+    Include Dryland: {include_dryland}
+    Equipment Constraints: {equipment_available or "Standard equipment assumed"}
+    Additional Coaching Priorities: {coaching_priorities or "None specified"}
     
-    Include specific time allocations, setup instructions, and coaching points.
-    Return as JSON matching the CoachingPlan structure.
+    TIME STRUCTURE:
+    - Warm-up: {warmup_time:.0f} minutes
+    - Main Practice: {available_main_time:.0f} minutes (allocated per coach's skill focus)
+    - Cool-down: {cooldown_time:.0f} minutes
+    
+    COMPREHENSIVE KNOWLEDGE BASE:
+    
+    ON-ICE DRILLS ({len(knowledge_sources['on_ice_drills'])} available):
+    {json.dumps(knowledge_sources['on_ice_drills'][:10], indent=2)}
+    
+    LTAD DEVELOPMENT SKILLS ({len(knowledge_sources['development_skills'])} available):
+    {json.dumps(knowledge_sources['development_skills'][:6], indent=2)}
+    
+    VIDEO INSTRUCTIONS ({len(knowledge_sources['video_instructions'])} available):
+    {json.dumps(knowledge_sources['video_instructions'][:6], indent=2)}
+    
+    NHL COACHING INSIGHTS ({len(knowledge_sources['coaching_insights'])} available):
+    {json.dumps(knowledge_sources['coaching_insights'][:4], indent=2)}
+    
+    {f"TEAM SYSTEMS ({len(knowledge_sources['team_systems'])} available): {json.dumps(knowledge_sources['team_systems'][:5], indent=2)}" if team_systems_focus else ""}
+    
+    {f"DRYLAND EXERCISES ({len(knowledge_sources['dryland_exercises'])} available): {json.dumps(knowledge_sources['dryland_exercises'][:4], indent=2)}" if include_dryland else ""}
+    
+    {f"CONTEXT INSIGHTS: {json.dumps(context_insights[:3], indent=2)}" if context_insights else ""}
+    
+    INTEGRATION REQUIREMENTS:
+    1. RESPECT TIME ALLOCATIONS: Each skill area must get approximately the time the coach requested
+    2. COMPREHENSIVE INTEGRATION: Use multiple knowledge sources (drills + skills + videos + insights)
+    3. LOGICAL FLOW: Activities should build progressively and complement each other
+    4. COACHING DEPTH: Rich teaching points, setup details, common mistakes, progressions
+    5. CONTEXT AWARENESS: Address the specific practice context provided
+    6. SYSTEMS INTEGRATION: Incorporate team systems focus if specified
+    
+    OUTPUT FORMAT (JSON):
+    {{
+        "title": "Descriptive title reflecting coach's focus and context",
+        "age_group": "{age_group}",
+        "duration_minutes": {duration_minutes},
+        "practice_context": "{practice_context}",
+        "focus_areas": {all_skills},
+        "time_allocation": {dict((area['skill'], area['time_minutes']) for area in skill_focus_areas)},
+        "warmup": [
+            {{
+                "activity": "name",
+                "duration": "{warmup_time:.0f} min",
+                "description": "detailed description",
+                "source_type": "drill/skill/video",
+                "setup": "ice setup and equipment",
+                "teaching_points": "key coaching cues",
+                "purpose": "prepare players for main practice focus"
+            }}
+        ],
+        "main_activities": [
+            {{
+                "activity": "name", 
+                "duration": "X min (match coach's requested time)",
+                "skill_focus": "which requested skill this addresses",
+                "description": "detailed activity description",
+                "source_type": "drill/skill/tactic/video", 
+                "source_details": "brief note on knowledge source used",
+                "setup": "ice organization and equipment needs",
+                "teaching_points": "coaching cues from multiple sources",
+                "nhl_insights": "relevant professional coaching wisdom",
+                "progressions": "make it easier/harder",
+                "common_mistakes": "what to watch for",
+                "coaching_emphasis": "key points for this skill/time allocation"
+            }}
+        ],
+        "cooldown": [
+            {{
+                "activity": "name",
+                "duration": "{cooldown_time:.0f} min", 
+                "description": "activity description and purpose"
+            }}
+        ],
+        {f'"dryland_component": [{{"exercises": "specific exercises", "duration": "X min", "skill_connection": "how it connects to on-ice skills"}}],' if include_dryland else ''}
+        "equipment_needed": ["organized clean list"],
+        "coaching_notes": "Practice-specific insights addressing coach's context and priorities",
+        "skill_time_breakdown": "confirmation of time allocation per skill",
+        "systems_integration": "how team systems were incorporated if applicable",
+        "knowledge_sources_utilized": "summary of sources used from knowledge base"
+    }}
+    
+    CRITICAL SUCCESS FACTORS:
+    - Honor the coach's specific time requests for each skill
+    - Address the practice context meaningfully 
+    - Integrate insights from multiple knowledge sources
+    - Provide actionable coaching guidance beyond basic drill descriptions
+    - Ensure activities flow logically and build on each other
     """
     
     try:
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a professional hockey coach creating detailed practice plans."},
+                {"role": "system", "content": "You are an expert hockey coach with access to comprehensive hockey knowledge. Create practice plans that precisely match the coach's time allocations and integrate wisdom from multiple sources. Always respect the specific time requests and context provided."},
                 {"role": "user", "content": plan_prompt}
             ],
             temperature=0.6
         )
         
         plan_data = json.loads(response.choices[0].message.content)
+        
+        # Validate time allocations match requests
+        if 'main_activities' in plan_data:
+            _validate_time_allocations(plan_data, skill_focus_areas)
+        
+        # Add metadata about knowledge utilization
+        plan_data['knowledge_sources_used'] = {
+            'total_sources': sum(len(v) for v in knowledge_sources.values()),
+            'drills': len(knowledge_sources['on_ice_drills']),
+            'ltad_skills': len(knowledge_sources['development_skills']),
+            'videos': len(knowledge_sources['video_instructions']),
+            'nhl_insights': len(knowledge_sources['coaching_insights']),
+            'team_systems': len(knowledge_sources['team_systems']),
+            'dryland': len(knowledge_sources['dryland_exercises']) if include_dryland else 0
+        }
+        
         return CoachingPlan(**plan_data)
         
     except Exception as e:
-        logger.error(f"Error creating practice plan: {e}")
-        # Return a basic fallback plan
-        return CoachingPlan(
-            title=f"{age_group} Practice - {', '.join(focus_skills)}",
-            age_group=age_group,
-            duration_minutes=duration_minutes,
-            focus_areas=focus_skills,
-            warmup=[{"activity": "Basic skating", "duration": "10 min", "description": "Warm up with basic skating drills"}],
-            main_activities=[{"activity": activity["title"], "duration": "15 min", "description": activity["summary"]} for activity in all_activities[:3]],
-            cooldown=[{"activity": "Light skating", "duration": "5 min", "description": "Cool down with easy skating"}],
-            equipment_needed=list(set([activity.get("equipment", "") for activity in all_activities if activity.get("equipment")])),
-            coaching_notes="Adapt activities based on player skill level and engagement."
+        logger.error(f"Error creating flexible practice plan: {e}")
+        return _create_flexible_fallback_plan(
+            age_group, duration_minutes, skill_focus_areas, 
+            practice_context, knowledge_sources, include_dryland
         )
+
+# ====== Player DEVELOPMENT TOOLS ======
 
 @mcp.tool("analyze_player_development")
 def analyze_player_development(
@@ -354,29 +558,8 @@ def analyze_player_development(
             progress_markers=[f"Improve {skill} technique" for skill in target_skills]
         )
 
-# Keep your existing specific tools but enhance them
-@mcp.tool("find_drills_by_situation")
-def find_drills_by_situation(
-    game_situation: str,
-    age_group: str = None,
-    complexity: str = None,
-    n_results: int = 5
-) -> List[HockeyKnowledgeResult]:
-    """
-    Find drills for specific game situations (power play, penalty kill, breakout, etc.)
-    """
-    query = f"{game_situation} drill"
-    if age_group:
-        query += f" {age_group}"
-    
-    return search_hockey_knowledge(
-        query=query,
-        content_types=["drill", "tactic"],
-        complexity_levels=[complexity] if complexity else None,
-        n_results=n_results
-    )
+# ====== Utility Functions ======
 
-# Utility functions
 def _determine_content_type(doc_id: str) -> str:
     """Determine content type from document ID prefix."""
     prefix = doc_id.split("-")[0] if "-" in doc_id else doc_id.split("_")[0]
@@ -424,6 +607,97 @@ def _parse_field(doc: str, label: str) -> str:
             return line.split(":", 1)[1].strip()
     return ""
 
+def _validate_time_allocations(plan_data: dict, requested_allocations: List[Dict]) -> None:
+    """Validate that the generated plan respects time allocations."""
+    for skill_request in requested_allocations:
+        skill = skill_request['skill']
+        requested_time = skill_request['time_minutes']
+        
+        # Find activities addressing this skill
+        skill_activities = [a for a in plan_data.get('main_activities', []) 
+                           if a.get('skill_focus', '').lower() == skill.lower()]
+        
+        if not skill_activities:
+            logger.warning(f"No activities found for requested skill: {skill}")
+        else:
+            # Sum up time for this skill (rough validation)
+            total_time = sum(_extract_minutes(a.get('duration', '0 min')) for a in skill_activities)
+            if abs(total_time - requested_time) > 5:  # Allow 5 min variance
+                logger.warning(f"Time allocation mismatch for {skill}: requested {requested_time} min, got ~{total_time} min")
+
+def _extract_minutes(duration_str: str) -> int:
+    """Extract minutes from duration string like '15 min'."""
+    try:
+        return int(duration_str.split()[0])
+    except:
+        return 0
+
+def _create_flexible_fallback_plan(
+    age_group: str, 
+    duration_minutes: int, 
+    skill_focus_areas: List[Dict],
+    practice_context: str,
+    knowledge_sources: dict,
+    include_dryland: bool
+) -> CoachingPlan:
+    """Create a fallback plan that still respects the coach's time allocations."""
+    
+    main_activities = []
+    
+    # Create activities for each requested skill with requested time
+    for skill_area in skill_focus_areas:
+        skill = skill_area['skill']
+        time_requested = skill_area['time_minutes']
+        
+        # Find best available content for this skill
+        skill_drills = [d for d in knowledge_sources['on_ice_drills'] 
+                       if skill.lower() in d.get('addresses_skill', '').lower()]
+        
+        if skill_drills:
+            drill = skill_drills[0]
+            activity = {
+                "activity": drill['title'],
+                "duration": f"{time_requested} min",
+                "skill_focus": skill,
+                "description": drill['summary'],
+                "source_type": "drill",
+                "teaching_points": drill.get('teaching_points', ''),
+                "setup": f"Equipment: {drill.get('equipment', 'Standard')}"
+            }
+        else:
+            # Generic fallback maintaining time allocation
+            activity = {
+                "activity": f"{skill.title()} Development",
+                "duration": f"{time_requested} min",
+                "skill_focus": skill, 
+                "description": f"Focused {skill} development for {age_group}",
+                "source_type": "generic",
+                "teaching_points": f"Emphasize proper {skill} technique and progression"
+            }
+        
+        main_activities.append(activity)
+    
+    return CoachingPlan(
+        title=f"{age_group} Custom Practice - {practice_context or 'Multi-Skill Focus'}",
+        age_group=age_group,
+        duration_minutes=duration_minutes,
+        focus_areas=[area['skill'] for area in skill_focus_areas],
+        warmup=[{
+            "activity": "Dynamic warm-up",
+            "duration": "10 min",
+            "description": "Progressive skating warm-up tailored to practice focus"
+        }],
+        main_activities=main_activities,
+        cooldown=[{
+            "activity": "Cool-down and review",
+            "duration": "5 min", 
+            "description": "Light activity and practice summary"
+        }],
+        equipment_needed=["Pucks", "Cones", "Nets", "Boards"],
+        coaching_notes=f"Fallback plan honoring coach's time allocations. Context: {practice_context}. Total knowledge sources: {sum(len(v) for v in knowledge_sources.values())}"
+    )
+
+# ====== RESOURCES ======
 # Resources for better integration
 @mcp.resource("hockey://schema/unified_result")
 def get_unified_schema() -> str:
