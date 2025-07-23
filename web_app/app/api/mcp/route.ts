@@ -4,45 +4,43 @@ import { NextRequest, NextResponse } from 'next/server'
 // TODO: Add rate limiting
 // TODO: Add request/response logging
 
-const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://localhost:8000'
+const MCP_BRIDGE_URL = process.env.MCP_BRIDGE_URL || 'http://localhost:3002'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Validate request body
-    if (!body.tool || !body.arguments) {
+    // Validate request body - expecting tool and parameters
+    if (!body.tool) {
       return NextResponse.json(
-        { error: 'Missing required fields: tool and arguments' },
+        { error: 'Missing required field: tool' },
         { status: 400 }
       )
     }
 
-    // Proxy request to MCP server
-    const mcpResponse = await fetch(`${MCP_SERVER_URL}/tools/${body.tool}`, {
+    // Forward request to Python MCP bridge service
+    const bridgeResponse = await fetch(`${MCP_BRIDGE_URL}/api/mcp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // TODO: Add authentication headers
       },
-      body: JSON.stringify(body.arguments),
+      body: JSON.stringify({
+        tool: body.tool,
+        parameters: body.parameters || body.arguments || {}
+      }),
     })
 
-    if (!mcpResponse.ok) {
-      console.error(`MCP server error: ${mcpResponse.status}`)
+    if (!bridgeResponse.ok) {
+      console.error(`MCP bridge error: ${bridgeResponse.status}`)
       return NextResponse.json(
-        { error: 'Failed to communicate with coaching AI' },
-        { status: mcpResponse.status }
+        { error: 'Failed to communicate with coaching AI bridge' },
+        { status: bridgeResponse.status }
       )
     }
 
-    const data = await mcpResponse.json()
+    const data = await bridgeResponse.json()
     
-    return NextResponse.json({
-      success: true,
-      data: data,
-      timestamp: new Date().toISOString()
-    })
+    return NextResponse.json(data)
 
   } catch (error) {
     console.error('API route error:', error)
@@ -57,7 +55,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return NextResponse.json(
-        { error: 'Unable to connect to coaching AI server' },
+        { error: 'Unable to connect to coaching AI bridge service' },
         { status: 503 }
       )
     }
@@ -72,7 +70,8 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   // Health check endpoint
   try {
-    const healthResponse = await fetch(`${MCP_SERVER_URL}/health`, {
+    // Forward health check to Python MCP bridge
+    const healthResponse = await fetch(`${MCP_BRIDGE_URL}/api/mcp`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -80,13 +79,15 @@ export async function GET() {
     })
 
     const isHealthy = healthResponse.ok
+    const data = await healthResponse.json().catch(() => ({}))
     
     return NextResponse.json({
       status: isHealthy ? 'healthy' : 'unhealthy',
-      mcpServer: {
-        url: MCP_SERVER_URL,
+      mcpBridge: {
+        url: MCP_BRIDGE_URL,
         status: healthResponse.status,
       },
+      mcpServer: data.mcpServer || {},
       timestamp: new Date().toISOString()
     }, {
       status: isHealthy ? 200 : 503
@@ -95,8 +96,8 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json({
       status: 'unhealthy',
-      mcpServer: {
-        url: MCP_SERVER_URL,
+      mcpBridge: {
+        url: MCP_BRIDGE_URL,
         error: 'Connection failed'
       },
       timestamp: new Date().toISOString()

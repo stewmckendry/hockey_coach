@@ -1,24 +1,24 @@
-import type { MCPRequest, MCPResponse, MCPHealthResponse, ApiError } from './types'
+import type { MCPRequest, MCPResponse, MCPHealthResponse } from './types'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+const BRIDGE_BASE_URL = 'http://localhost:3002'
 
 /**
- * API client for communicating with the MCP server
+ * API client for communicating with the MCP server via our backend bridge
  */
 class ApiClient {
   private baseUrl: string
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  constructor(baseUrl: string = BRIDGE_BASE_URL) {
     this.baseUrl = baseUrl
   }
 
   /**
-   * Make a request to the MCP server
+   * Make a request to the MCP server via our Python bridge
    */
-  async callMCPTool(tool: string, arguments_: Record<string, any>): Promise<any> {
+  async callMCPTool(tool: string, parameters: Record<string, any> = {}): Promise<any> {
     const request: MCPRequest = {
       tool,
-      arguments: arguments_
+      parameters
     }
 
     try {
@@ -26,95 +26,107 @@ class ApiClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // TODO: Add authentication headers when available
         },
         body: JSON.stringify(request),
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new ApiError(
-          errorData.error || `HTTP ${response.status}: ${response.statusText}`,
-          response.status
-        )
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
       }
 
       const data: MCPResponse = await response.json()
       
       if (!data.success) {
-        throw new ApiError(data.error || 'MCP server returned an error')
+        throw new Error(data.error || 'MCP server returned an error')
       }
 
       return data.data
 
     } catch (error) {
-      if (error instanceof ApiError) {
-        throw error
-      }
-
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new ApiError('Network error: Unable to connect to the server')
-      }
-
-      throw new ApiError(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('MCP API call failed:', error)
+      throw error
     }
   }
 
   /**
-   * Search hockey knowledge
+   * Search hockey knowledge across all content types
    */
   async searchHockeyKnowledge(
     query: string, 
-    maxResults: number = 8
+    options: {
+      content_types?: string[]
+      complexity_levels?: string[]
+      age_groups?: string[]
+      n_results?: number
+    } = {}
   ): Promise<any> {
     return this.callMCPTool('search_hockey_knowledge', {
       query,
-      max_results: maxResults
+      ...options
     })
   }
 
   /**
-   * Get coaching recommendations
+   * Get coaching recommendations based on team parameters
    */
   async getCoachingRecommendations(
-    situation: string,
-    context: Record<string, any> = {}
+    teamAge: string,
+    skillFocus: string,
+    availableTime: number,
+    teamSize: number,
+    equipmentAvailable: string[] = []
   ): Promise<any> {
     return this.callMCPTool('get_coaching_recommendations', {
-      situation,
-      context
+      team_age: teamAge,
+      skill_focus: skillFocus,
+      available_time: availableTime,
+      team_size: teamSize,
+      equipment_available: equipmentAvailable
     })
   }
 
   /**
-   * Create a practice plan
+   * Create a comprehensive practice plan
    */
   async createPracticePlan(
     ageGroup: string,
     durationMinutes: number,
     skillFocusAreas: Array<{ skill: string; time_minutes: number }>,
-    practiceContext: string = '',
-    includeDryland: boolean = false
+    options: {
+      number_of_players?: number
+      practice_context?: string
+      team_systems_focus?: string[]
+      include_dryland?: boolean
+      equipment_available?: string[]
+      coaching_priorities?: string
+    } = {}
   ): Promise<any> {
     return this.callMCPTool('create_practice_plan', {
       age_group: ageGroup,
       duration_minutes: durationMinutes,
       skill_focus_areas: skillFocusAreas,
-      practice_context: practiceContext,
-      include_dryland: includeDryland
+      number_of_players: options.number_of_players || 15,
+      practice_context: options.practice_context || '',
+      team_systems_focus: options.team_systems_focus,
+      include_dryland: options.include_dryland || false,
+      equipment_available: options.equipment_available,
+      coaching_priorities: options.coaching_priorities
     })
   }
 
   /**
-   * Analyze player development
+   * Analyze player development and create individual plans
    */
   async analyzePlayerDevelopment(
     playerPosition: string,
+    currentSkills: string[],
     targetSkills: string[],
     timelineWeeks: number = 8
   ): Promise<any> {
     return this.callMCPTool('analyze_player_development', {
       player_position: playerPosition,
+      current_skills: currentSkills,
       target_skills: targetSkills,
       timeline_weeks: timelineWeeks
     })
@@ -150,38 +162,25 @@ class ApiClient {
     const lowercaseQuery = query.toLowerCase()
 
     // Practice planning keywords
-    if (lowercaseQuery.includes('practice') || lowercaseQuery.includes('session')) {
-      // Try to extract age group and duration
-      const ageMatch = query.match(/u(\d+)|under.?(\d+)|(\d+).?(year|yr)/i)
-      const durationMatch = query.match(/(\d+).?(min|minute|hour|hr)/i)
-      
-      let ageGroup = 'U14' // default
-      let duration = 90 // default
-
-      if (ageMatch) {
-        const age = ageMatch[1] || ageMatch[2] || ageMatch[3]
-        ageGroup = `U${age}`
-      }
-
-      if (durationMatch) {
-        const time = parseInt(durationMatch[1])
-        duration = durationMatch[2].startsWith('h') ? time * 60 : time
-      }
-
-      // Extract skills mentioned
+    if (lowercaseQuery.includes('practice') || lowercaseQuery.includes('plan')) {
+      const ageGroup = this.extractAgeGroupFromQuery(query) || 'U12'
+      const duration = this.extractDurationFromQuery(query) || 60
       const skills = this.extractSkillsFromQuery(query)
+      
       const skillFocusAreas = skills.map(skill => ({
         skill,
         time_minutes: Math.floor(duration * 0.6 / skills.length) // 60% of practice time
       }))
 
-      return this.createPracticePlan(ageGroup, duration, skillFocusAreas, query)
+      return this.createPracticePlan(ageGroup, duration, skillFocusAreas, {
+        practice_context: query
+      })
     }
 
     // Player development keywords
     if (lowercaseQuery.includes('development') || lowercaseQuery.includes('improve') || lowercaseQuery.includes('training plan')) {
       const position = this.extractPositionFromQuery(query) || 'forward'
-      const skills = this.extractSkillsFromQuery(query)
+      const targetSkills = this.extractSkillsFromQuery(query)
       const timelineMatch = query.match(/(\d+).?(week|month)/i)
       
       let timeline = 8 // default weeks
@@ -190,12 +189,21 @@ class ApiClient {
         timeline = timelineMatch[2].startsWith('m') ? time * 4 : time
       }
 
-      return this.analyzePlayerDevelopment(position, skills, timeline)
+      return this.analyzePlayerDevelopment(position, [], targetSkills, timeline)
     }
 
     // Coaching advice keywords
     if (lowercaseQuery.includes('advice') || lowercaseQuery.includes('help') || lowercaseQuery.includes('how to')) {
-      return this.getCoachingRecommendations(query)
+      const ageGroup = this.extractAgeGroupFromQuery(query) || 'U12'
+      const skill = this.extractSkillsFromQuery(query)[0] || 'skating'
+      
+      return this.getCoachingRecommendations(
+        ageGroup,
+        skill,
+        60, // default 60 minutes
+        15, // default team size
+        ['pucks', 'cones'] // default equipment
+      )
     }
 
     // Default to knowledge search
@@ -212,14 +220,12 @@ class ApiClient {
       'passing': 'passing',
       'stickhandling': 'puck handling',
       'checking': 'checking',
-      'defensive': 'defensive positioning',
-      'offensive': 'offensive play',
-      'powerplay': 'power play',
-      'penalty': 'penalty kill',
-      'faceoff': 'faceoffs',
+      'defense': 'defensive positioning',
+      'offense': 'offensive tactics',
       'breakout': 'breakout',
       'forecheck': 'forechecking',
-      'backcheck': 'backchecking'
+      'powerplay': 'power play',
+      'penalty kill': 'penalty kill'
     }
 
     const lowercaseQuery = query.toLowerCase()
@@ -249,32 +255,50 @@ class ApiClient {
 
     return null
   }
-}
 
-/**
- * Custom error class for API errors
- */
-export class ApiError extends Error {
-  public status?: number
-  public code?: string
+  /**
+   * Extract age group from natural language query
+   */
+  private extractAgeGroupFromQuery(query: string): string | null {
+    const ageGroups = ['U6', 'U8', 'U10', 'U12', 'U14', 'U16', 'U18', 'bantam', 'midget', 'peewee', 'atom', 'novice']
+    const lowercaseQuery = query.toLowerCase()
 
-  constructor(message: string, status?: number, code?: string) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-    this.code = code
+    for (const ageGroup of ageGroups) {
+      if (lowercaseQuery.includes(ageGroup.toLowerCase())) {
+        return ageGroup
+      }
+    }
+
+    // Check for numeric age patterns
+    const ageMatch = query.match(/(\d{1,2}).?(year|yr|u)/i)
+    if (ageMatch) {
+      const age = parseInt(ageMatch[1])
+      if (age <= 8) return 'U8'
+      if (age <= 10) return 'U10'
+      if (age <= 12) return 'U12'
+      if (age <= 14) return 'U14'
+      if (age <= 16) return 'U16'
+      if (age <= 18) return 'U18'
+    }
+
+    return null
+  }
+
+  /**
+   * Extract duration from natural language query
+   */
+  private extractDurationFromQuery(query: string): number | null {
+    const durationMatch = query.match(/(\d+).?(minute|min|hour|hr)/i)
+    if (durationMatch) {
+      const time = parseInt(durationMatch[1])
+      return durationMatch[2].startsWith('h') ? time * 60 : time
+    }
+    return null
   }
 }
 
-// Create singleton instance
+// Create and export singleton instance
 export const apiClient = new ApiClient()
 
-// Export individual methods for convenience
-export const {
-  searchHockeyKnowledge,
-  getCoachingRecommendations,
-  createPracticePlan,
-  analyzePlayerDevelopment,
-  processNaturalLanguageQuery,
-  checkHealth
-} = apiClient
+// Export the class for testing
+export { ApiClient }

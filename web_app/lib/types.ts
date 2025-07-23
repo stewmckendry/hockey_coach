@@ -27,7 +27,7 @@ export interface ChatState {
 
 export interface MCPRequest {
   tool: string
-  arguments: Record<string, any>
+  parameters: Record<string, any>
 }
 
 export interface MCPResponse {

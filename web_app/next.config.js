@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   // Environment variables for MCP server connection
   env: {
     MCP_SERVER_URL: process.env.MCP_SERVER_URL || 'http://localhost:8000',

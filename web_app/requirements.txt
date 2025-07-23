@@ -1,0 +1,5 @@
+# Hockey Coach MCP Bridge Dependencies
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+fastmcp>=2.10.0
+pydantic>=2.11.7

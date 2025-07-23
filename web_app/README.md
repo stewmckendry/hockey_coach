@@ -23,6 +23,7 @@ A modern, responsive web application built with Next.js that provides an intelli
 
 ### Prerequisites
 - Node.js 18+ 
+- Python 3.10+ (for MCP bridge service)
 - npm or yarn
 - Hockey MCP Server running (see main project README)
 
@@ -33,21 +34,36 @@ A modern, responsive web application built with Next.js that provides an intelli
    cd web_app
    ```
 
-2. **Install dependencies**
+2. **Install Node.js dependencies**
    ```bash
    npm install
    # or
    yarn install
    ```
 
-3. **Start development server**
+3. **Install Python dependencies for MCP bridge**
+   ```bash
+   pip install -r requirements.txt
+   # or use a virtual environment
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+4. **Start the MCP bridge service**
+   ```bash
+   python mcp_bridge.py
+   ```
+   The bridge will run on http://localhost:3001
+
+5. **Start the web development server**
    ```bash
    npm run dev
    # or
    yarn dev
    ```
 
-4. **Open in browser**
+6. **Open in browser**
    ```
    http://localhost:3000
    ```
@@ -58,6 +74,8 @@ A modern, responsive web application built with Next.js that provides an intelli
 npm run build
 npm start
 ```
+
+Note: In production, you'll want to run the MCP bridge as a proper service (systemd, Docker, etc.)
 
 ## 🎨 Design System
 
