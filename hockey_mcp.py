@@ -209,7 +209,6 @@ def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
                 "equipment": meta.get("equipment", ""),
                 "complexity": meta.get("complexity", ""),
                 "source": meta.get("source", ""),
-                "age_recommendation": meta.get("age_recommendation", ""),
                 "source_page": meta.get("source_page", ""),
                 "type": "off_ice_workout",
             }
