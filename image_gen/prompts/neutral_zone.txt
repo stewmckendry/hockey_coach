@@ -1,7 +1,0 @@
-Replace the defense zone with the neutral zone including:
-- centre ice circle,
-- red line at centre ice,
-- 2 blue lines on either side of the red line,
-- 4 red faceoff dots between the red line and the blue lines
-- change words 'Defensive Zone' to 'Neutral Zone' at bottom of image
-- keep the same style as current image.

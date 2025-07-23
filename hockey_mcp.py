@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-"""MCP server exposing off-ice training search tools."""
+"""Enhanced MCP server for comprehensive hockey coaching knowledge base."""
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 from typing_extensions import TypedDict
 from pydantic import BaseModel
 import json
 import logging
 from openai import OpenAI
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,150 +18,403 @@ from mcp.server.fastmcp import FastMCP
 import sys
 from pathlib import Path
 
-
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from utils.chroma_utils import get_chroma_collection
 
-mcp = FastMCP("Hockey MCP Server")
+mcp = FastMCP("Enhanced Hockey MCP Server")
 collection = get_chroma_collection()
 client = OpenAI()
 
-
-class OffIceResult(TypedDict):
+# Enhanced result types with consistent structure
+class HockeyKnowledgeResult(TypedDict):
+    """Base structure for all hockey knowledge results."""
+    id: str
     title: str
-    category: str
+    content_type: str  # drill, video, skill, tactic, rule, dryland
     summary: str
-    instructions: str
-    teaching_points: str
-    equipment: str
     complexity: str
     source: str
-    age_recommendation: str
-    source_page: str
-    type: str  # fixed as "off_ice_workout"
+    age_recommendation: Optional[str]
+    equipment: Optional[str]
+    teaching_points: Optional[str]
+    skills_practiced: Optional[str]
+    positions: Optional[str]
+    url: Optional[str]
+    metadata: Dict[str, Any]
 
-
-class CategorySummary(BaseModel):
-    category: str
-    summary: str
-
-
-class VideoTitle(TypedDict):
-    video_id: str
+class CoachingPlan(BaseModel):
+    """Structure for generated coaching plans."""
     title: str
-    video_url: str
-    document: str
-    metadata: dict
-
-
-class VideoClip(TypedDict):
-    video_id: str
-    title: str
-    start_time: str
-    end_time: str
-    summary: str | None
-    transcript: str | None
-    complexity: str | None
-
-
-class DrillResult(TypedDict):
-    title: str
-    summary: str
-    instructions: str
-    teaching_points: str
-    equipment: str
-    skills: str
-    sub_skills: str
-    positions: str
-    complexity: str
-    source: str
-    url: str
-    type: str  # fixed as "on_ice_drill"
-
-
-class VideoClipResult(TypedDict):
-    title: str
-    summary: str
-    hockey_skills: str
-    teaching_points: str
-    play_or_skill_focus: str
-    complexity: str
-    clip_type: str
-    intended_audience: str
-    video_url: str
-    duration: str
-    type: str  # fixed as "general_video"
-
-
-class LTADSkillResult(TypedDict):
-    skill_name: str
-    skill_category: str
     age_group: str
-    summary: str
-    teaching_points: str
-    equipment: str
-    positions: str
-    complexity: str
-    source: str
-    type: str  # fixed as "ltad_skill"
+    duration_minutes: int
+    focus_areas: List[str]
+    warmup: List[Dict[str, str]]
+    main_activities: List[Dict[str, str]]
+    cooldown: List[Dict[str, str]]
+    equipment_needed: List[str]
+    coaching_notes: str
 
+class PlayerDevelopmentPlan(BaseModel):
+    """Structure for individual player development."""
+    player_name: str
+    position: str
+    current_level: str
+    target_skills: List[str]
+    recommended_drills: List[str]
+    dryland_exercises: List[str]
+    timeline_weeks: int
+    progress_markers: List[str]
 
-class NHLInsight(TypedDict):
-    speaker: str
-    quote: str
-    question: str
-    tags: str
-    takeaways_for_coach: str
-    takeaways_for_player: str
-    source_url: str
-    published_date: str
-    type: str  # fixed as "nhl_insight"
+# Enhanced search function that searches across all content types
+@mcp.tool("search_hockey_knowledge")
+def search_hockey_knowledge(
+    query: str, 
+    content_types: Optional[List[str]] = None,
+    complexity_levels: Optional[List[str]] = None,
+    age_groups: Optional[List[str]] = None,
+    n_results: int = 10
+) -> List[HockeyKnowledgeResult]:
+    """
+    Universal search across all hockey knowledge types with intelligent filtering.
+    
+    Args:
+        query: Search query
+        content_types: Filter by types (drill, video, skill, tactic, rule, dryland)
+        complexity_levels: Filter by complexity (beginner, intermediate, advanced)
+        age_groups: Filter by age recommendations
+        n_results: Number of results to return
+    """
+    logger.info(f"Universal search: query='{query}', types={content_types}, complexity={complexity_levels}")
+    
+    # Build dynamic where clause
+    where_conditions = {}
+    if content_types:
+        # Map content types to actual prefixes in your data
+        prefix_mapping = {
+            'drill': 'drill-',
+            'video': 'video-',
+            'skill': 'ltad-',
+            'tactic': 'tactic_',
+            'rule': 'conduct-',
+            'dryland': 'office-'
+        }
+        
+    # Search with expanded results to allow for filtering
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results * 3,  # Get more to filter from
+        where=where_conditions if where_conditions else None
+    )
+    
+    docs = results.get("documents", [[]])[0]
+    metas = results.get("metadatas", [[]])[0]
+    ids = results.get("ids", [[]])[0]
+    
+    unified_results: List[HockeyKnowledgeResult] = []
+    
+    for doc, meta, doc_id in zip(docs, metas, ids):
+        # Determine content type from ID prefix
+        content_type = _determine_content_type(doc_id)
+        
+        # Skip if content type filter doesn't match
+        if content_types and content_type not in content_types:
+            continue
+            
+        # Skip if complexity filter doesn't match
+        if complexity_levels and meta.get('complexity', '').lower() not in [c.lower() for c in complexity_levels]:
+            continue
+            
+        # Create unified result structure
+        unified_result = _create_unified_result(doc, meta, doc_id, content_type)
+        unified_results.append(unified_result)
+        
+        if len(unified_results) >= n_results:
+            break
+    
+    logger.info(f"Returning {len(unified_results)} unified results")
+    return unified_results
 
+@mcp.tool("get_coaching_recommendations")
+def get_coaching_recommendations(
+    team_age: str,
+    skill_focus: str,
+    available_time: int,
+    team_size: int,
+    equipment_available: List[str]
+) -> Dict[str, Any]:
+    """
+    Get personalized coaching recommendations based on team parameters.
+    
+    Args:
+        team_age: Age group (e.g., "U8", "U12", "U16")
+        skill_focus: Primary skill to work on (e.g., "skating", "shooting", "passing")
+        available_time: Practice time in minutes
+        team_size: Number of players
+        equipment_available: List of available equipment
+    """
+    logger.info(f"Getting coaching recommendations for {team_age} team, focus: {skill_focus}")
+    
+    # Search for relevant content
+    skill_results = search_hockey_knowledge(
+        query=f"{skill_focus} {team_age}",
+        content_types=["drill", "skill"],
+        n_results=15
+    )
+    
+    # Search for dryland exercises
+    dryland_results = search_hockey_knowledge(
+        query=f"{skill_focus} off ice training",
+        content_types=["dryland"],
+        n_results=5
+    )
+    
+    # Use OpenAI to generate structured recommendations
+    recommendation_prompt = f"""
+    Based on the following hockey training content, create coaching recommendations for:
+    - Team Age: {team_age}
+    - Skill Focus: {skill_focus}
+    - Practice Time: {available_time} minutes
+    - Team Size: {team_size} players
+    - Equipment: {equipment_available}
+    
+    Available drills and skills:
+    {json.dumps([r for r in skill_results[:10]], indent=2)}
+    
+    Available dryland exercises:
+    {json.dumps([r for r in dryland_results], indent=2)}
+    
+    Please provide:
+    1. 3-5 recommended drills with time allocations
+    2. Teaching points for coaches
+    3. Common mistakes to watch for
+    4. Progression suggestions
+    5. Equipment setup tips
+    
+    Format as structured JSON.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an expert hockey coach. Provide practical, actionable coaching advice."},
+                {"role": "user", "content": recommendation_prompt}
+            ],
+            temperature=0.7
+        )
+        
+        recommendations = json.loads(response.choices[0].message.content)
+        recommendations['source_content'] = {
+            'drills_analyzed': len(skill_results),
+            'dryland_options': len(dryland_results)
+        }
+        
+        return recommendations
+        
+    except Exception as e:
+        logger.error(f"Error generating recommendations: {e}")
+        return {
+            "error": "Could not generate recommendations",
+            "available_drills": skill_results[:5],
+            "available_dryland": dryland_results[:3]
+        }
 
-class ConductPolicy(TypedDict):
-    title: str
-    topic: str
-    role: str
-    document_type: str
-    content: str
-    source: str
-    type: str  # fixed as "conduct_policy"
+@mcp.tool("create_practice_plan")
+def create_practice_plan(
+    age_group: str,
+    duration_minutes: int,
+    focus_skills: List[str],
+    number_of_players: int
+) -> CoachingPlan:
+    """
+    Generate a complete practice plan with warm-up, main activities, and cool-down.
+    """
+    logger.info(f"Creating practice plan for {age_group}, {duration_minutes} min, skills: {focus_skills}")
+    
+    # Search for relevant content for each focus skill
+    all_activities = []
+    for skill in focus_skills:
+        activities = search_hockey_knowledge(
+            query=f"{skill} {age_group} drill",
+            content_types=["drill", "skill"],
+            n_results=5
+        )
+        all_activities.extend(activities)
+    
+    # Use AI to structure the practice plan
+    plan_prompt = f"""
+    Create a detailed {duration_minutes}-minute hockey practice plan for {age_group} with {number_of_players} players.
+    Focus skills: {focus_skills}
+    
+    Available activities:
+    {json.dumps(all_activities[:15], indent=2)}
+    
+    Structure the practice with:
+    - Warm-up (10-15% of time)
+    - Main activities (70-80% of time) 
+    - Cool-down (10-15% of time)
+    
+    Include specific time allocations, setup instructions, and coaching points.
+    Return as JSON matching the CoachingPlan structure.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a professional hockey coach creating detailed practice plans."},
+                {"role": "user", "content": plan_prompt}
+            ],
+            temperature=0.6
+        )
+        
+        plan_data = json.loads(response.choices[0].message.content)
+        return CoachingPlan(**plan_data)
+        
+    except Exception as e:
+        logger.error(f"Error creating practice plan: {e}")
+        # Return a basic fallback plan
+        return CoachingPlan(
+            title=f"{age_group} Practice - {', '.join(focus_skills)}",
+            age_group=age_group,
+            duration_minutes=duration_minutes,
+            focus_areas=focus_skills,
+            warmup=[{"activity": "Basic skating", "duration": "10 min", "description": "Warm up with basic skating drills"}],
+            main_activities=[{"activity": activity["title"], "duration": "15 min", "description": activity["summary"]} for activity in all_activities[:3]],
+            cooldown=[{"activity": "Light skating", "duration": "5 min", "description": "Cool down with easy skating"}],
+            equipment_needed=list(set([activity.get("equipment", "") for activity in all_activities if activity.get("equipment")])),
+            coaching_notes="Adapt activities based on player skill level and engagement."
+        )
 
+@mcp.tool("analyze_player_development")
+def analyze_player_development(
+    player_position: str,
+    current_skills: List[str],
+    target_skills: List[str],
+    timeline_weeks: int = 8
+) -> PlayerDevelopmentPlan:
+    """
+    Create an individual player development plan with specific drills and progression.
+    """
+    logger.info(f"Creating development plan for {player_position}: {current_skills} -> {target_skills}")
+    
+    # Search for position-specific and skill-specific content
+    development_content = []
+    for skill in target_skills:
+        content = search_hockey_knowledge(
+            query=f"{skill} {player_position} development training",
+            content_types=["drill", "skill", "dryland"],
+            n_results=5
+        )
+        development_content.extend(content)
+    
+    # Generate development plan using AI
+    dev_prompt = f"""
+    Create a {timeline_weeks}-week individual development plan for a {player_position} player.
+    Current skills: {current_skills}
+    Target skills: {target_skills}
+    
+    Available training content:
+    {json.dumps(development_content[:20], indent=2)}
+    
+    Include:
+    - Progressive skill development over {timeline_weeks} weeks
+    - Specific on-ice drills
+    - Off-ice/dryland exercises
+    - Measurable progress markers
+    - Position-specific focuses
+    
+    Return as JSON matching PlayerDevelopmentPlan structure.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a hockey skills development coach creating personalized training plans."},
+                {"role": "user", "content": dev_prompt}
+            ],
+            temperature=0.6
+        )
+        
+        plan_data = json.loads(response.choices[0].message.content)
+        return PlayerDevelopmentPlan(**plan_data)
+        
+    except Exception as e:
+        logger.error(f"Error creating development plan: {e}")
+        # Return basic fallback
+        return PlayerDevelopmentPlan(
+            player_name="Player",
+            position=player_position,
+            current_level="Developing",
+            target_skills=target_skills,
+            recommended_drills=[content["title"] for content in development_content[:5] if content.get("content_type") == "drill"],
+            dryland_exercises=[content["title"] for content in development_content[:3] if content.get("content_type") == "dryland"],
+            timeline_weeks=timeline_weeks,
+            progress_markers=[f"Improve {skill} technique" for skill in target_skills]
+        )
 
-class TacticResult(TypedDict):
-    tactic_name: str
-    summary: str
-    instructions: str
-    skills: str
-    centre_assignments: str
-    winger_assignments: str
-    defense_assignments: str
-    goalie_assignments: str
-    teaching_points: str
-    source: str
-    type: str  # fixed as "tactic"
+# Keep your existing specific tools but enhance them
+@mcp.tool("find_drills_by_situation")
+def find_drills_by_situation(
+    game_situation: str,
+    age_group: str = None,
+    complexity: str = None,
+    n_results: int = 5
+) -> List[HockeyKnowledgeResult]:
+    """
+    Find drills for specific game situations (power play, penalty kill, breakout, etc.)
+    """
+    query = f"{game_situation} drill"
+    if age_group:
+        query += f" {age_group}"
+    
+    return search_hockey_knowledge(
+        query=query,
+        content_types=["drill", "tactic"],
+        complexity_levels=[complexity] if complexity else None,
+        n_results=n_results
+    )
 
+# Utility functions
+def _determine_content_type(doc_id: str) -> str:
+    """Determine content type from document ID prefix."""
+    prefix = doc_id.split("-")[0] if "-" in doc_id else doc_id.split("_")[0]
+    
+    type_mapping = {
+        "drill": "drill",
+        "video": "video", 
+        "ltad": "skill",
+        "tactic": "tactic",
+        "conduct": "rule",
+        "office": "dryland",
+        "insight": "interview",
+        "dryland": "dryland"
+    }
+    
+    return type_mapping.get(prefix, "unknown")
 
-@mcp.resource("schema://off_ice", title="Off-Ice Entry Schema")
-def get_office_schema() -> str:
-    return """{
-  \"title\": \"string\",
-  \"category\": \"string\",
-  \"focus_area\": \"string\",
-  \"teaching_complexity\": \"string\",
-  \"progression_stage\": \"string\",
-  \"description\": \"string\",
-  \"equipment_needed\": \"string | null\",
-  \"source_pages\": \"string\"
-}"""
-
-
-def _parse_description(doc: str) -> str:
-    for line in doc.splitlines():
-        if line.lower().startswith("description:"):
-            return line.split(":", 1)[1].strip()
-    return ""
-
+def _create_unified_result(doc: str, meta: Dict, doc_id: str, content_type: str) -> HockeyKnowledgeResult:
+    """Create a unified result structure from any content type."""
+    
+    # Extract common fields with fallbacks
+    base_result = {
+        "id": doc_id,
+        "title": meta.get("title", meta.get("skill_name", meta.get("tactic_name", "Untitled"))),
+        "content_type": content_type,
+        "summary": meta.get("summary", _parse_field(doc, "description") or doc[:200] + "..."),
+        "complexity": meta.get("complexity", "intermediate"),
+        "source": meta.get("source", "Unknown"),
+        "age_recommendation": meta.get("age_group", meta.get("age_recommendation")),
+        "equipment": meta.get("equipment", meta.get("equipment_needed")),
+        "teaching_points": meta.get("teaching_points", _parse_field(doc, "teaching_points")),
+        "skills_practiced": meta.get("skills", meta.get("hockey_skills", meta.get("skill_category"))),
+        "positions": meta.get("positions", "All"),
+        "url": meta.get("url", meta.get("video_url", meta.get("source_url"))),
+        "metadata": meta
+    }
+    
+    return base_result
 
 def _parse_field(doc: str, label: str) -> str:
     """Extract a value for ``label`` from an indexed document."""
@@ -170,382 +424,53 @@ def _parse_field(doc: str, label: str) -> str:
             return line.split(":", 1)[1].strip()
     return ""
 
+# Resources for better integration
+@mcp.resource("schema://unified_hockey_result")
+def get_unified_schema() -> str:
+    """Schema for unified hockey knowledge results."""
+    return json.dumps({
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "title": {"type": "string"},
+            "content_type": {"type": "string", "enum": ["drill", "video", "skill", "tactic", "rule", "dryland"]},
+            "summary": {"type": "string"},
+            "complexity": {"type": "string", "enum": ["beginner", "intermediate", "advanced"]},
+            "source": {"type": "string"},
+            "age_recommendation": {"type": "string"},
+            "equipment": {"type": "string"},
+            "teaching_points": {"type": "string"},
+            "skills_practiced": {"type": "string"},
+            "positions": {"type": "string"},
+            "url": {"type": "string"},
+            "metadata": {"type": "object"}
+        }
+    })
 
-def _get_prefix(doc_id: str) -> str:
-    """Return the prefix of a Chroma document ID."""
-    return str(doc_id).split("-", 1)[0] if doc_id is not None else ""
+@mcp.resource("coaching_tips://daily")
+def get_daily_coaching_tip() -> str:
+    """Provide a daily coaching tip based on current content."""
+    # This could rotate through different tips or be based on seasonal focus
+    tips = [
+        "Focus on one skill at a time - players learn better with clear, specific objectives.",
+        "Use positive reinforcement - catch players doing things right, not just wrong.",
+        "Keep drills moving - idle time leads to lost attention and bad habits.",
+        "Demonstrate skills yourself when possible - players learn visually.",
+        "End practice on a positive note - leave players excited for next time."
+    ]
+    
+    import random
+    return random.choice(tips)
 
-
-@mcp.tool("find_dryland_drills")
-def find_dryland_drills(query: str, n_results: int = 5) -> List[OffIceResult]:
-    logger.info(
-        "find_dryland_drills called with query=%s n_results=%s", query, n_results
-    )
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results * 4,
-        where={"document_type": "off_ice_workout"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_dryland_drills retrieved %s records from chroma", len(docs))
-
-    entries: List[OffIceResult] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("office-"):
-            logger.info("Skipping non-office id: %s", doc_id)
-            continue
-        logger.info("Keeping office id: %s", doc_id)
-        entries.append(
-            {
-                "title": meta.get("title", ""),
-                "category": meta.get("category", ""),
-                "summary": meta.get("summary", ""),
-                "instructions": meta.get("instructions", ""),
-                "teaching_points": meta.get("teaching_points", ""),
-                "equipment": meta.get("equipment", ""),
-                "complexity": meta.get("complexity", ""),
-                "source": meta.get("source", ""),
-                "source_page": meta.get("source_page", ""),
-                "type": "off_ice_workout",
-            }
-        )
-        if len(entries) >= n_results:
-            break
-    if len(entries) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_dryland_drills",
-            len(entries),
-            n_results,
-        )
-    logger.info("find_dryland_drills response: %s", entries)
-    return entries
-
-
-@mcp.tool("find_dryland_videos")
-def find_dryland_videos(query: str, n_results: int = 5) -> List[VideoTitle]:
-    """Semantic search over dryland video titles."""
-    logger.info(
-        "find_dryland_videos called with query=%s n_results=%s", query, n_results
-    )
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results * 4,
-        where={"type": "off_ice_video"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_dryland_videos retrieved %s records from chroma", len(docs))
-    video_results: List[dict] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("dryland-"):
-            logger.info("Skipping non-dryland id: %s", doc_id)
-            continue
-        logger.info("Keeping dryland id: %s", doc_id)
-        video_results.append(
-            {
-                "video_id": meta.get("video_id", ""),
-                "title": meta.get("title", ""),
-                "video_url": meta.get("video_url", ""),
-                "document": doc,
-                "metadata": meta,
-            }
-        )
-        if len(video_results) >= n_results:
-            break
-    if len(video_results) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_dryland_videos",
-            len(video_results),
-            n_results,
-        )
-    logger.info("find_dryland_videos response: %s", video_results)
-    return video_results
-
-
-@mcp.tool("find_hockey_drills")
-def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
-    logger.info(
-        "find_hockey_drills called with query=%s n_results=%s", query, n_results
-    )
-    results = collection.query(query_texts=[query], n_results=n_results * 4)
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_hockey_drills retrieved %s records from chroma", len(docs))
-
-    drills: List[DrillResult] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("drill-"):
-            logger.info("Skipping non-drill id: %s", doc_id)
-            continue
-        logger. info("Keeping drill id: %s", doc_id)
-        drills.append(
-            {
-                "title": meta.get("title", ""),
-                "summary": meta.get("summary", ""),
-                "instructions": meta.get("instructions", ""),
-                "teaching_points": meta.get("teaching_points", ""),
-                "equipment": meta.get("equipment", ""),
-                "skills": meta.get("skills", ""),
-                "sub_skills": meta.get("sub_skills", ""),
-                "positions": meta.get("positions", ""),
-                "complexity": meta.get("complexity", ""),
-                "source": meta.get("source", ""),
-                "url": meta.get("url", ""),
-                "type": "on_ice_drill",
-            }
-        )
-        if len(drills) >= n_results:
-            break
-    if len(drills) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_hockey_drills",
-            len(drills),
-            n_results,
-        )
-    logger.info("Final drill result titles: %s", [d["title"] for d in drills])
-    logger.info("find_hockey_drills response: %s", drills)
-    return drills
-
-
-@mcp.tool("find_hockey_videos")
-def find_hockey_videos(query: str, n_results: int = 5) -> List[VideoClipResult]:
-    logger.info(
-        "find_hockey_videos called with query=%s n_results=%s", query, n_results
-    )
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results * 4,
-        where={"clip_type": {"$ne": "off_ice_video"}},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_hockey_videos retrieved %s records from chroma", len(docs))
-
-    clips: List[VideoClipResult] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("video-"):
-            logger.info("Skipping non-video id: %s", doc_id)
-            continue
-        logger.info("Keeping video id: %s", doc_id)
-        clips.append(
-            {
-                "title": meta.get("title", ""),
-                "summary": meta.get("summary", ""),
-                "hockey_skills": meta.get("hockey_skills", ""),
-                "teaching_points": meta.get("teaching_points", ""),
-                "play_or_skill_focus": meta.get("play_or_skill_focus", ""),
-                "complexity": meta.get("complexity", ""),
-                "clip_type": meta.get("clip_type", ""),
-                "intended_audience": meta.get("intended_audience", ""),
-                "video_url": meta.get("video_url", ""),
-                "duration": meta.get("duration", ""),
-                "type": "general_video",
-            }
-        )
-        if len(clips) >= n_results:
-            break
-    if len(clips) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_hockey_videos",
-            len(clips),
-            n_results,
-        )
-    logger.info("find_hockey_videos response: %s", clips)
-    return clips
-
-
-@mcp.tool("find_hockey_skills")
-def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
-    logger.info(
-        "find_hockey_skills called with query=%s n_results=%s", query, n_results
-    )
-    results = collection.query(query_texts=[query], n_results=n_results * 4)
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_hockey_skills retrieved %s records from chroma", len(docs))
-
-    skills: List[LTADSkillResult] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("ltad-"):
-            logger.info("Skipping non-ltad id: %s", doc_id)
-            continue
-        logger.info("Keeping ltad id: %s", doc_id)
-        skills.append(
-            {
-                "skill_name": meta.get("skill_name", ""),
-                "skill_category": meta.get("skill_category", ""),
-                "age_group": meta.get("age_group", ""),
-                "summary": meta.get("summary", ""),
-                "teaching_points": meta.get("teaching_points", ""),
-                "equipment": meta.get("equipment", ""),
-                "positions": meta.get("positions", ""),
-                "complexity": meta.get("complexity", ""),
-                "source": meta.get("source", ""),
-                "type": "ltad_skill",
-            }
-        )
-        if len(skills) >= n_results:
-            break
-    if len(skills) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_hockey_skills",
-            len(skills),
-            n_results,
-        )
-    logger.info("find_hockey_skills response: %s", skills)
-    return skills
-
-
-@mcp.tool("find_nhl_interviews")
-def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
-    logger.info(
-        "find_nhl_interviews called with query=%s n_results=%s", query, n_results
-    )
-    results = collection.query(query_texts=[query], n_results=n_results * 4)
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_nhl_interviews retrieved %s records from chroma", len(docs))
-
-    insights: List[NHLInsight] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("insight-"):
-            logger.info("Skipping non-insight id: %s", doc_id)
-            continue
-        logger.info("Keeping insight id: %s", doc_id)
-        insights.append(
-            {
-                "speaker": meta.get("speaker", ""),
-                "quote": _parse_field(doc, "Quote"),
-                "question": meta.get("question", ""),
-                "tags": meta.get("tags", ""),
-                "takeaways_for_coach": _parse_field(doc, "Takeaways (Coach)"),
-                "takeaways_for_player": _parse_field(doc, "Takeaways (Player)"),
-                "source_url": meta.get("source_url", ""),
-                "published_date": meta.get("published_date", ""),
-                "type": "nhl_insight",
-            }
-        )
-        if len(insights) >= n_results:
-            break
-    if len(insights) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_nhl_interviews",
-            len(insights),
-            n_results,
-        )
-    logger.info("find_nhl_interviews response: %s", insights)
-    return insights
-
-
-@mcp.tool("find_hockey_tactics")
-def find_hockey_tactics(query: str, n_results: int = 5) -> List[TacticResult]:
-    logger.info(
-        "find_hockey_tactics called with query=%s n_results=%s", query, n_results
-    )
-    results = collection.query(query_texts=[query], n_results=n_results * 4)
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_hockey_tactics retrieved %s records from chroma", len(docs))
-
-    tactics: List[TacticResult] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("tactic_"):
-            logger.info("Skipping non-tactic id: %s", doc_id)
-            continue
-        logger.info("Keeping tactic id: %s", doc_id)
-        tactics.append(
-            {
-                "tactic_name": meta.get("tactic_name", ""),
-                "summary": meta.get("summary", ""),
-                "instructions": _parse_field(doc, "Instructions"),
-                "skills": meta.get("skills", ""),
-                "centre_assignments": meta.get("centre_assignments", ""),
-                "winger_assignments": meta.get("winger_assignments", ""),
-                "defense_assignments": meta.get("defense_assignments", ""),
-                "goalie_assignments": meta.get("goalie_assignments", ""),
-                "teaching_points": meta.get("teaching_points", ""),
-                "source": meta.get("source", ""),
-                "type": "tactic",
-            }
-        )
-        if len(tactics) >= n_results:
-            break
-    if len(tactics) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_hockey_tactics",
-            len(tactics),
-            n_results,
-        )
-    logger.info("find_hockey_tactics response: %s", tactics)
-    return tactics
-
-@mcp.tool("find_hockey_rules")
-def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
-    logger.info("find_hockey_rules called with query=%s n_results=%s", query, n_results)
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results * 4,
-        where={"type": "conduct_policy"},
-    )
-    docs = results.get("documents", [[]])[0]
-    metas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    logger.info("find_hockey_rules retrieved %s records from chroma", len(docs))
-
-    policies: List[ConductPolicy] = []
-    for doc, meta, doc_id in zip(docs, metas, ids):
-        prefix = _get_prefix(doc_id)
-        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
-        if not str(doc_id).startswith("conduct-"):
-            logger.info("Skipping non-conduct id: %s", doc_id)
-            continue
-        logger.info("Keeping conduct id: %s", doc_id)
-        policies.append(
-            {
-                "title": meta.get("title", ""),
-                "topic": meta.get("topic", ""),
-                "role": meta.get("role", ""),
-                "document_type": meta.get("document_type", ""),
-                "content": doc,
-                "source": meta.get("source", ""),
-                "type": "conduct_policy",
-            }
-        )
-        if len(policies) >= n_results:
-            break
-    if len(policies) < n_results:
-        logger.warning(
-            "Returned only %s/%s filtered results for tool find_hockey_rules",
-            len(policies),
-            n_results,
-        )
-    logger.info("find_hockey_rules response: %s", policies)
-    return policies
-
+# Enhanced error handling and logging
+def _safe_search(query: str, **kwargs) -> List[Dict]:
+    """Wrapper for safe searching with error handling."""
+    try:
+        return collection.query(query_texts=[query], **kwargs)
+    except Exception as e:
+        logger.error(f"Search error for query '{query}': {e}")
+        return {"documents": [[]], "metadatas": [[]], "ids": [[]]}
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(mcp.sse_app, host="0.0.0.0", port=8000)

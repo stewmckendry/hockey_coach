@@ -97,7 +97,7 @@ async def generate_image(prompt_name, prompt_text, input_image_path, output_dir,
         else:
             elapsed_time = time.time() - start_time
             print(f"❌ No image generated for {prompt_name} (⏱️ {elapsed_time:.1f}s)")
-            print(f"Response: {response.output.content}")
+            print(f"Response outputs: {[output.type for output in response.output]}")
             return {"prompt_name": prompt_name, "status": "failed", "error": "No image generated", "duration": elapsed_time}
             
     except Exception as e:
