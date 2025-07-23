@@ -63,14 +63,15 @@ class VideoClip(TypedDict):
 class DrillResult(TypedDict):
     title: str
     summary: str
+    instructions: str
     teaching_points: str
+    equipment: str
     skills: str
-    tags: str
-    position: str
-    starting_zone: str
-    ending_zone: str
+    sub_skills: str
+    positions: str
     complexity: str
     source: str
+    url: str
     type: str  # fixed as "on_ice_drill"
 
 
@@ -91,13 +92,13 @@ class VideoClipResult(TypedDict):
 class LTADSkillResult(TypedDict):
     skill_name: str
     skill_category: str
-    teaching_notes: str
-    age_groups: str
+    age_group: str
+    summary: str
+    teaching_points: str
+    equipment: str
+    positions: str
     complexity: str
-    variant: str
-    position: str
-    progression_stage: str
-    season_month: str
+    source: str
     type: str  # fixed as "ltad_skill"
 
 
@@ -121,6 +122,20 @@ class ConductPolicy(TypedDict):
     content: str
     source: str
     type: str  # fixed as "conduct_policy"
+
+
+class TacticResult(TypedDict):
+    tactic_name: str
+    summary: str
+    instructions: str
+    skills: str
+    centre_assignments: str
+    winger_assignments: str
+    defense_assignments: str
+    goalie_assignments: str
+    teaching_points: str
+    source: str
+    type: str  # fixed as "tactic"
 
 
 @mcp.resource("schema://off_ice", title="Off-Ice Entry Schema")
@@ -272,14 +287,15 @@ def find_hockey_drills(query: str, n_results: int = 5) -> List[DrillResult]:
             {
                 "title": meta.get("title", ""),
                 "summary": meta.get("summary", ""),
+                "instructions": meta.get("instructions", ""),
                 "teaching_points": meta.get("teaching_points", ""),
-                "skills": meta.get("hockey_skills", ""),
-                "tags": meta.get("tags", ""),
-                "position": meta.get("position", ""),
-                "starting_zone": meta.get("starting_zone", ""),
-                "ending_zone": meta.get("ending_zone", ""),
+                "equipment": meta.get("equipment", ""),
+                "skills": meta.get("skills", ""),
+                "sub_skills": meta.get("sub_skills", ""),
+                "positions": meta.get("positions", ""),
                 "complexity": meta.get("complexity", ""),
                 "source": meta.get("source", ""),
+                "url": meta.get("url", ""),
                 "type": "on_ice_drill",
             }
         )
@@ -369,13 +385,13 @@ def find_hockey_skills(query: str, n_results: int = 5) -> List[LTADSkillResult]:
             {
                 "skill_name": meta.get("skill_name", ""),
                 "skill_category": meta.get("skill_category", ""),
-                "teaching_notes": meta.get("teaching_notes", ""),
-                "age_groups": meta.get("age_groups", ""),
-                "complexity": meta.get("teaching_complexity", ""),
-                "variant": meta.get("variant", ""),
-                "position": meta.get("position", ""),
-                "progression_stage": meta.get("progression_stage", ""),
-                "season_month": meta.get("season_month", ""),
+                "age_group": meta.get("age_group", ""),
+                "summary": meta.get("summary", ""),
+                "teaching_points": meta.get("teaching_points", ""),
+                "equipment": meta.get("equipment", ""),
+                "positions": meta.get("positions", ""),
+                "complexity": meta.get("complexity", ""),
+                "source": meta.get("source", ""),
                 "type": "ltad_skill",
             }
         )
@@ -434,6 +450,51 @@ def find_nhl_interviews(query: str, n_results: int = 5) -> List[NHLInsight]:
     logger.info("find_nhl_interviews response: %s", insights)
     return insights
 
+
+@mcp.tool("find_hockey_tactics")
+def find_hockey_tactics(query: str, n_results: int = 5) -> List[TacticResult]:
+    logger.info(
+        "find_hockey_tactics called with query=%s n_results=%s", query, n_results
+    )
+    results = collection.query(query_texts=[query], n_results=n_results * 4)
+    docs = results.get("documents", [[]])[0]
+    metas = results.get("metadatas", [[]])[0]
+    ids = results.get("ids", [[]])[0]
+    logger.info("find_hockey_tactics retrieved %s records from chroma", len(docs))
+
+    tactics: List[TacticResult] = []
+    for doc, meta, doc_id in zip(docs, metas, ids):
+        prefix = _get_prefix(doc_id)
+        logger.info("Processing record id=%s with prefix=%s", doc_id, prefix)
+        if not str(doc_id).startswith("tactic_"):
+            logger.info("Skipping non-tactic id: %s", doc_id)
+            continue
+        logger.info("Keeping tactic id: %s", doc_id)
+        tactics.append(
+            {
+                "tactic_name": meta.get("tactic_name", ""),
+                "summary": meta.get("summary", ""),
+                "instructions": _parse_field(doc, "Instructions"),
+                "skills": meta.get("skills", ""),
+                "centre_assignments": meta.get("centre_assignments", ""),
+                "winger_assignments": meta.get("winger_assignments", ""),
+                "defense_assignments": meta.get("defense_assignments", ""),
+                "goalie_assignments": meta.get("goalie_assignments", ""),
+                "teaching_points": meta.get("teaching_points", ""),
+                "source": meta.get("source", ""),
+                "type": "tactic",
+            }
+        )
+        if len(tactics) >= n_results:
+            break
+    if len(tactics) < n_results:
+        logger.warning(
+            "Returned only %s/%s filtered results for tool find_hockey_tactics",
+            len(tactics),
+            n_results,
+        )
+    logger.info("find_hockey_tactics response: %s", tactics)
+    return tactics
 
 @mcp.tool("find_hockey_rules")
 def find_hockey_rules(query: str, n_results: int = 5) -> List[ConductPolicy]:
