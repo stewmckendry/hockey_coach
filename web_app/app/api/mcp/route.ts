@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// TODO: Add authentication middleware
-// TODO: Add rate limiting
-// TODO: Add request/response logging
-
-const MCP_BRIDGE_URL = process.env.MCP_BRIDGE_URL || 'http://localhost:3002'
+const HOCKEY_MCP_DIRECT_URL = process.env.HOCKEY_MCP_DIRECT_URL || 'http://localhost:3003'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Validate request body - expecting tool and parameters
     if (!body.tool) {
       return NextResponse.json(
         { error: 'Missing required field: tool' },
@@ -18,48 +13,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Forward request to Python MCP bridge service
-    const bridgeResponse = await fetch(`${MCP_BRIDGE_URL}/api/mcp`, {
+    // Call the direct hockey MCP API
+    const response = await fetch(`${HOCKEY_MCP_DIRECT_URL}/api/mcp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         tool: body.tool,
-        parameters: body.parameters || body.arguments || {}
+        parameters: body.parameters || {}
       }),
     })
 
-    if (!bridgeResponse.ok) {
-      console.error(`MCP bridge error: ${bridgeResponse.status}`)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
       return NextResponse.json(
-        { error: 'Failed to communicate with coaching AI bridge' },
-        { status: bridgeResponse.status }
+        { error: errorData.detail || `Hockey MCP API error: ${response.statusText}` },
+        { status: response.status }
       )
     }
 
-    const data = await bridgeResponse.json()
+    const result = await response.json()
     
-    return NextResponse.json(data)
+    return NextResponse.json(result)
 
   } catch (error) {
     console.error('API route error:', error)
-    
-    // Handle specific error types
-    if (error instanceof SyntaxError) {
-      return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
-        { status: 400 }
-      )
-    }
-    
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      return NextResponse.json(
-        { error: 'Unable to connect to coaching AI bridge service' },
-        { status: 503 }
-      )
-    }
-
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -68,42 +47,28 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  // Health check endpoint
+  // Health check via direct hockey MCP API
   try {
-    // Forward health check to Python MCP bridge
-    const healthResponse = await fetch(`${MCP_BRIDGE_URL}/api/mcp`, {
+    const response = await fetch(`${HOCKEY_MCP_DIRECT_URL}/api/mcp`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     })
 
-    const isHealthy = healthResponse.ok
-    const data = await healthResponse.json().catch(() => ({}))
-    
-    return NextResponse.json({
-      status: isHealthy ? 'healthy' : 'unhealthy',
-      mcpBridge: {
-        url: MCP_BRIDGE_URL,
-        status: healthResponse.status,
-      },
-      mcpServer: data.mcpServer || {},
-      timestamp: new Date().toISOString()
-    }, {
-      status: isHealthy ? 200 : 503
+    const result = await response.json()
+    return NextResponse.json(result, { 
+      status: result.status === 'healthy' ? 200 : 503 
     })
 
   } catch (error) {
     return NextResponse.json({
       status: 'unhealthy',
-      mcpBridge: {
-        url: MCP_BRIDGE_URL,
-        error: 'Connection failed'
+      mcpServer: {
+        url: HOCKEY_MCP_DIRECT_URL,
+        protocol: 'FastMCP Direct',
+        connected: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
       },
       timestamp: new Date().toISOString()
-    }, {
-      status: 503
-    })
+    }, { status: 503 })
   }
 }
 
