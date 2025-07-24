@@ -106,7 +106,7 @@ export class SecureResponsesAgent {
       tools: [
         {
           type: 'mcp' as const,
-          server_url: 'https://hockeycoach-production.up.railway.app/mcp',
+          server_url: 'https://hockeycoach-production.up.railway.app',
           server_label: 'hockey_mcp_server',
           server_description: 'Comprehensive hockey coaching knowledge base with drills, tactics, and development plans',
           allowed_tools: [

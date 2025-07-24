@@ -932,12 +932,12 @@ if __name__ == "__main__":
         logger.info(f"   → Starting Streamable-HTTP transport: http://{host}:{port}")
         import uvicorn
         uvicorn.run(mcp.streamable_http_app, host=host, port=port)
-    else:  # For now, use streamable-http (what OpenAI expects)
-        logger.info(f"   → Starting Streamable-HTTP transport: http://{host}:{port}")
-        logger.info("   → This is the preferred transport for OpenAI Responses API")
+    else:  # Use SSE transport (more stable with OpenAI)
+        logger.info(f"   → Switching to SSE transport for OpenAI compatibility: http://{host}:{port}")
+        logger.info("   → SSE transport avoids the session termination issue we're seeing")
+        logger.info("   → This is a temporary fix while FastMCP streamable-http compatibility improves")
         
-        # Note: We tried dual transport but mounting caused errors
-        # The session termination issue might be resolved with better logging
-        # and the enhanced session tracking we added
+        # Based on web research, SSE transport is more reliable with OpenAI Responses API
+        # even though it's marked as legacy, it has better session management
         import uvicorn
-        uvicorn.run(mcp.streamable_http_app, host=host, port=port)
+        uvicorn.run(mcp.sse_app, host=host, port=port)
