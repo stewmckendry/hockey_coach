@@ -1,6 +1,10 @@
 # Core MCP server dependencies
 fastmcp @ git+https://github.com/jlowin/fastmcp.git@main
 
+# Web framework for dual transport
+fastapi>=0.111.0
+uvicorn>=0.23.0
+
 # Data models and typing
 pydantic>=2.0.0
 typing-extensions>=4.0.0
