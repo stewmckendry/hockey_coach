@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useChat } from '../hooks/useChat'
 
 /**
@@ -6,16 +6,17 @@ import { useChat } from '../hooks/useChat'
  */
 export function SecureChatDemo() {
   const { messages, isLoading, sendMessage, clearMessages } = useChat()
+  const [inputValue, setInputValue] = useState('')
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const message = formData.get('message') as string
-    if (message.trim()) {
-      sendMessage(message.trim())
-      e.currentTarget.reset()
+    if (inputValue.trim() && !isLoading) {
+      sendMessage(inputValue.trim())
+      setInputValue('')
     }
   }
+
+  const isSubmitDisabled = isLoading || !inputValue.trim()
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -88,16 +89,22 @@ export function SecureChatDemo() {
             <input
               name="message"
               type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask about drills, practice plans, player development..."
               className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={isLoading}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium"
+              disabled={isSubmitDisabled}
+              className={`px-6 py-2 rounded-lg font-medium text-white ${
+                isSubmitDisabled 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
             >
-              Send
+              {isLoading ? 'Sending...' : 'Send'}
             </button>
           </form>
           
@@ -109,8 +116,12 @@ export function SecureChatDemo() {
               Clear Chat
             </button>
             
-            <div className="text-xs text-gray-500">
-              🔒 Secure • Messages processed server-side
+            <div className="text-xs text-gray-500 flex items-center space-x-2">
+              <span>🔒 Secure • Messages processed server-side</span>
+              {/* Debug info */}
+              <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs">
+                Loading: {isLoading ? 'Yes' : 'No'} | Input: {inputValue.length} chars
+              </span>
             </div>
           </div>
         </div>

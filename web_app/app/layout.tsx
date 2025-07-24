@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
@@ -11,7 +11,11 @@ export const metadata: Metadata = {
   description: 'AI-powered coaching assistant for hockey season planning, practice design, and player development',
   keywords: ['hockey', 'coaching', 'AI', 'season planning', 'practice planning'],
   authors: [{ name: 'Hockey Coach AI Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

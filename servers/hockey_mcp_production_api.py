@@ -71,10 +71,16 @@ def get_mcp_client():
 async def call_mcp_tool(request: ToolRequest):
     """Call a tool on the MCP server (environment-aware)"""
     try:
+        print(f"🔧 [BRIDGE] Calling tool: {request.tool}")
+        print(f"📝 [BRIDGE] Parameters: {request.parameters}")
+        
         client = get_mcp_client()
         
         async with client:
             result = await client.call_tool(request.tool, request.parameters)
+            
+            print(f"✅ [BRIDGE] Tool '{request.tool}' completed successfully")
+            print(f"📊 [BRIDGE] Result type: {type(result)}")
             
             return {
                 "success": True,
@@ -84,7 +90,7 @@ async def call_mcp_tool(request: ToolRequest):
             }
             
     except Exception as e:
-        print(f"Error calling tool '{request.tool}': {e}")
+        print(f"❌ [BRIDGE] Error calling tool '{request.tool}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/mcp")
