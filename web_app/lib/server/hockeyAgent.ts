@@ -106,8 +106,8 @@ export class SecureResponsesAgent {
       tools: [
         {
           type: 'mcp' as const,
-          server_url: process.env.MCP_SERVER_URL || 'https://hockeycoach-production.up.railway.app',
-          server_label: 'Enhanced Hockey MCP Server',
+          server_url: 'https://hockeycoach-production.up.railway.app/mcp',
+          server_label: 'hockey_mcp_server',
           server_description: 'Comprehensive hockey coaching knowledge base with drills, tactics, and development plans',
           allowed_tools: [
             'search_hockey_knowledge',
@@ -126,6 +126,9 @@ export class SecureResponsesAgent {
 
     console.log('📥 Received response from OpenAI Responses API')
     console.log('Response ID:', response.id)
+    console.log('Response object keys:', Object.keys(response))
+    console.log('Response content items:', response.content?.length || 0)
+    console.log('Raw response:', JSON.stringify(response, null, 2))
 
     // Extract tool calls and final message content
     const toolCalls = response.content?.filter((item: any) => item.type === 'mcp_call') || []
@@ -137,6 +140,7 @@ export class SecureResponsesAgent {
       ?.join('') || 'I apologize, but I encountered an issue processing your request.'
 
     console.log('🛠️ Tools used:', toolsUsed)
+    console.log('Final message:', finalMessage)
     
     return {
       response: finalMessage,

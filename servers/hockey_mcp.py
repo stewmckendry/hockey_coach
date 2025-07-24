@@ -86,7 +86,8 @@ def search_hockey_knowledge(
         age_groups: Filter by age recommendations
         n_results: Number of results to return
     """
-    logger.info(f"Universal search: query='{query}', types={content_types}, complexity={complexity_levels}")
+    start_time = datetime.now()
+    logger.info(f"🔍 [TOOL CALL] search_hockey_knowledge: query='{query}', types={content_types}, complexity={complexity_levels}, n_results={n_results}")
     
     # Build dynamic where clause
     where_conditions = {}
@@ -133,7 +134,8 @@ def search_hockey_knowledge(
         if len(unified_results) >= n_results:
             break
     
-    logger.info(f"Returning {len(unified_results)} unified results")
+    duration = (datetime.now() - start_time).total_seconds()
+    logger.info(f"✅ [TOOL COMPLETE] search_hockey_knowledge: returned {len(unified_results)} results in {duration:.2f}s")
     return unified_results
 
 @mcp.tool("get_coaching_recommendations")
@@ -144,6 +146,8 @@ def get_coaching_recommendations(
     team_size: int,
     equipment_available: List[str]
 ) -> Dict[str, Any]:
+    start_time = datetime.now()
+    logger.info(f"🎯 [TOOL CALL] get_coaching_recommendations: age={team_age}, skill={skill_focus}, time={available_time}min, team_size={team_size}")
     """
     Get personalized coaching recommendations based on team parameters.
     
@@ -910,19 +914,58 @@ if __name__ == "__main__":
     
     logger.info("🏒 Hockey MCP Server ready for coaching!")
     
-    # Support both development and production transports
-    transport = os.getenv('MCP_TRANSPORT', 'streamable-http')
+    # Support multiple transports for OpenAI compatibility
+    transport = os.getenv('MCP_TRANSPORT', 'dual')
     port = int(os.getenv('MCP_PORT', '8000'))
     host = os.getenv('MCP_HOST', '0.0.0.0')
+    
+    logger.info(f"🚀 Transport mode: {transport}")
     
     if transport == 'stdio':
         logger.info("   → Starting STDIO transport (development)")
         mcp.run(transport="stdio")
-    elif transport == 'streamable-http':
-        logger.info(f"   → Starting HTTP transport: http://{host}:{port}")
-        import uvicorn
-        uvicorn.run(mcp.streamable_http_app, host=host, port=port)
-    else:  # SSE fallback
+    elif transport == 'sse':
         logger.info(f"   → Starting SSE server: http://{host}:{port}")
         import uvicorn
         uvicorn.run(mcp.sse_app, host=host, port=port)
+    elif transport == 'streamable-http':
+        logger.info(f"   → Starting Streamable-HTTP transport: http://{host}:{port}")
+        import uvicorn
+        uvicorn.run(mcp.streamable_http_app, host=host, port=port)
+    else:  # dual transport (recommended for OpenAI)
+        logger.info(f"   → Starting DUAL transport (SSE + Streamable-HTTP): http://{host}:{port}")
+        logger.info("   → This provides maximum OpenAI Responses API compatibility")
+        
+        # Create a combined FastAPI app with both transports
+        from fastapi import FastAPI
+        from fastapi.middleware.cors import CORSMiddleware
+        
+        app = FastAPI(title="Hockey MCP Dual Transport Server")
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        
+        # Mount both transport apps
+        app.mount("/mcp", mcp.streamable_http_app)  # Primary endpoint
+        app.mount("/sse", mcp.sse_app)              # Legacy endpoint
+        
+        # Health check endpoint
+        @app.get("/")
+        @app.get("/health")
+        async def health_check():
+            return {
+                "status": "healthy",
+                "transport": "dual",
+                "endpoints": {
+                    "streamable_http": "/mcp",
+                    "sse": "/sse"
+                },
+                "timestamp": datetime.now().isoformat(),
+                "tools_available": 4
+            }
+        
+        import uvicorn
+        uvicorn.run(app, host=host, port=port)
