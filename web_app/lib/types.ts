@@ -9,6 +9,13 @@ export interface ChatMessage {
   timestamp: Date
   metadata?: {
     tool?: string
+    toolsCalled?: string[]
+    intent?: {
+      intent: string
+      confidence: number
+      parameters: Record<string, any>
+      reasoning: string
+    }
     processingTime?: number
     error?: string
   }

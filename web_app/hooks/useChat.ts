@@ -34,19 +34,35 @@ export function useChat(): UseChatReturn {
     }))
 
     try {
-      // Process the natural language query
-      const startTime = Date.now()
-      const response = await apiClient.processNaturalLanguageQuery(content)
-      const processingTime = Date.now() - startTime
+      // ✅ SECURE: Call server-side API endpoint
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: content,
+          conversationHistory: state.messages.slice(-6) // Send last 6 messages for context
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to get coaching response')
+      }
+
+      const data = await response.json()
 
       // Create assistant message
       const assistantMessage: ChatMessage = {
         id: generateId(),
-        content: formatResponse(response),
+        content: data.response,
         role: 'assistant',
         timestamp: new Date(),
         metadata: {
-          processingTime
+          intent: data.metadata?.intent,
+          toolsCalled: data.metadata?.toolsCalled,
+          processingTime: data.metadata?.processingTimeMs
         }
       }
 
@@ -62,7 +78,7 @@ export function useChat(): UseChatReturn {
       
       const assistantMessage: ChatMessage = {
         id: generateId(),
-        content: `I apologize, but I encountered an error: ${errorMessage}. Please try again or rephrase your question.`,
+        content: `I'm having trouble right now. Could you try again? ${errorMessage}`,
         role: 'assistant',
         timestamp: new Date(),
         metadata: {
@@ -78,7 +94,7 @@ export function useChat(): UseChatReturn {
         isTyping: false
       }))
     }
-  }, [])
+  }, [state.messages])
 
   const clearMessages = useCallback(() => {
     setState({

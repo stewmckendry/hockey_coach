@@ -3,6 +3,9 @@ __pycache__/
 *.csv
 *.json
 .env
+.env.production
+.env.development
+.env.local
 chroma_db/
 *.lock
 *.mp4
