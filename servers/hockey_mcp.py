@@ -884,6 +884,8 @@ def get_daily_coaching_tip() -> str:
     return random.choice(tips)
 
 if __name__ == "__main__":
+    import os
+    
     logger.info("🚀 Starting Hockey MCP Server...")
     
     # Test ChromaDB connection
@@ -906,5 +908,18 @@ if __name__ == "__main__":
     
     logger.info("🏒 Hockey MCP Server ready for coaching!")
     
-    import uvicorn
-    uvicorn.run(mcp.sse_app, host="0.0.0.0", port=8000)
+    # Support both development and production transports
+    transport = os.getenv('MCP_TRANSPORT', 'sse')
+    port = int(os.getenv('MCP_PORT', '8000'))
+    host = os.getenv('MCP_HOST', '0.0.0.0')
+    
+    if transport == 'http':
+        logger.info(f"   → Starting HTTP server: http://{host}:{port}/mcp")
+        mcp.run(transport="http", host=host, port=port, path="/mcp")
+    elif transport == 'stdio':
+        logger.info("   → Starting STDIO transport (development)")
+        mcp.run(transport="stdio")
+    else:  # Default to SSE for backwards compatibility
+        logger.info(f"   → Starting SSE server: http://{host}:{port}")
+        import uvicorn
+        uvicorn.run(mcp.sse_app, host=host, port=port)
