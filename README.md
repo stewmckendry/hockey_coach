@@ -2,6 +2,126 @@
 
 The Hockey Coach Playbook is a comprehensive hockey coaching platform that combines AI-powered knowledge search, practice planning, player development, and visual aids. It leverages an MCP (Model Context Protocol) server, semantic vector database (ChromaDB), and AI agents to provide intelligent coaching recommendations and generate hockey diagrams.
 
+## 📁 Project Structure
+
+```
+thunder_playbook/
+├── 🏒 servers/              # MCP servers and APIs
+│   ├── hockey_mcp.py        # Main FastMCP hockey server (port 8000)
+│   ├── hockey_mcp_direct_api.py  # Direct API wrapper (port 3003)
+│   └── fastmcp_proxy.py     # FastMCP proxy server
+├── 🌐 web_app/              # Next.js frontend application
+├── 🧪 tests/                # Test files and test data
+├── 📜 scripts/              # Utility and processing scripts
+├── 📊 models/               # Pydantic data models
+├── 🔧 utils/                # Utility functions (ChromaDB, etc.)
+├── 📸 image_gen/            # AI image generation tools
+├── 📦 chroma_load/          # Data processing and vector DB management
+├── 📖 docs/                 # Documentation files
+├── 🚀 start_services.py     # Convenient startup script
+└── 📋 requirements.txt      # Python dependencies
+```
+
+## 🚀 Quick Start
+
+### Option 1: Use the Startup Script (Recommended)
+```bash
+# Activate virtual environment
+cd ..
+source spacy_env/bin/activate
+cd thunder_playbook
+
+# Start all services
+python start_services.py
+```
+
+### Option 2: Manual Setup
+```bash
+# 1. Start the hockey MCP server
+python servers/hockey_mcp.py &
+
+# 2. Start the direct API
+python servers/hockey_mcp_direct_api.py &
+
+# 3. Start the web application
+cd web_app
+npm run dev
+```
+
+## 🧪 Development & Testing
+
+### CLI Mode: Testing MCP Server
+```bash
+# Activate virtual environment first
+source ../spacy_env/bin/activate
+
+# Test MCP server status
+curl http://localhost:8000/health
+
+# Test direct API health check
+curl http://localhost:3003/api/mcp
+
+# List available MCP tools (via direct API)
+curl -X GET "http://localhost:3003/api/mcp" | jq '.mcpServer.tools_available'
+
+# Test tool call - Search hockey knowledge
+curl -X POST "http://localhost:3003/api/mcp" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tool": "search_hockey_knowledge", 
+    "arguments": {
+      "query": "power play setup", 
+      "collection": "tactics", 
+      "limit": 3
+    }
+  }' | jq '.data'
+
+# Test tool call - Get coaching recommendations
+curl -X POST "http://localhost:3003/api/mcp" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tool": "get_coaching_recommendations", 
+    "arguments": {
+      "age_group": "bantam", 
+      "skill_focus": "skating", 
+      "practice_length": 60
+    }
+  }' | jq '.data'
+```
+
+### UI Mode: Running in Browser
+```bash
+# 1. Start all backend services
+python start_services.py
+
+# 2. In a new terminal, start the web app
+cd web_app
+npm install  # First time only
+npm run dev
+
+# 3. Open browser and navigate to:
+#    http://localhost:3000
+
+# 4. Test the interface:
+#    - Search hockey knowledge in the search bar
+#    - Create practice plans with custom parameters
+#    - Browse different collections (drills, tactics, etc.)
+#    - Generate coaching recommendations for different age groups
+```
+
+### Service Status Check
+```bash
+# Check if all services are running
+curl http://localhost:8000/health     # MCP Server
+curl http://localhost:3003/api/mcp    # Direct API
+curl http://localhost:3000            # Web App (should show HTML)
+```
+
+### Access Points
+- 🏒 **Hockey MCP Server**: http://localhost:8000
+- 🔗 **Direct API**: http://localhost:3003  
+- 🌐 **Web App**: http://localhost:3000
+
 ---
 
 ## 🔍 What It Does

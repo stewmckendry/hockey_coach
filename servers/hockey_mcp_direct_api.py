@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
 # Import the hockey MCP server directly
+sys.path.append(str(Path(__file__).resolve().parent))
 from hockey_mcp import mcp
 
 app = FastAPI(title="Hockey MCP Direct API", version="1.0.0")
