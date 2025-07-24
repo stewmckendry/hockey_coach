@@ -9,6 +9,7 @@ import json
 import logging
 from openai import OpenAI
 from datetime import datetime
+import asyncio
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from utils.chroma_utils import get_chroma_collection
 
-mcp = FastMCP("Enhanced Hockey MCP Server")
+mcp = FastMCP("Enhanced Hockey MCP Server", stateless_http=True)
 collection = get_chroma_collection()
 client = OpenAI()
 
@@ -913,6 +914,8 @@ if __name__ == "__main__":
         logger.error(f"❌ OpenAI initialization failed: {e}")
     
     logger.info("🏒 Hockey MCP Server ready for coaching!")
+    logger.info("🔧 FastMCP Configuration: stateless_http=True")
+    logger.info("🎯 This should prevent OpenAI session termination issues")
     
     # Support multiple transports for OpenAI compatibility
     transport = os.getenv('MCP_TRANSPORT', 'dual')
