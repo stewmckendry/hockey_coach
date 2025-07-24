@@ -932,40 +932,12 @@ if __name__ == "__main__":
         logger.info(f"   → Starting Streamable-HTTP transport: http://{host}:{port}")
         import uvicorn
         uvicorn.run(mcp.streamable_http_app, host=host, port=port)
-    else:  # dual transport (recommended for OpenAI)
-        logger.info(f"   → Starting DUAL transport (SSE + Streamable-HTTP): http://{host}:{port}")
-        logger.info("   → This provides maximum OpenAI Responses API compatibility")
+    else:  # For now, use streamable-http (what OpenAI expects)
+        logger.info(f"   → Starting Streamable-HTTP transport: http://{host}:{port}")
+        logger.info("   → This is the preferred transport for OpenAI Responses API")
         
-        # Create a combined FastAPI app with both transports
-        from fastapi import FastAPI
-        from fastapi.middleware.cors import CORSMiddleware
-        
-        app = FastAPI(title="Hockey MCP Dual Transport Server")
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-        
-        # Mount both transport apps
-        app.mount("/mcp", mcp.streamable_http_app)  # Primary endpoint
-        app.mount("/sse", mcp.sse_app)              # Legacy endpoint
-        
-        # Health check endpoint
-        @app.get("/")
-        @app.get("/health")
-        async def health_check():
-            return {
-                "status": "healthy",
-                "transport": "dual",
-                "endpoints": {
-                    "streamable_http": "/mcp",
-                    "sse": "/sse"
-                },
-                "timestamp": datetime.now().isoformat(),
-                "tools_available": 4
-            }
-        
+        # Note: We tried dual transport but mounting caused errors
+        # The session termination issue might be resolved with better logging
+        # and the enhanced session tracking we added
         import uvicorn
-        uvicorn.run(app, host=host, port=port)
+        uvicorn.run(mcp.streamable_http_app, host=host, port=port)
