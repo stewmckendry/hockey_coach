@@ -1,40 +1,110 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import type { ChatMessage, ChatState, UseChatReturn } from '@/lib/types'
-import { apiClient } from '@/lib/api'
-import { generateId } from '@/lib/utils'
+import { useState, useCallback, useRef } from 'react'
+import { ChatMessage, ConversationThread, UseChatReturn } from '@/lib/types'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 
-/**
- * Custom hook for managing chat state and interactions
- */
 export function useChat(): UseChatReturn {
-  const [state, setState] = useState<ChatState>({
-    messages: [],
-    isLoading: false,
-    error: null,
-    isTyping: false
-  })
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  
+  // Persistent conversation storage with date handling
+  const { 
+    value: rawConversations, 
+    setValue: setConversations 
+  } = useLocalStorage<ConversationThread[]>('chat-conversations', [])
+  
+  // Ensure conversations have proper Date objects (handle localStorage deserialization)
+  const conversations = rawConversations.map(conv => ({
+    ...conv,
+    createdAt: conv.createdAt instanceof Date ? conv.createdAt : new Date(conv.createdAt),
+    updatedAt: conv.updatedAt instanceof Date ? conv.updatedAt : new Date(conv.updatedAt),
+    messages: conv.messages?.map(msg => ({
+      ...msg,
+      timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)
+    })) || []
+  }))
+  
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const getCurrentConversation = useCallback(() => {
+    return conversations.find(c => c.id === activeConversationId) || null
+  }, [conversations, activeConversationId])
+
+  const updateConversation = useCallback((conversationId: string, updates: Partial<ConversationThread>) => {
+    setConversations(prev => 
+      prev.map(c => 
+        c.id === conversationId 
+          ? { ...c, ...updates, updatedAt: new Date() }
+          : c
+      )
+    )
+  }, [setConversations])
+
+  const createNewConversation = useCallback(() => {
+    const newThread: ConversationThread = {
+      id: Date.now().toString(),
+      title: 'New Conversation',
+      responseId: '',
+      messages: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+    
+    setConversations(prev => [newThread, ...prev])
+    setActiveConversationId(newThread.id)
+    setMessages([])
+    setError(null)
+  }, [setConversations])
+
+  const selectConversation = useCallback((conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId)
+    if (conversation) {
+      setActiveConversationId(conversationId)
+      setMessages(conversation.messages)
+      setError(null)
+    }
+  }, [conversations])
 
   const sendMessage = useCallback(async (content: string) => {
+    if (!activeConversationId) {
+      createNewConversation()
+      // Wait for state to update
+      await new Promise(resolve => setTimeout(resolve, 0))
+    }
+
+    const currentConversation = getCurrentConversation()
+    if (!currentConversation) return
+
+    setIsLoading(true)
+    setError(null)
+
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+
     const userMessage: ChatMessage = {
-      id: generateId(),
-      content,
+      id: Date.now().toString(),
       role: 'user',
+      content,
       timestamp: new Date()
     }
 
     // Add user message immediately
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, userMessage],
-      isLoading: true,
-      error: null,
-      isTyping: true
-    }))
+    const newMessages = [...messages, userMessage]
+    setMessages(newMessages)
+    
+    // Update thread title if this is the first message
+    if (newMessages.length === 1) {
+      const title = content.length > 50 ? content.substring(0, 50) + '...' : content
+      updateConversation(currentConversation.id, { title })
+    }
 
     try {
-      // ✅ SECURE: Call server-side API endpoint
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -42,262 +112,77 @@ export function useChat(): UseChatReturn {
         },
         body: JSON.stringify({
           message: content,
-          conversationHistory: state.messages.slice(-6) // Send last 6 messages for context
+          previousResponseId: currentConversation.responseId || null
         }),
+        signal: abortControllerRef.current.signal,
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to get coaching response')
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
-
-      // Create assistant message
-      const assistantMessage: ChatMessage = {
-        id: generateId(),
-        content: data.response,
-        role: 'assistant',
-        timestamp: new Date(),
-        metadata: {
-          intent: data.metadata?.intent,
-          toolsCalled: data.metadata?.toolsCalled,
-          processingTime: data.metadata?.processingTimeMs
-        }
-      }
-
-      setState(prev => ({
-        ...prev,
-        messages: [...prev.messages, assistantMessage],
-        isLoading: false,
-        isTyping: false
-      }))
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
       
       const assistantMessage: ChatMessage = {
-        id: generateId(),
-        content: `I'm having trouble right now. Could you try again? ${errorMessage}`,
+        id: (Date.now() + 1).toString(),
         role: 'assistant',
+        content: data.response,
         timestamp: new Date(),
-        metadata: {
-          error: errorMessage
-        }
+        metadata: data.metadata
       }
 
-      setState(prev => ({
-        ...prev,
-        messages: [...prev.messages, assistantMessage],
-        isLoading: false,
-        error: errorMessage,
-        isTyping: false
-      }))
+      const finalMessages = [...newMessages, assistantMessage]
+      setMessages(finalMessages)
+      
+      // Update thread with new messages and response metadata
+      updateConversation(currentConversation.id, {
+        messages: finalMessages,
+        responseId: data.responseId || ''
+      })
+
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted')
+        return
+      }
+      
+      console.error('Chat error:', error)
+      setError(error.message || 'An error occurred while sending your message.')
+    } finally {
+      setIsLoading(false)
+      abortControllerRef.current = null
     }
-  }, [state.messages])
+  }, [messages, activeConversationId, getCurrentConversation, createNewConversation, updateConversation])
 
   const clearMessages = useCallback(() => {
-    setState({
-      messages: [],
-      isLoading: false,
-      error: null,
-      isTyping: false
-    })
+    setMessages([])
+    setError(null)
   }, [])
 
   const retry = useCallback(async () => {
-    const lastUserMessage = [...state.messages]
-      .reverse()
-      .find(msg => msg.role === 'user')
-
-    if (lastUserMessage) {
-      // Remove the last assistant message if it was an error
-      const filteredMessages = state.messages.filter(msg => 
-        msg.id !== state.messages[state.messages.length - 1]?.id
-      )
-      
-      setState(prev => ({
-        ...prev,
-        messages: filteredMessages,
-        error: null
-      }))
-
-      await sendMessage(lastUserMessage.content)
+    if (messages.length > 0) {
+      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')
+      if (lastUserMessage) {
+        // Remove last assistant message if it exists
+        const filteredMessages = messages.filter(m => 
+          m.timestamp <= lastUserMessage.timestamp
+        )
+        setMessages(filteredMessages)
+        await sendMessage(lastUserMessage.content)
+      }
     }
-  }, [state.messages, sendMessage])
+  }, [messages, sendMessage])
 
   return {
-    messages: state.messages,
-    isLoading: state.isLoading,
-    error: state.error,
-    isTyping: state.isTyping,
+    messages,
+    conversations,
+    activeConversationId,
+    createNewConversation,
+    selectConversation,
     sendMessage,
+    isLoading,
+    error,
     clearMessages,
     retry
   }
-}
-
-/**
- * Format API response for display in chat
- */
-function formatResponse(response: any): string {
-  if (typeof response === 'string') {
-    return response
-  }
-
-  // Handle practice plan response
-  if (response.title && response.main_activities) {
-    return formatPracticePlan(response)
-  }
-
-  // Handle player development plan
-  if (response.player_name && response.recommended_drills) {
-    return formatDevelopmentPlan(response)
-  }
-
-  // Handle search results
-  if (Array.isArray(response)) {
-    return formatSearchResults(response)
-  }
-
-  // Handle coaching recommendations
-  if (response.recommendation) {
-    return formatCoachingRecommendation(response)
-  }
-
-  // Fallback to JSON representation
-  return JSON.stringify(response, null, 2)
-}
-
-function formatPracticePlan(plan: any): string {
-  let formatted = `# 🏒 ${plan.title}\n\n`
-  formatted += `**Duration:** ${plan.duration_minutes} minutes | **Age Group:** ${plan.age_group}\n\n`
-  
-  if (plan.focus_areas?.length > 0) {
-    formatted += `**Focus Areas:** ${plan.focus_areas.join(', ')}\n\n`
-  }
-
-  if (plan.warmup?.length > 0) {
-    formatted += `## 🔥 Warm-up\n`
-    plan.warmup.forEach((activity: any) => {
-      formatted += `- **${activity.activity}** (${activity.duration}): ${activity.description}\n`
-    })
-    formatted += '\n'
-  }
-
-  if (plan.main_activities?.length > 0) {
-    formatted += `## 🎯 Main Activities\n`
-    plan.main_activities.forEach((activity: any, index: number) => {
-      formatted += `### ${index + 1}. ${activity.activity} (${activity.duration})\n`
-      formatted += `${activity.description}\n`
-      if (activity.teaching_points) {
-        formatted += `**Teaching Points:** ${activity.teaching_points}\n`
-      }
-      if (activity.setup) {
-        formatted += `**Setup:** ${activity.setup}\n`
-      }
-      formatted += '\n'
-    })
-  }
-
-  if (plan.cooldown?.length > 0) {
-    formatted += `## 🧊 Cool-down\n`
-    plan.cooldown.forEach((activity: any) => {
-      formatted += `- **${activity.activity}** (${activity.duration}): ${activity.description}\n`
-    })
-    formatted += '\n'
-  }
-
-  if (plan.equipment_needed?.length > 0) {
-    formatted += `## 🥅 Equipment Needed\n`
-    formatted += plan.equipment_needed.map((item: string) => `- ${item}`).join('\n')
-    formatted += '\n\n'
-  }
-
-  if (plan.coaching_notes) {
-    formatted += `## 📝 Coaching Notes\n${plan.coaching_notes}\n`
-  }
-
-  return formatted
-}
-
-function formatDevelopmentPlan(plan: any): string {
-  let formatted = `# 🚀 Player Development Plan\n\n`
-  formatted += `**Player:** ${plan.player_name} | **Position:** ${plan.position}\n`
-  formatted += `**Current Level:** ${plan.current_level} | **Timeline:** ${plan.timeline_weeks} weeks\n\n`
-
-  if (plan.target_skills?.length > 0) {
-    formatted += `## 🎯 Target Skills\n`
-    formatted += plan.target_skills.map((skill: string) => `- ${skill}`).join('\n')
-    formatted += '\n\n'
-  }
-
-  if (plan.recommended_drills?.length > 0) {
-    formatted += `## 🏒 Recommended Drills\n`
-    formatted += plan.recommended_drills.map((drill: string) => `- ${drill}`).join('\n')
-    formatted += '\n\n'
-  }
-
-  if (plan.dryland_exercises?.length > 0) {
-    formatted += `## 💪 Off-Ice Training\n`
-    formatted += plan.dryland_exercises.map((exercise: string) => `- ${exercise}`).join('\n')
-    formatted += '\n\n'
-  }
-
-  if (plan.progress_markers?.length > 0) {
-    formatted += `## 📈 Progress Markers\n`
-    formatted += plan.progress_markers.map((marker: string) => `- ${marker}`).join('\n')
-    formatted += '\n'
-  }
-
-  return formatted
-}
-
-function formatSearchResults(results: any[]): string {
-  if (results.length === 0) {
-    return "I didn't find any specific results for your query. Try rephrasing or asking about a different topic."
-  }
-
-  let formatted = `# 🔍 Hockey Knowledge Results\n\nI found ${results.length} relevant results:\n\n`
-
-  results.slice(0, 5).forEach((result, index) => {
-    formatted += `## ${index + 1}. ${result.title}\n`
-    formatted += `**Type:** ${result.content_type} | **Complexity:** ${result.complexity}\n`
-    formatted += `${result.summary}\n`
-    
-    if (result.teaching_points) {
-      formatted += `**Teaching Points:** ${result.teaching_points}\n`
-    }
-    
-    if (result.equipment) {
-      formatted += `**Equipment:** ${result.equipment}\n`
-    }
-    
-    formatted += '\n'
-  })
-
-  if (results.length > 5) {
-    formatted += `\n*Showing top 5 of ${results.length} results*`
-  }
-
-  return formatted
-}
-
-function formatCoachingRecommendation(recommendation: any): string {
-  let formatted = `# 💡 Coaching Recommendation\n\n`
-  formatted += `${recommendation.recommendation}\n\n`
-  
-  if (recommendation.rationale) {
-    formatted += `## 🤔 Rationale\n${recommendation.rationale}\n\n`
-  }
-
-  if (recommendation.supporting_evidence?.length > 0) {
-    formatted += `## 📚 Supporting Evidence\n`
-    recommendation.supporting_evidence.forEach((evidence: any, index: number) => {
-      formatted += `${index + 1}. **${evidence.title}** (${evidence.content_type})\n`
-      formatted += `   ${evidence.summary}\n\n`
-    })
-  }
-
-  return formatted
 }

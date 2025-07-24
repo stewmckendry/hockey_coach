@@ -48,14 +48,17 @@ export class SecureResponsesAgent {
     const startTime = Date.now()
     
     try {
-      // Try OpenAI Responses API with public Railway MCP server first
-      console.log('🔄 Using OpenAI Responses API with Railway MCP server')
-      return await this.processWithResponsesAPI(userMessage, previousResponseId, startTime)
+      // Check if Responses API is available, fallback to enhanced Chat Completions
+      if (this.hasResponsesAPI()) {
+        return await this.processWithResponsesAPI(userMessage, previousResponseId, startTime)
+      } else {
+        console.warn('Responses API not available, using enhanced Chat Completions with simulated state')
+        return await this.processWithEnhancedChat(userMessage, previousResponseId, startTime)
+      }
 
     } catch (error) {
-      console.error('❌ Responses API with Railway MCP failed:', error)
-      console.log('🔄 Falling back to enhanced Chat Completions API with local MCP')
-      return await this.processWithEnhancedChat(userMessage, previousResponseId, startTime)
+      console.error('Hockey agent error:', error)
+      throw new Error('Unable to process coaching request')
     }
   }
 
@@ -74,82 +77,42 @@ export class SecureResponsesAgent {
     previousResponseId: string | undefined,
     startTime: number
   ) {
-    console.log('🔄 Processing with Responses API + MCP tools')
-    console.log('Previous Response ID:', previousResponseId)
+    // Use OpenAI Responses API with native state management
+    const requestBody = {
+      model: "gpt-4o",
+      input: userMessage,
+      store: true, // Enable server-side conversation state
+      ...(previousResponseId && { previous_response_id: previousResponseId }), // Continue conversation
+      instructions: this.getInstructions()
+    }
+
+    const response = await (this.openai as any).responses.create(requestBody)
     
-    // Build the input messages with proper types
-    const input = previousResponseId ? 
-      [{ 
-        role: 'user' as const, 
-        content: [{ type: 'input_text' as const, text: userMessage }]
-      }] : 
-      [
-        { 
-          role: 'system' as const, 
-          content: [{ 
-            type: 'input_text' as const, 
-            text: `You are an expert hockey coach assistant with access to comprehensive hockey coaching knowledge through specialized tools. Use the available MCP tools to provide detailed, evidence-based coaching advice. Always search for relevant drills, tactics, and development information when answering coaching questions.` 
-          }]
+    // Parse structured response if available
+    let parsedResponse
+    try {
+      parsedResponse = JSON.parse(response.output_text || response.content)
+    } catch {
+      // Fallback if not structured JSON
+      parsedResponse = {
+        response: response.output_text || response.content || "I'm here to help with your hockey coaching questions!",
+        intent: {
+          category: "general_chat",
+          confidence: 0.8,
+          context_from_conversation: "Continuing conversation"
         },
-        { 
-          role: 'user' as const, 
-          content: [{ type: 'input_text' as const, text: userMessage }]
-        }
-      ]
-
-    // Use the OpenAI SDK with proper MCP configuration
-    console.log('📤 Creating Responses API request with MCP tools')
-    
-    const response = await this.openai.responses.create({
-      model: 'gpt-4o-2024-11-20',
-      input,
-      tools: [
-        {
-          type: 'mcp' as const,
-          server_url: process.env.MCP_SERVER_URL || 'https://hockeycoach-production.up.railway.app',
-          server_label: 'Enhanced Hockey MCP Server',
-          server_description: 'Comprehensive hockey coaching knowledge base with drills, tactics, and development plans',
-          allowed_tools: [
-            'search_hockey_knowledge',
-            'get_coaching_recommendations', 
-            'create_practice_plan',
-            'analyze_player_development'
-          ],
-          require_approval: 'never' as const
-        }
-      ],
-      ...(previousResponseId && { previous_response_id: previousResponseId }),
-      temperature: 0.7,
-      max_output_tokens: 1000,
-      store: true
-    }) as any // Type assertion until OpenAI SDK types are updated
-
-    console.log('📥 Received response from OpenAI Responses API')
-    console.log('Response ID:', response.id)
-
-    // Extract tool calls and final message content
-    const toolCalls = response.content?.filter((item: any) => item.type === 'mcp_call') || []
-    const toolsUsed = toolCalls.map((call: any) => call.name || 'unknown_tool')
-    
-    const finalMessage = response.content
-      ?.filter((item: any) => item.type === 'text')
-      ?.map((item: any) => item.text)
-      ?.join('') || 'I apologize, but I encountered an issue processing your request.'
-
-    console.log('🛠️ Tools used:', toolsUsed)
+        tools_used: []
+      }
+    }
     
     return {
-      response: finalMessage,
+      response: parsedResponse.response,
       responseId: response.id,
       metadata: {
-        intent: {
-          category: 'hockey_coaching',
-          confidence: 0.9,
-          context_from_conversation: 'Using OpenAI Responses API with MCP tools'
-        },
-        toolsUsed,
+        intent: parsedResponse.intent,
+        toolsUsed: parsedResponse.tools_used || [],
         processingTimeMs: Date.now() - startTime,
-        conversationId: response.id
+        conversationId: (response as any).conversation_id // OpenAI's conversation tracking
       }
     }
   }

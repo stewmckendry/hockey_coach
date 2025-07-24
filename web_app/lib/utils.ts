@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import type { ConversationThread } from './types'
 
 /**
  * Utility function to merge Tailwind CSS classes
@@ -18,9 +19,17 @@ export function generateId(): string {
 /**
  * Format timestamp for display
  */
-export function formatTimestamp(date: Date): string {
+export function formatTimestamp(date: Date | string): string {
+  // Handle both Date objects and date strings from localStorage
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  
+  // Check if the date is valid
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return 'Unknown time'
+  }
+  
   const now = new Date()
-  const diff = now.getTime() - date.getTime()
+  const diff = now.getTime() - dateObj.getTime()
   const minutes = Math.floor(diff / 60000)
   
   if (minutes < 1) return 'Just now'
@@ -32,7 +41,22 @@ export function formatTimestamp(date: Date): string {
   const days = Math.floor(hours / 24)
   if (days < 7) return `${days}d ago`
   
-  return date.toLocaleDateString()
+  return dateObj.toLocaleDateString()
+}
+
+/**
+ * Deserialize conversation data from localStorage, converting date strings back to Date objects
+ */
+export function deserializeConversations(conversations: any[]): ConversationThread[] {
+  return conversations.map(conv => ({
+    ...conv,
+    createdAt: new Date(conv.createdAt),
+    updatedAt: new Date(conv.updatedAt),
+    messages: conv.messages?.map((msg: any) => ({
+      ...msg,
+      timestamp: new Date(msg.timestamp)
+    })) || []
+  }))
 }
 
 /**

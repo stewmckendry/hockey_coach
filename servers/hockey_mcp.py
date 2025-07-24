@@ -890,11 +890,13 @@ if __name__ == "__main__":
     
     # Test ChromaDB connection
     try:
-        collections = client.list_collections()
+        from utils.chroma_utils import get_client
+        chroma_client = get_client()
+        collections = chroma_client.list_collections()
         logger.info(f"✅ ChromaDB connected - {len(collections)} collections available")
-        for collection in collections:
-            count = collection.count()
-            logger.debug(f"  - {collection.name}: {count} documents")
+        for coll in collections:
+            count = coll.count()
+            logger.debug(f"  - {coll.name}: {count} documents")
     except Exception as e:
         logger.error(f"❌ ChromaDB connection failed: {e}")
     
@@ -909,17 +911,18 @@ if __name__ == "__main__":
     logger.info("🏒 Hockey MCP Server ready for coaching!")
     
     # Support both development and production transports
-    transport = os.getenv('MCP_TRANSPORT', 'sse')
+    transport = os.getenv('MCP_TRANSPORT', 'streamable-http')
     port = int(os.getenv('MCP_PORT', '8000'))
     host = os.getenv('MCP_HOST', '0.0.0.0')
     
-    if transport == 'http':
-        logger.info(f"   → Starting HTTP server: http://{host}:{port}/mcp")
-        mcp.run(transport="http", host=host, port=port, path="/mcp")
-    elif transport == 'stdio':
+    if transport == 'stdio':
         logger.info("   → Starting STDIO transport (development)")
         mcp.run(transport="stdio")
-    else:  # Default to SSE for backwards compatibility
+    elif transport == 'streamable-http':
+        logger.info(f"   → Starting HTTP transport: http://{host}:{port}")
+        import uvicorn
+        uvicorn.run(mcp.streamable_http_app, host=host, port=port)
+    else:  # SSE fallback
         logger.info(f"   → Starting SSE server: http://{host}:{port}")
         import uvicorn
         uvicorn.run(mcp.sse_app, host=host, port=port)

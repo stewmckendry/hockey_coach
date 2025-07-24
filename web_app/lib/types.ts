@@ -29,6 +29,54 @@ export interface ChatState {
 }
 
 // ============================================================================
+// Conversation Thread Types (OpenAI Responses API)
+// ============================================================================
+
+export interface ConversationThread {
+  id: string
+  title: string
+  responseId: string // OpenAI Responses API response ID
+  messages: ChatMessage[]
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface UseChatReturn {
+  messages: ChatMessage[]
+  conversations: ConversationThread[]
+  activeConversationId: string | null
+  createNewConversation: () => void
+  selectConversation: (id: string) => void
+  sendMessage: (content: string) => Promise<void>
+  isLoading: boolean
+  error: string | null
+  // Legacy compatibility
+  clearMessages: () => void
+  retry: () => Promise<void>
+}
+
+export interface ResponsesAPIMetadata {
+  intent: {
+    category: string
+    confidence: number
+    context_from_conversation: string
+  }
+  toolsUsed: string[]
+  processingTimeMs: number
+  conversationId?: string // OpenAI's conversation tracking
+}
+
+// ============================================================================
+// Utility Types
+// ============================================================================
+
+export interface UseLocalStorageReturn<T> {
+  value: T
+  setValue: (value: T | ((prev: T) => T)) => void
+  removeValue: () => void
+}
+
+// ============================================================================
 // MCP API Types
 // ============================================================================
 
@@ -138,20 +186,6 @@ export interface CardProps {
 export interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
-}
-
-// ============================================================================
-// Hook Types
-// ============================================================================
-
-export interface UseChatReturn {
-  messages: ChatMessage[]
-  isLoading: boolean
-  error: string | null
-  isTyping: boolean
-  sendMessage: (content: string) => Promise<void>
-  clearMessages: () => void
-  retry: () => Promise<void>
 }
 
 export interface UseLocalStorageReturn<T> {

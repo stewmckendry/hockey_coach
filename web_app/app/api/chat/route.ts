@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { secureHockeyAgent } from '../../../lib/server/hockeyAgent'
+import { secureResponsesAgent } from '../../../lib/server/hockeyAgent'
 
 // Rate limiting storage (in production, use Redis)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
@@ -48,15 +48,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ✅ SECURE: Server-side processing only
-    const result = await secureHockeyAgent.processMessage(
-      body.message,
-      body.conversationHistory || []
-    )
+    // ✅ SIMPLIFIED: Use Responses API with native state management
+    const result = body.previousResponseId 
+      ? await secureResponsesAgent.continueConversation(body.message, body.previousResponseId)
+      : await secureResponsesAgent.startNewConversation(body.message)
 
     return NextResponse.json({
       success: true,
       response: result.response,
+      responseId: result.responseId, // For next conversation turn
       metadata: result.metadata,
       timestamp: new Date().toISOString()
     })
