@@ -69,14 +69,28 @@ export function useChat(): UseChatReturn {
   }, [conversations])
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!activeConversationId) {
-      createNewConversation()
-      // Wait for state to update
-      await new Promise(resolve => setTimeout(resolve, 0))
+    let conversationToUse = getCurrentConversation()
+    
+    if (!activeConversationId || !conversationToUse) {
+      // Create new conversation synchronously and get reference
+      const newThread: ConversationThread = {
+        id: Date.now().toString(),
+        title: content.length > 50 ? content.substring(0, 50) + '...' : content,
+        responseId: '',
+        messages: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      
+      setConversations(prev => [newThread, ...prev])
+      setActiveConversationId(newThread.id)
+      setMessages([])
+      setError(null)
+      
+      conversationToUse = newThread
     }
 
-    const currentConversation = getCurrentConversation()
-    if (!currentConversation) return
+    if (!conversationToUse) return
 
     setIsLoading(true)
     setError(null)
@@ -98,13 +112,23 @@ export function useChat(): UseChatReturn {
     const newMessages = [...messages, userMessage]
     setMessages(newMessages)
     
-    // Update thread title if this is the first message
-    if (newMessages.length === 1) {
+    // Update thread title if this is the first message (only if not already set during creation)
+    if (newMessages.length === 1 && conversationToUse.title === 'New Conversation') {
       const title = content.length > 50 ? content.substring(0, 50) + '...' : content
-      updateConversation(currentConversation.id, { title })
+      updateConversation(conversationToUse.id, { title })
     }
 
     try {
+      // Get the most current responseId from the conversation
+      const currentConversation = getCurrentConversation() || conversationToUse
+      const previousResponseId = currentConversation.responseId || null
+      
+      console.log('🔗 Sending message with context:', {
+        conversationId: currentConversation.id,
+        previousResponseId,
+        messageLength: content.length
+      })
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -112,7 +136,7 @@ export function useChat(): UseChatReturn {
         },
         body: JSON.stringify({
           message: content,
-          previousResponseId: currentConversation.responseId || null
+          previousResponseId
         }),
         signal: abortControllerRef.current.signal,
       })
@@ -134,8 +158,10 @@ export function useChat(): UseChatReturn {
       const finalMessages = [...newMessages, assistantMessage]
       setMessages(finalMessages)
       
+      console.log('💾 Updating conversation with responseId:', data.responseId)
+      
       // Update thread with new messages and response metadata
-      updateConversation(currentConversation.id, {
+      updateConversation(conversationToUse.id, {
         messages: finalMessages,
         responseId: data.responseId || ''
       })
@@ -152,7 +178,7 @@ export function useChat(): UseChatReturn {
       setIsLoading(false)
       abortControllerRef.current = null
     }
-  }, [messages, activeConversationId, getCurrentConversation, createNewConversation, updateConversation])
+  }, [messages, activeConversationId, getCurrentConversation, updateConversation, setConversations])
 
   const clearMessages = useCallback(() => {
     setMessages([])

@@ -130,14 +130,12 @@ export class SecureResponsesAgent {
     console.log('Response content items:', response.content?.length || 0)
     console.log('Raw response:', JSON.stringify(response, null, 2))
 
-    // Extract tool calls and final message content
-    const toolCalls = response.content?.filter((item: any) => item.type === 'mcp_call') || []
+    // Extract tool calls and final message content from OpenAI Responses API format
+    const toolCalls = response.output?.filter((item: any) => item.type === 'mcp_call') || []
     const toolsUsed = toolCalls.map((call: any) => call.name || 'unknown_tool')
     
-    const finalMessage = response.content
-      ?.filter((item: any) => item.type === 'text')
-      ?.map((item: any) => item.text)
-      ?.join('') || 'I apologize, but I encountered an issue processing your request.'
+    // OpenAI Responses API provides the final text in output_text field
+    const finalMessage = response.output_text || 'I apologize, but I encountered an issue processing your request.'
 
     console.log('🛠️ Tools used:', toolsUsed)
     console.log('Final message:', finalMessage)
