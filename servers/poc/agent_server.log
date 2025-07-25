@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/Users/liammckendry/thunder_playbook/servers/poc/agent_http_server.py", line 99, in <module>
+    main()
+  File "/Users/liammckendry/thunder_playbook/servers/poc/agent_http_server.py", line 88, in main
+    server = HTTPServer(('localhost', port), AgentHandler)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/liammckendry/.pyenv/versions/3.11.8/lib/python3.11/socketserver.py", line 456, in __init__
+    self.server_bind()
+  File "/Users/liammckendry/.pyenv/versions/3.11.8/lib/python3.11/http/server.py", line 136, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/Users/liammckendry/.pyenv/versions/3.11.8/lib/python3.11/socketserver.py", line 472, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 48] Address already in use

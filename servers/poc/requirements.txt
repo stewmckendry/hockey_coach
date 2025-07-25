@@ -1,0 +1,5 @@
+# POC Requirements for OpenAI Agents SDK Testing
+# Create separate requirements for POC to keep isolated from production
+
+openai-agents>=0.2.3
+python-dotenv>=1.0.0
