@@ -10,6 +10,11 @@ export function useChat(): UseChatReturn {
   const [error, setError] = useState<string | null>(null)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   
+  // Track the current conversation's responseId for immediate access
+  const currentResponseIdRef = useRef<string | null>(null)
+  // Track the current conversation for immediate access (avoids React state timing issues)
+  const currentConversationRef = useRef<ConversationThread | null>(null)
+  
   // Persistent conversation storage with date handling
   const { 
     value: rawConversations, 
@@ -30,6 +35,10 @@ export function useChat(): UseChatReturn {
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const getCurrentConversation = useCallback(() => {
+    // First try the ref for immediate access, then fall back to state
+    if (currentConversationRef.current && currentConversationRef.current.id === activeConversationId) {
+      return currentConversationRef.current
+    }
     return conversations.find(c => c.id === activeConversationId) || null
   }, [conversations, activeConversationId])
 
@@ -65,13 +74,26 @@ export function useChat(): UseChatReturn {
       setActiveConversationId(conversationId)
       setMessages(conversation.messages)
       setError(null)
+      // Update both refs when switching conversations
+      currentResponseIdRef.current = conversation.responseId || null
+      currentConversationRef.current = conversation
     }
   }, [conversations])
 
   const sendMessage = useCallback(async (content: string) => {
     let conversationToUse = getCurrentConversation()
     
+    console.log('🔍 Conversation state check:', {
+      activeConversationId,
+      conversationToUse: conversationToUse?.id,
+      conversationExists: !!conversationToUse,
+      totalConversations: conversations.length,
+      conversationIds: conversations.map(c => c.id),
+      lookingFor: activeConversationId
+    })
+    
     if (!activeConversationId || !conversationToUse) {
+      console.log('🆕 Creating new conversation')
       // Create new conversation synchronously and get reference
       const newThread: ConversationThread = {
         id: Date.now().toString(),
@@ -88,6 +110,13 @@ export function useChat(): UseChatReturn {
       setError(null)
       
       conversationToUse = newThread
+      // Reset refs for new conversation
+      currentResponseIdRef.current = null
+      currentConversationRef.current = newThread
+    } else {
+      console.log('✅ Using existing conversation:', conversationToUse.id)
+      // Update the conversation ref to ensure it has latest data
+      currentConversationRef.current = conversationToUse
     }
 
     if (!conversationToUse) return
@@ -119,14 +148,14 @@ export function useChat(): UseChatReturn {
     }
 
     try {
-      // Get the most current responseId from the conversation
-      const currentConversation = getCurrentConversation() || conversationToUse
-      const previousResponseId = currentConversation.responseId || null
+      // Use the ref for immediate access to the current responseId
+      const previousResponseId = currentResponseIdRef.current
       
       console.log('🔗 Sending message with context:', {
-        conversationId: currentConversation.id,
+        conversationId: conversationToUse.id,
         previousResponseId,
-        messageLength: content.length
+        messageLength: content.length,
+        fromRef: true
       })
       
       const response = await fetch('/api/chat', {
@@ -160,11 +189,26 @@ export function useChat(): UseChatReturn {
       
       console.log('💾 Updating conversation with responseId:', data.responseId)
       
+      // Update the ref immediately for next API call
+      currentResponseIdRef.current = data.responseId || null
+      
+      // Update the conversation ref with the latest data
+      if (currentConversationRef.current) {
+        currentConversationRef.current.responseId = data.responseId || ''
+        currentConversationRef.current.messages = finalMessages
+      }
+      
       // Update thread with new messages and response metadata
-      updateConversation(conversationToUse.id, {
+      const updatedConversation = {
         messages: finalMessages,
         responseId: data.responseId || ''
-      })
+      }
+      
+      updateConversation(conversationToUse.id, updatedConversation)
+      
+      // Also update the local reference so the next message has access to the responseId
+      conversationToUse.responseId = data.responseId || ''
+      conversationToUse.messages = finalMessages
 
     } catch (error: any) {
       if (error.name === 'AbortError') {
