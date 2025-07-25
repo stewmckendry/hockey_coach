@@ -21,10 +21,11 @@ The Hockey Coach AI Assistant is a hybrid MCP + Responses API platform that prov
 - ✅ **API Integration**: Established communication between web app and agent
 - ✅ **Testing Framework**: Comprehensive test suite for agent validation
 
-### Task 1.3: Native MCP Tool Integration with Logging
+### Task 1.3: Native MCP Tool Integration with Logging + Tracing
 - ✅ **Native MCP Integration**: Using `MCPServerStreamableHttp` with OpenAI Agents SDK
 - ✅ **Tool Call Detection**: Real-time monitoring using SDK's native `result.new_items` capability
 - ✅ **Comprehensive Logging**: Detailed tool usage tracking with metadata
+- ✅ **OpenAI Trace Integration**: Automatic trace recording in OpenAI developer dashboard
 - ✅ **Web API Resolution**: HTTP server approach eliminates subprocess conflicts
 - ✅ **Production-Ready**: Complete end-to-end web integration
 
@@ -169,6 +170,80 @@ Content-Type: application/json
 - **Health Monitoring**: Implements basic health checks and logging
 - **Load Balancing**: Multiple instances can run on different ports
 - **Security**: Currently accepts all origins (development only)
+
+#### 4. OpenAI Tracing Integration (`agents.trace`)
+
+**Purpose & Benefits:**
+The POC now includes OpenAI Agents SDK native tracing functionality, providing comprehensive visibility into agent operations through the OpenAI developer dashboard at `https://platform.openai.com/logs?api=traces`.
+
+**What It Captures:**
+- **Complete Workflow Traces**: End-to-end agent runs with timing information
+- **Tool Call Details**: Each MCP tool invocation with parameters and responses
+- **LLM Generation Steps**: All OpenAI API calls with token usage
+- **Custom Metadata**: Query analysis, agent type, and MCP server information
+- **Session Grouping**: Related traces grouped by conversation or user session
+
+**Implementation Details:**
+```python
+# Generate trace ID for dashboard URL logging
+trace_id = gen_trace_id()
+
+# Use OpenAI Agents SDK trace for dashboard visibility
+with trace(
+    workflow_name="Hockey Coaching Agent", 
+    trace_id=trace_id,
+    group_id=group_id,  # Optional session grouping
+    metadata={
+        "query_length": str(len(message)),
+        "query_preview": message[:100],
+        "agent_type": "hockey_coaching_mcp_agent",
+        "mcp_server": "localhost:8000"
+    }
+):
+    result = await Runner.run(self.agent, message)
+```
+
+**Dashboard Access:**
+Each agent run logs a direct URL to view the trace:
+```
+🔍 View trace in OpenAI Dashboard: https://platform.openai.com/logs/trace?trace_id=trace_d39fff628b96441dbfb3ce2bda9504d2
+```
+
+**How to Use Trace Features:**
+
+1. **Performance Analysis:**
+   - Monitor response times for different query types
+   - Identify bottlenecks in MCP tool calls vs LLM generation
+   - Track token usage patterns across hockey coaching scenarios
+
+2. **Debugging:**
+   - View exact tool parameters and responses
+   - Trace error paths and failure points
+   - Analyze conversation flows and handoffs
+
+3. **Quality Assurance:**
+   - Review tool selection accuracy (right tools for right queries)
+   - Validate MCP server responses against expected hockey knowledge
+   - Monitor consistency across similar queries
+
+4. **Session Analysis:**
+   - Group related queries using `group_id` parameter
+   - Track user journey through coaching conversations
+   - Analyze multi-turn coaching interactions
+
+5. **Production Monitoring:**
+   - Set up alerts for failed traces or long execution times
+   - Monitor tool usage patterns for capacity planning
+   - Track user satisfaction through trace completion rates
+
+**Request Format with Tracing:**
+```json
+POST http://localhost:8002
+{
+  "message": "What are good U10 skating drills?",
+  "group_id": "coaching-session-123"  // Optional for trace grouping
+}
+```
 
 #### 4. Web API Integration (`web_app/app/api/agent-test/route.ts`)
 ```typescript
@@ -403,17 +478,23 @@ asyncio.run(test())
    - Check POST request to `/api/agent-test`
    - Response should show hockey-specific advice
 
-5. **Check Server Logs for Tool Usage**
+5. **Check Server Logs for Tool Usage and Tracing**
    ```bash
    # In terminal, monitor agent HTTP server logs
    tail -f agent_server.log
    
-   # Or check console output if server running in foreground
-   # Look for logging output like:
+   # Look for comprehensive logging output like:
    # 🔧 MCP TOOLS USED - Query: 'What are good U10 skating drills?...'
    #    📊 Response: 1192 chars | Tool calls: 1
    #    🛠️  Tools: search_hockey_knowledge
+   # 🔍 View trace in OpenAI Dashboard: https://platform.openai.com/logs/trace?trace_id=trace_abc123...
    ```
+
+6. **View Traces in OpenAI Developer Dashboard**
+   - Copy the trace URL from the server logs
+   - Open in browser to see detailed trace visualization
+   - Analyze tool calls, timing, and token usage
+   - Review conversation flows and debugging information
 
 **Expected Browser Behavior:**
 - Fast response times (5-15 seconds)
@@ -460,22 +541,22 @@ curl http://localhost:3000             # Web app
 
 ### POC Directory (`servers/poc/`)
 
-#### Core Agents
-- `poc_agents/native_mcp_agent.py`: Basic MCP integration
-- `poc_agents/web_native_mcp_agent.py`: Web-optimized with comprehensive logging
-- `poc_agents/basic_test_agent.py`: Simple test agent (Task 1.1)
-
-#### API Infrastructure
-- `agent_http_server.py`: HTTP server for web integration (port 8002)
-- `api_runner_native_mcp.py`: Direct API runner
-- `api_runner_sync.py`: Synchronous subprocess approach (deprecated)
-- `api_runner_web_safe.py`: Async-safe subprocess approach (deprecated)
+#### Core Production Components
+- `agent_http_server.py`: **HTTP server for web integration (port 8002)** - Primary production component
+- `poc_agents/web_native_mcp_agent.py`: **Web-optimized agent with comprehensive tool logging** - Main agent implementation
+- `poc_agents/native_mcp_agent.py`: **Basic MCP integration agent** - Core agent functionality
 
 #### Testing & Validation
-- `test_mcp_connection.py`: MCP server connection validation
-- `test_agent_cli.py`: CLI agent testing
-- `test_api_integration.py`: API integration testing
-- `validate_agent_setup.py`: Environment validation
+- `test_mcp_connection.py`: **MCP server connection validation** - Verifies MCP server connectivity
+- `test_agent_cli.py`: **CLI agent testing** - Direct agent testing interface
+- `test_api_integration.py`: **API integration testing** - End-to-end testing
+- `validate_agent_setup.py`: **Environment validation** - Setup verification
+
+#### Support Files
+- `requirements.txt`: Python dependencies for POC components
+- `agent_server.log`: HTTP server log output (generated at runtime)
+
+**Note**: Deprecated files (api_runner_*.py, debug files, basic_test_agent.py) have been removed to maintain clean architecture. The current implementation uses the HTTP server approach exclusively.
 
 ### Web App Integration (`web_app/app/api/agent-test/`)
 - `route.ts`: HTTP endpoint for agent communication

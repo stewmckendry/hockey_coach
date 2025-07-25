@@ -4,7 +4,7 @@ Web-optimized hockey agent with native MCP integration and native SDK tool loggi
 
 import asyncio
 import logging
-from agents import Agent, Runner
+from agents import Agent, Runner, trace, gen_trace_id
 from agents.mcp import MCPServerStreamableHttp, MCPServerStreamableHttpParams
 import json
 import os
@@ -181,30 +181,53 @@ class WebNativeMCPAgent:
             logger.info(f"💬 NO TOOLS USED - Query: '{query[:50]}...'")
             logger.info(f"   📊 Response: {response_length} chars | Conversational response")
     
-    async def run(self, message: str) -> str:
-        """Run the agent with comprehensive tool usage logging"""
+    async def run(self, message: str, group_id: str = None) -> str:
+        """Run the agent with comprehensive tool usage logging and OpenAI tracing"""
         if not self.agent:
             return "Agent not initialized. Please connect first."
         
         logger.info(f"📝 Processing user query: '{message[:100]}{'...' if len(message) > 100 else ''}'")
         
-        try:
-            # Run the agent
-            logger.info("🤖 Running agent with MCP tools...")
-            result = await Runner.run(self.agent, message)
-            
-            # Analyze tool usage using native SDK capabilities
-            analysis = self.analyze_tool_usage(message, result)
-            
-            # Log the analysis
-            self.log_tool_usage(analysis)
-            
-            logger.info(f"✅ Agent response generated successfully")
-            return result.final_output
-            
-        except Exception as e:
-            logger.error(f"❌ Error running web MCP agent: {e}")
-            return f"I apologize, but I'm having trouble accessing my hockey knowledge right now. Please try again."
+        # Create trace metadata based on query analysis
+        # Note: OpenAI tracing API requires all metadata values to be strings
+        trace_metadata = {
+            "query_length": str(len(message)),
+            "query_preview": message[:100],
+            "agent_type": "hockey_coaching_mcp_agent",
+            "mcp_server": "localhost:8000"
+        }
+        
+        # Generate trace ID for dashboard URL logging
+        trace_id = gen_trace_id()
+        
+        # Use OpenAI Agents SDK trace for dashboard visibility
+        with trace(
+            workflow_name="Hockey Coaching Agent", 
+            trace_id=trace_id,
+            group_id=group_id,
+            metadata=trace_metadata
+        ):
+            try:
+                # Run the agent within trace context
+                logger.info("🤖 Running agent with MCP tools (with tracing)...")
+                result = await Runner.run(self.agent, message)
+                
+                # Analyze tool usage using native SDK capabilities
+                analysis = self.analyze_tool_usage(message, result)
+                
+                # Log the analysis
+                self.log_tool_usage(analysis)
+                
+                # Log trace URL for developer access
+                trace_url = f"https://platform.openai.com/logs/trace?trace_id={trace_id}"
+                logger.info(f"🔍 View trace in OpenAI Dashboard: {trace_url}")
+                
+                logger.info(f"✅ Agent response generated successfully (trace recorded)")
+                return result.final_output
+                
+            except Exception as e:
+                logger.error(f"❌ Error running web MCP agent: {e}")
+                return f"I apologize, but I'm having trouble accessing my hockey knowledge right now. Please try again."
 
 # Factory function for easy use
 async def create_web_native_mcp_agent():
@@ -217,15 +240,22 @@ async def create_web_native_mcp_agent():
         raise Exception("Failed to create web MCP agent")
 
 # API runner function
-async def run_web_mcp_agent_with_logging(message: str) -> str:
+async def run_web_mcp_agent_with_logging(message: str, group_id: str = None) -> str:
     """
-    Run the web MCP agent with comprehensive logging.
+    Run the web MCP agent with comprehensive logging and OpenAI tracing.
     
     This function handles the complete lifecycle:
     1. Create and connect agent
-    2. Process query with tool logging
+    2. Process query with tool logging and tracing
     3. Clean up connections
     4. Return response
+    
+    Args:
+        message: User query for the hockey coaching agent
+        group_id: Optional group ID to link related traces (e.g., session ID)
+    
+    Returns:
+        Hockey coaching response with trace recorded in OpenAI dashboard
     """
     agent = None
     
@@ -233,8 +263,8 @@ async def run_web_mcp_agent_with_logging(message: str) -> str:
         # Create connected agent
         agent = await create_web_native_mcp_agent()
         
-        # Run with logging
-        response = await agent.run(message)
+        # Run with logging and tracing
+        response = await agent.run(message, group_id=group_id)
         return response
         
     except Exception as e:

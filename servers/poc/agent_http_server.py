@@ -29,17 +29,20 @@ class AgentHandler(BaseHTTPRequestHandler):
             # Parse JSON
             data = json.loads(post_data.decode('utf-8'))
             message = data.get('message', '')
+            group_id = data.get('group_id', None)  # Optional session/conversation ID for trace grouping
             
             logger.info(f"Received message: {message}")
+            if group_id:
+                logger.info(f"Group ID for trace grouping: {group_id}")
             
             # Import and run agent
             from poc_agents.web_native_mcp_agent import run_web_mcp_agent_with_logging
             
-            # Run the agent
+            # Run the agent with tracing
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                response = loop.run_until_complete(run_web_mcp_agent_with_logging(message))
+                response = loop.run_until_complete(run_web_mcp_agent_with_logging(message, group_id=group_id))
                 
                 # Send response
                 self.send_response(200)

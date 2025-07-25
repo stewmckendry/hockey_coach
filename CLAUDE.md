@@ -127,3 +127,164 @@ curl http://localhost:8000/health     # MCP Server
 curl http://localhost:3003/api/mcp    # Direct API  
 curl http://localhost:3000            # Web App
 ```
+
+## Testing Patterns
+
+### MCP Server Testing
+```bash
+# Test MCP connection and tools
+cd servers/poc
+/Users/liammckendry/spacy_env/bin/python test_mcp_connection.py
+
+# Test agent directly
+/Users/liammckendry/spacy_env/bin/python test_agent_cli.py
+```
+
+### Web Integration Testing
+```bash
+# Test agent HTTP server
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"message":"What are good U10 skating drills?","group_id":"test-session"}' \
+  http://localhost:8002
+
+# Test complete web API
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"message":"Create a practice plan for U12 passing"}' \
+  http://localhost:3000/api/agent-test
+```
+
+### Trace Validation
+```bash
+# Direct agent test with trace logging
+/Users/liammckendry/spacy_env/bin/python -c "
+import asyncio
+from servers.poc.poc_agents.web_native_mcp_agent import run_web_mcp_agent_with_logging
+
+async def test():
+    response = await run_web_mcp_agent_with_logging('Test query', group_id='validation-test')
+    print('Response received')
+
+asyncio.run(test())
+"
+
+# Check trace URL in logs and verify in OpenAI dashboard
+```
+
+## Code Style Guidelines
+
+### Python
+- **Formatting**: Use existing patterns, prefer Black-style formatting
+- **Type Hints**: Add type hints for function parameters and returns
+- **Error Handling**: Use try/except with specific logging
+- **Imports**: Group by standard library, third-party, local
+- **Logging**: Use module-level loggers with descriptive messages
+
+```python
+# Good example
+import logging
+from typing import Optional
+
+logger = logging.getLogger(__name__)
+
+async def process_query(message: str, group_id: Optional[str] = None) -> str:
+    """Process hockey coaching query with optional session grouping."""
+    try:
+        # Implementation
+        logger.info(f"Processing query: {message[:50]}...")
+        return result
+    except Exception as e:
+        logger.error(f"Error processing query: {e}")
+        raise
+```
+
+### TypeScript
+- **Formatting**: Use Prettier defaults
+- **Strict Mode**: Enable strict TypeScript checking
+- **Interfaces**: Define clear interfaces for API contracts
+- **Error Handling**: Use proper error types and handling
+
+```typescript
+// Good example
+interface AgentRequest {
+  message: string;
+  group_id?: string;
+}
+
+interface AgentResponse {
+  response: string;
+  timestamp: string;
+  processingTime: number;
+}
+```
+
+## Visual Validation
+
+### Screenshot Locations
+- Web interface changes: `docs/screenshots/`
+- Before/after comparisons for UI updates
+- Responsive behavior validation
+
+### Testing Checklist
+- [ ] Desktop view (1920x1080)
+- [ ] Mobile view (375x667)
+- [ ] Chat interface functionality
+- [ ] Error state displays
+- [ ] Loading indicators
+
+### Browser Compatibility
+- Chrome (primary)
+- Firefox
+- Safari (if available)
+
+## Development Workflow: Explore-Plan-Code-Commit
+
+### 1. Explore Phase
+```bash
+# Read relevant files first
+# Use Read, Glob, Grep tools to understand scope
+# Check existing patterns and conventions
+```
+
+### 2. Plan Phase
+- Create explicit implementation plan
+- Identify dependencies and risks
+- Define success criteria
+- Set course correction checkpoints
+
+### 3. Code Phase
+- Implement incrementally
+- Test at each stage
+- Use TodoWrite for progress tracking
+- Take screenshots for UI changes
+
+### 4. Commit Phase
+- Run linting and type checking
+- Verify all tests pass
+- Create descriptive commit messages
+- Update documentation as needed
+
+## Course Correction Checkpoints
+
+For complex tasks, pause at these moments:
+1. **After exploration**: "Does the scope and approach look right?"
+2. **Mid-implementation**: "Are we on the right track technically?"
+3. **Before finalization**: "Does this meet the requirements?"
+
+## Pre-Commit Checklist
+
+### Web App
+```bash
+cd web_app
+npm run lint           # ESLint
+npm run type-check     # TypeScript
+npm run build          # Production build test
+```
+
+### Python Components
+```bash
+# Run relevant tests
+python -m pytest tests/test_specific_component.py
+
+# Check MCP server health
+curl http://localhost:8000/health
+```
