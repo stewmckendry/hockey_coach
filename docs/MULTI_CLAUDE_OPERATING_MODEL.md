@@ -961,35 +961,61 @@ Claude Code sub-agents are specialized AI assistants that handle specific aspect
 
 ### **Quality Assurance Sub-Agents**
 
-#### **5. Reviewer Agent**
-**Command**: `/agents create reviewer-agent`  
-**Role**: Code Review & Quality Specialist  
+#### **5. Tester Agent**
+**Command**: `@tester-agent`  
+**Role**: Testing & Validation Specialist  
 **Responsibilities**:
-- Cross-task code review and quality assessment
-- Integration conflict detection
-- Performance and security analysis
-- Code convention compliance
+- Comprehensive testing strategy and implementation
+- Unit, integration, and system testing
+- Performance validation and benchmarking
+- Test automation and quality assurance
 
-**Usage in Workflow**: Pre-integration review and peer review between tasks
+**Usage in Workflow**: Testing phase across all development tasks
 
 ---
 
-#### **6. Tester Agent**
-**Command**: `/agents create tester-agent`  
-**Role**: Testing & Validation Specialist  
+#### **6. Reviewer Agent**
+**Command**: `@reviewer-agent`  
+**Role**: Code Review & Quality Specialist  
 **Responsibilities**:
-- Comprehensive testing strategy execution
-- Integration testing coordination
-- Performance validation
-- User acceptance testing simulation
+- Code quality assessment and security validation
+- Integration compatibility analysis
+- Standards compliance verification
+- Performance and maintainability review
 
-**Usage in Workflow**: Post-build validation and integration testing
+**Usage in Workflow**: Pre-integration review and quality gates
+
+---
+
+#### **7. Debug Agent**
+**Command**: `@debug-agent`  
+**Role**: Troubleshooting & Problem Resolution Specialist  
+**Responsibilities**:
+- Systematic problem diagnosis and root cause analysis
+- Issue resolution and system debugging
+- Performance troubleshooting and optimization
+- Error pattern analysis and prevention
+
+**Usage in Workflow**: Problem resolution across all development phases
+
+---
+
+#### **8. UX Specialist Agent**
+**Command**: `@ux-specialist`  
+**Role**: User Experience & Interface Design Specialist  
+**Responsibilities**:
+- User journey optimization and conversation design
+- Interface design and accessibility validation
+- User workflow analysis and improvement
+- Coaching-specific UX research and implementation
+
+**Usage in Workflow**: UX validation and user experience optimization
 
 ---
 
 ### **Coordination Sub-Agents**
 
-#### **7. Integrator Agent**
+#### **9. Integrator Agent**
 **Command**: `/agents create integrator-agent`  
 **Role**: Integration & Deployment Specialist  
 **Responsibilities**:
