@@ -899,4 +899,248 @@ This Git worktree approach provides the perfect foundation for our multi-Claude 
 
 ---
 
-*This operating model transforms our development approach from sequential to parallel, leveraging multiple Claude Code instances for maximum productivity while maintaining code quality and project coherence through automated communication protocols and Git worktree management.*
+## 🤖 Sub-Agent Architecture (Advanced Development Workflow)
+
+### **Overview**
+Claude Code sub-agents are specialized AI assistants that handle specific aspects of development. They operate in separate context windows with custom system prompts and tool permissions, enabling sophisticated parallel processing with domain expertise.
+
+### **Core Development Sub-Agents**
+
+#### **1. Explorer Agent**
+**Command**: `/agents create explorer-agent`  
+**Role**: Exploration & Research Specialist  
+**Responsibilities**:
+- Deep codebase analysis and pattern recognition
+- User journey mapping and UX design research
+- Technical architecture investigation
+- Requirements analysis and scope definition
+
+**Usage in Workflow**: Replaces generic "Explore" phase with specialized research
+
+---
+
+#### **2. SDK Specialist Agent**
+**Command**: `/agents create sdk-specialist`  
+**Role**: SDK Research & Native Library Expert  
+**Responsibilities**:
+- Research SDK documentation and best practices
+- Identify native library capabilities vs custom implementations
+- Ensure proper SDK usage patterns and conventions
+- Validate against SDK updates and deprecations
+- Recommend native solutions over custom code
+
+**Usage in Workflow**: Works alongside Explorer Agent to ensure native library usage
+
+---
+
+#### **3. Architect Agent**
+**Command**: `/agents create architect-agent`  
+**Role**: Technical Design & Planning Specialist  
+**Responsibilities**:
+- Convert research into concrete technical plans
+- Design system integration approaches
+- Plan testing strategies and validation approaches
+- Create detailed implementation roadmaps
+
+**Usage in Workflow**: Replaces generic "Plan" phase with specialized architecture
+
+---
+
+#### **4. Builder Agent**
+**Command**: `/agents create builder-agent`  
+**Role**: Implementation Specialist  
+**Responsibilities**:
+- Execute technical plans with high code quality
+- Follow established patterns and conventions
+- Implement comprehensive testing
+- Focus purely on building, not designing
+
+**Usage in Workflow**: Handles "Build" phase with implementation focus
+
+---
+
+### **Quality Assurance Sub-Agents**
+
+#### **5. Reviewer Agent**
+**Command**: `/agents create reviewer-agent`  
+**Role**: Code Review & Quality Specialist  
+**Responsibilities**:
+- Cross-task code review and quality assessment
+- Integration conflict detection
+- Performance and security analysis
+- Code convention compliance
+
+**Usage in Workflow**: Pre-integration review and peer review between tasks
+
+---
+
+#### **6. Tester Agent**
+**Command**: `/agents create tester-agent`  
+**Role**: Testing & Validation Specialist  
+**Responsibilities**:
+- Comprehensive testing strategy execution
+- Integration testing coordination
+- Performance validation
+- User acceptance testing simulation
+
+**Usage in Workflow**: Post-build validation and integration testing
+
+---
+
+### **Coordination Sub-Agents**
+
+#### **7. Integrator Agent**
+**Command**: `/agents create integrator-agent`  
+**Role**: Integration & Deployment Specialist  
+**Responsibilities**:
+- Manage complex multi-task integrations
+- Coordinate dependency resolution
+- Handle merge conflicts and integration issues
+- Manage deployment and rollback procedures
+
+**Usage in Workflow**: Replaces manual Planning Claude integration tasks
+
+---
+
+### **Enhanced Parallel Workflow with Sub-Agents**
+
+#### **Task Execution Pipeline**
+```
+Task X.Y: Feature Implementation
+├── explorer-agent: Research patterns and requirements
+├── sdk-specialist: Validate SDK usage and native libraries
+├── architect-agent: Design implementation approach  
+├── builder-agent: Implement the solution
+├── reviewer-agent: Quality and integration review
+└── tester-agent: Comprehensive validation
+
+Cross-Task Coordination:
+├── integrator-agent: Manage dependencies between tasks
+└── reviewer-agent: Cross-task review for conflicts
+```
+
+#### **Communication Flow**
+1. **Sub-agents** → **Scratchpads**: Each agent updates task scratchpad with findings
+2. **Scratchpads** → **Human/Planning Claude**: Consolidated progress and decisions
+3. **Human** → **Sub-agents**: Feedback and approvals through scratchpad updates
+
+#### **Parallel Execution Benefits**
+- **Specialization**: Each agent optimized for specific expertise
+- **Context Preservation**: Separate contexts prevent interference
+- **Efficiency**: Multiple specialists working simultaneously
+- **Quality**: Dedicated review and testing phases
+
+---
+
+### **Sub-Agent Implementation Strategy**
+
+#### **Phase 1: Core Pipeline**
+```bash
+/agents create explorer-agent
+/agents create sdk-specialist
+/agents create architect-agent  
+/agents create builder-agent
+```
+
+#### **Phase 2: Quality Assurance**
+```bash
+/agents create reviewer-agent
+/agents create tester-agent
+/agents create integrator-agent
+```
+
+#### **Phase 3: Domain Specialists** (Future)
+```bash
+/agents create hockey-domain-expert
+/agents create ui-specialist
+/agents create performance-optimizer
+```
+
+---
+
+### **Sub-Agent Task Assignment Template**
+
+```markdown
+# Task X.Y: [Feature Name]
+
+## Sub-Agent Assignments:
+
+### Phase 1: Research (Parallel)
+- **explorer-agent**: Analyze existing patterns and requirements
+- **sdk-specialist**: Research SDK capabilities and native solutions
+
+### Phase 2: Design (Sequential)
+- **architect-agent**: Create technical implementation plan
+
+### Phase 3: Implementation (Sequential)
+- **builder-agent**: Execute implementation following plan
+
+### Phase 4: Quality (Parallel)
+- **reviewer-agent**: Code quality and integration review
+- **tester-agent**: Functional and integration testing
+
+### Phase 5: Integration (Sequential)
+- **integrator-agent**: Merge and deploy changes
+```
+
+---
+
+### **Sub-Agent System Prompts**
+
+#### **Explorer Agent**
+```
+You are an expert code explorer and researcher. Your job is to thoroughly understand existing systems, identify patterns, and research best practices. You excel at reading documentation, analyzing code architecture, and synthesizing research into actionable insights. Always provide concrete findings with code references.
+```
+
+#### **SDK Specialist Agent**
+```
+You are an SDK and native library specialist. Your primary responsibility is ensuring all development uses native SDK capabilities instead of custom implementations. You research official documentation, identify built-in solutions, and prevent unnecessary customization. Always recommend the most native, maintainable approach using existing library features.
+```
+
+#### **Architect Agent**
+```
+You are a senior software architect who excels at converting research into executable technical plans. You understand system design, integration patterns, and can break complex features into implementable steps. Your plans are detailed, practical, and consider long-term maintainability.
+```
+
+#### **Builder Agent**
+```
+You are an expert software engineer focused on clean, efficient implementation. You excel at following technical specifications, writing maintainable code, and implementing comprehensive testing. You strictly follow established patterns and avoid architectural decisions during implementation.
+```
+
+#### **Reviewer Agent**
+```
+You are a senior code reviewer with expertise in system integration. You excel at identifying potential issues, ensuring code quality, and validating that implementations meet specifications. You check for security, performance, and integration concerns across multiple components.
+```
+
+#### **Tester Agent**
+```
+You are a QA specialist focused on comprehensive testing and validation. You excel at creating test scenarios, validating functionality, and ensuring system reliability. You test both individual components and integrated systems thoroughly.
+```
+
+#### **Integrator Agent**
+```
+You are an expert in system integration and deployment. You excel at coordinating complex multi-component integrations, resolving conflicts, and ensuring smooth system evolution. You understand dependencies, manage git operations, and ensure quality gates are met.
+```
+
+---
+
+### **Expected Impact of Sub-Agent Architecture**
+
+**Quality Improvements**:
+- 40% reduction in custom code through SDK specialist guidance
+- 60% improvement in code review coverage
+- 80% reduction in integration conflicts
+
+**Efficiency Gains**:
+- 3x parallel processing through specialized agents
+- 50% reduction in context switching overhead
+- 70% faster issue identification and resolution
+
+**Development Velocity**:
+- Complete feature implementation in 1-2 days vs 3-5 days
+- Parallel research and review phases
+- Automated integration and deployment
+
+---
+
+*This operating model transforms our development approach from sequential to parallel, leveraging multiple Claude Code instances for maximum productivity while maintaining code quality and project coherence through automated communication protocols, Git worktree management, and specialized sub-agent architecture.*
