@@ -1,0 +1,35 @@
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/auth/identity "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
+INFO:__main__:🚀 Starting Hockey MCP Server...
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/auth/identity "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
+INFO:__main__:✅ ChromaDB connected - 1 collections available
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/0ed203d7-f978-4d59-a7c7-a719a738ad43/count "HTTP/1.1 200 OK"
+INFO:__main__:✅ OpenAI client initialized
+INFO:__main__:🏒 Hockey MCP Server ready for coaching!
+INFO:__main__:🔧 FastMCP Configuration: stateless_http=True
+INFO:__main__:🎯 This should prevent OpenAI session termination issues
+INFO:__main__:🚀 Transport mode: dual
+INFO:__main__:   → Starting Streamable-HTTP transport: http://0.0.0.0:8000
+INFO:__main__:   → This is the preferred transport for OpenAI Responses API
+INFO:__main__:   → Session termination issue may be related to OpenAI timeout, not transport
+WARNING:  ASGI app factory detected. Using it, but please consider setting the --factory flag explicitly.
+INFO:     Started server process [90151]
+INFO:     Waiting for application startup.
+INFO:mcp.server.streamable_http_manager:StreamableHTTP session manager started
+INFO:     Application startup complete.
+ERROR:    [Errno 48] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+INFO:     Waiting for application shutdown.
+INFO:mcp.server.streamable_http_manager:StreamableHTTP session manager shutting down
+INFO:     Application shutdown complete.
+Connecting to Chroma server at https://chroma-copy-copy-production.up.railway.app:443 with token: True
+Using Chroma client: <chromadb.api.client.Client object at 0x1093d4f10>
+Connecting to Chroma server at https://chroma-copy-copy-production.up.railway.app:443 with token: True

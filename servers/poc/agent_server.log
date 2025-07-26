@@ -27,3 +27,33 @@ ERROR:openai.agents:Error initializing MCP server: Timed out while waiting for r
 ERROR:poc_agents.web_native_mcp_agent:❌ Failed to create web MCP agent: Timed out while waiting for response to ClientRequest. Waited 5.0 seconds.
 WARNING:poc_agents.web_native_mcp_agent:   Agent will work but without hockey knowledge tools
 ERROR:poc_agents.web_native_mcp_agent:❌ Error in web MCP agent runner: Failed to create web MCP agent
+INFO:__main__:Received message: What are good U10 skating drills?
+INFO:poc_agents.web_native_mcp_agent:🚀 Initializing web MCP agent with hockey knowledge...
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp/ "HTTP/1.1 200 OK"
+INFO:mcp.client.streamable_http:Negotiated protocol version: 2025-06-18
+INFO:poc_agents.web_native_mcp_agent:✅ Hockey MCP server connected successfully
+INFO:poc_agents.web_native_mcp_agent:✅ Web MCP agent created with hockey knowledge tools
+INFO:poc_agents.web_native_mcp_agent:📝 Processing user query: 'What are good U10 skating drills?'
+INFO:poc_agents.web_native_mcp_agent:🤖 Running agent with MCP tools (with tracing)...
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp/ "HTTP/1.1 202 Accepted"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp/ "HTTP/1.1 200 OK"
+INFO:openai._base_client:Retrying request to /responses in 0.446546 seconds
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp/ "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:poc_agents.web_native_mcp_agent:🔧 MCP TOOLS USED - Query: 'What are good U10 skating drills?...'
+INFO:poc_agents.web_native_mcp_agent:   📊 Response: 880 chars | Tool calls: 1
+INFO:poc_agents.web_native_mcp_agent:   🛠️  Tools: search_hockey_knowledge
+INFO:poc_agents.web_native_mcp_agent:   └─ Call 1: search_hockey_knowledge (ID: call_K06JQQ6...)
+INFO:poc_agents.web_native_mcp_agent:      Query: 'U10 skating drills'
+INFO:poc_agents.web_native_mcp_agent:      Age groups: ['U10']
+INFO:poc_agents.web_native_mcp_agent:      Content types: ['drill']
+INFO:poc_agents.web_native_mcp_agent:🔍 View trace in OpenAI Dashboard: https://platform.openai.com/logs/trace?trace_id=trace_681e888cef434845bf7caa8e3c61c767
+INFO:poc_agents.web_native_mcp_agent:✅ Agent response generated successfully (trace recorded)
+INFO:poc_agents.web_native_mcp_agent:🧹 MCP server connection cleaned up
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
