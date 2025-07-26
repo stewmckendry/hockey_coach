@@ -346,4 +346,22 @@ This document provides a complete inventory of all slash commands for the Hockey
 
 ---
 
+## Available Sub-Agents
+
+### Phase 1 Development Sub-Agents
+- `explorer-agent`: System analysis and research specialist
+- `sdk-specialist`: Native library expert (prevents custom implementations)
+- `architect-agent`: Technical design and planning specialist
+- `builder-agent`: Implementation and coding specialist
+
+### Phase 2 Quality & Experience Sub-Agents
+- `tester-agent`: Comprehensive testing and validation specialist
+- `reviewer-agent`: Code quality and integration review specialist
+- `debug-agent`: Troubleshooting and problem resolution specialist
+- `ux-specialist`: User experience and interface design specialist
+
+**Usage**: Invoke with `@agent-name` syntax (e.g., `@explorer-agent Please research...`)
+
+---
+
 *This manifest is maintained by the Planning Claude and updated as new commands are implemented and workflows evolve.*
