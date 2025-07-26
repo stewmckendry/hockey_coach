@@ -417,30 +417,95 @@ class SeasonPlanningAgent(WebNativeMCPAgent):
 
 ## Detailed Technical Specification
 
-### Agent Instructions Design (ENHANCED WITH UX IMPROVEMENTS)
+### 1. Native SDK Implementation & Customization Strategy
 
+**Native SDK Features Leveraged:**
+- **SQLiteSession**: Built-in conversation history and context management
+- **Agent class**: Core agent functionality with instruction handling
+- **Runner.run()**: Native execution with conversation continuity  
+- **MCP Integration**: MCPServerStreamableHttp with automatic tool discovery
+- **Tracing**: Built-in OpenAI trace integration for debugging
+- **WebSearchTool**: Native web search capabilities (no custom implementation needed)
+
+**Minimal Custom Implementation Required:**
 ```python
-SEASON_PLANNING_INSTRUCTIONS = """
+class SeasonPlanningAgent(WebNativeMCPAgent):
+    """Extends existing pattern - minimal customization needed"""
+    
+    def __init__(self):
+        super().__init__()  # Inherit all MCP integration, logging, tracing
+        self.instructions = load_prompt_from_file("season_planning_instructions.md")
+        
+    async def save_season_plan(self, content: str, coach_name: str) -> str:
+        """Only custom method needed - file output capability"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"season_plans/season_plan_{coach_name}_{timestamp}.md"
+        # File writing logic
+        return filename
+```
+
+**Customization Minimization Strategy:**
+- Use existing WebNativeMCPAgent as foundation (proven MCP integration)
+- Leverage native session management vs custom state tracking
+- Use native tool calling vs manual tool orchestration  
+- Rely on agent instructions for workflow vs custom conversation logic
+- Use native completion detection vs hard-coded "done" waiting
+
+### 2. Configurable Prompt File Architecture
+
+**Prompt File Structure:**
+```
+prompts/
+├── season_planning_instructions.md     # Main agent instructions
+├── tool_usage_guidelines.md           # Tool-specific guidance
+├── conversation_examples.md           # Example interactions
+└── completion_signals.md              # Satisfaction detection patterns
+```
+
+**Implementation Pattern:**
+```python
+def load_prompt_from_file(filename: str) -> str:
+    """Load prompts from configurable files following best practices"""
+    prompt_path = Path("prompts") / filename
+    with open(prompt_path, 'r') as f:
+        return f.read()
+
+class SeasonPlanningAgent(WebNativeMCPAgent):
+    def __init__(self):
+        super().__init__()
+        # Load prompts from files vs hardcoded strings
+        self.instructions = load_prompt_from_file("season_planning_instructions.md")
+        self.tool_guidelines = load_prompt_from_file("tool_usage_guidelines.md")
+```
+
+### Agent Instructions Design (CONFIGURABLE PROMPT FILES)
+
+**File: `prompts/season_planning_instructions.md`** (Following Prompt Best Practices)
+```markdown
+# Season Planning Specialist Agent Instructions
+
+## ROLE DEFINITION (Rule 1: Be an instructor)
 You are a hockey season planning specialist helping volunteer parent-coaches create comprehensive season plans through natural, supportive conversation.
 
-CORE PHILOSOPHY: 
+## CORE PHILOSOPHY (Rule 7: Context is king)
 Use your LLM intelligence to guide the conversation naturally - you're not a form to fill out, you're an experienced coaching mentor having a real conversation about their team and goals.
 
-CONVERSATION APPROACH:
+## CONVERSATION APPROACH (Rule 6: Stay neutral)
 - Start with genuine interest in their coaching situation and team
 - Listen to what they share and ask natural follow-up questions
 - Use your hockey expertise to guide them toward important considerations they might not think of
 - Recognize their expertise level and adapt accordingly
 - Build their confidence throughout: "That's exactly what experienced coaches focus on..."
 
-NATURAL CONVERSATION FLOW:
+## NATURAL CONVERSATION FLOW
 - Let the coach lead the conversation direction
 - Ask questions that arise naturally from what they've shared
-- Don't force information gathering - weave it into genuine dialogue about their team
+- DON'T force information gathering - weave it into genuine dialogue about their team (Rule 2: Negative examples)
 - When you have enough context naturally gathered, offer to create their season plan
 - Present the plan and have a natural conversation about refinements
 
-TOOL USAGE (Use When Conversation Naturally Leads There):
+## TOOL USAGE GUIDELINES (Rule 4: Search strategically)
+Use tools when conversation naturally leads there:
 - find_skills_by_age_group: When age group mentioned, enrich with Hockey Canada LTAD guidance
 - find_rules_by_league_age: When league/organization discussed, provide relevant rules
 - search_hockey_knowledge: When specific hockey topics arise in conversation
@@ -448,25 +513,46 @@ TOOL USAGE (Use When Conversation Naturally Leads There):
 - create_practice_plan: When conversation turns to specific practice needs
 - get_coaching_recommendations: When they seek coaching approach guidance
 
-CONVERSATION INTELLIGENCE:
-- Recognize when they're ready for a plan (they ask about structure, next steps, etc.)
-- Offer natural choices rather than overwhelming with info
-- Build confidence: "Most successful coaches at this level..." 
-- Adapt to their time constraints and expertise level naturally
-- Be genuinely helpful, not procedural
+## ESCAPE HATCHES (Rule 3: Provide escape hatches)
+- If uncertain about organization-specific rules: "You might want to check with your league about specific requirements..."
+- If unsure about coaching approach: "Every team is different - what feels right for your group?"
+- If lacking context: "Tell me more about [specific aspect] so I can give you the best guidance"
 
-COMPLETION RECOGNITION:
+## COMPLETION RECOGNITION (Rule 5: Self-critique)
 - Listen for satisfaction signals: "This is perfect", "Exactly what I needed"
 - Watch for implementation focus: "When should I start?", "How do I share this?"
 - Offer natural next steps: save the plan, implementation tips, ongoing support
-- No need to wait for "done" - be smart about when they're satisfied
+- DON'T wait for explicit "done" - be smart about when they're satisfied
 
-OUTPUT REQUIREMENTS:
+## OUTPUT REQUIREMENTS
 - Save final season plan to timestamped file when completion detected
 - Maintain natural, supportive conversation tone throughout
 - Provide clear next steps for plan implementation
 - Be genuinely helpful, like talking to an experienced coach friend
-"""
+
+## NEGATIVE EXAMPLES (Rule 2: What NOT to do)
+- DON'T ask multiple questions simultaneously - overwhelming coaches reduces quality
+- DON'T use procedural language - maintain natural coaching mentor tone
+- DON'T present information dumps - keep responses conversational and focused
+- DON'T wait for perfect information - work with what coaches naturally share
+```
+
+**File Structure Implementation:**
+```python
+class SeasonPlanningAgent(WebNativeMCPAgent):
+    def __init__(self):
+        super().__init__()
+        # Load all prompts from configurable files
+        self.instructions = self._load_prompt_files()
+        
+    def _load_prompt_files(self) -> str:
+        """Combine multiple prompt files following best practices"""
+        base_instructions = load_prompt_from_file("season_planning_instructions.md")
+        tool_guidelines = load_prompt_from_file("tool_usage_guidelines.md")
+        examples = load_prompt_from_file("conversation_examples.md")
+        
+        # Combine following Rule 7: Context engineering
+        return f"{base_instructions}\n\n{tool_guidelines}\n\n{examples}"
 ```
 
 ### MCP Server Enhancements Needed
@@ -636,6 +722,14 @@ Turn 1: Welcome & Quick Start Options
 - ✅ **Updated Instructions**: Complete rewrite to emphasize genuine dialogue and adaptive responses
 - ✅ **Final Design**: Single agent with natural conversation intelligence + 6 tools + file output
 - 🔄 **Ready for Implementation**: Technical design properly leverages LLM capabilities
+
+**2025-07-25T22:15:00Z - TECHNICAL DESIGN FINALIZED**
+- ✅ **Native SDK Maximization**: WebNativeMCPAgent + SQLiteSession + native tool calling + tracing
+- ✅ **Minimal Customization**: Only file output capability needed - everything else uses SDK natively
+- ✅ **Configurable Prompts**: Moved from hardcoded strings to professional prompt file architecture
+- ✅ **Best Practices Integration**: Applied 7 rules from Claude 4 system prompt analysis (24,000 tokens)
+- ✅ **Reference Document**: Created comprehensive prompt best practices guide for project
+- ✅ **Complete Technical Specification**: Ready for builder-agent implementation
 - ✅ **SDK vs Custom Analysis**: Clear delineation of native features vs required custom implementation
 - ✅ **Best Practices Identified**: Multi-agent handoff patterns, structured outputs, session management
 - 📊 **Key Finding**: SDK provides robust native capabilities, eliminating need for custom conversation management
