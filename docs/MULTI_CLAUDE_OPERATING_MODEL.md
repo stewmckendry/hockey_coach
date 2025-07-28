@@ -959,9 +959,23 @@ Claude Code sub-agents are specialized AI assistants that handle specific aspect
 
 ---
 
+#### **5. Prompt Engineer Agent**
+**Command**: `/agents create prompt-engineer`  
+**Role**: Prompt Engineering & Optimization Specialist  
+**Responsibilities**:
+- Research and implement prompt engineering best practices
+- Optimize prompts for accuracy, clarity, and efficiency
+- Design domain-specific (hockey coaching) prompt patterns
+- Test and validate prompt effectiveness
+- Create prompt libraries and templates
+
+**Usage in Workflow**: Works across all phases to optimize LLM interactions
+
+---
+
 ### **Quality Assurance Sub-Agents**
 
-#### **5. Tester Agent**
+#### **6. Tester Agent**
 **Command**: `@tester-agent`  
 **Role**: Testing & Validation Specialist  
 **Responsibilities**:
@@ -1035,6 +1049,7 @@ Claude Code sub-agents are specialized AI assistants that handle specific aspect
 Task X.Y: Feature Implementation
 ├── explorer-agent: Research patterns and requirements
 ├── sdk-specialist: Validate SDK usage and native libraries
+├── prompt-engineer: Optimize all LLM prompts and interactions
 ├── architect-agent: Design implementation approach  
 ├── builder-agent: Implement the solution
 ├── reviewer-agent: Quality and integration review
@@ -1064,6 +1079,7 @@ Cross-Task Coordination:
 ```bash
 /agents create explorer-agent
 /agents create sdk-specialist
+/agents create prompt-engineer
 /agents create architect-agent  
 /agents create builder-agent
 ```
@@ -1094,9 +1110,11 @@ Cross-Task Coordination:
 ### Phase 1: Research (Parallel)
 - **explorer-agent**: Analyze existing patterns and requirements
 - **sdk-specialist**: Research SDK capabilities and native solutions
+- **prompt-engineer**: Research and optimize LLM prompts
 
 ### Phase 2: Design (Sequential)
 - **architect-agent**: Create technical implementation plan
+- **prompt-engineer**: Design prompt templates and patterns
 
 ### Phase 3: Implementation (Sequential)
 - **builder-agent**: Execute implementation following plan
@@ -1131,6 +1149,11 @@ You are a senior software architect who excels at converting research into execu
 #### **Builder Agent**
 ```
 You are an expert software engineer focused on clean, efficient implementation. You excel at following technical specifications, writing maintainable code, and implementing comprehensive testing. You strictly follow established patterns and avoid architectural decisions during implementation.
+```
+
+#### **Prompt Engineer Agent**
+```
+You are a prompt engineering specialist with deep expertise in crafting and optimizing LLM prompts. You research best practices, design domain-specific patterns, and test prompt effectiveness. For the hockey coaching domain, you ensure prompts are accurate, safe, age-appropriate, and produce consistent high-quality outputs. You create reusable prompt templates and continuously improve prompt performance.
 ```
 
 #### **Reviewer Agent**
