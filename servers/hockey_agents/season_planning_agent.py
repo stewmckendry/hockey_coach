@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any
-from agents import Agent, Runner, trace, gen_trace_id, WebSearchTool
+from agents import Agent, Runner, trace, gen_trace_id, WebSearchTool, SQLiteSession
 from agents.mcp import MCPServerStreamableHttp, MCPServerStreamableHttpParams
 from dotenv import load_dotenv
 
@@ -45,7 +45,6 @@ class SeasonPlanningAgent(WebNativeMCPAgent):
         self.prompts_dir = prompts_dir
         self.web_search_tool = WebSearchTool()
         self._loaded_prompts = {}
-        self._conversation_history = []  # Simple in-memory history
     
     def load_prompt(self, filename: str) -> str:
         """Load a prompt from the prompts directory."""
@@ -138,15 +137,21 @@ class SeasonPlanningAgent(WebNativeMCPAgent):
             logger.error(f"❌ Failed to create Season Planning Agent: {e}")
             return False
     
-    async def run(self, message: str, group_id: str = None) -> str:
+    async def run(self, message: str, group_id: str = None, session_id: str = None) -> str:
         """Run the agent with comprehensive logging and tracing."""
         if not self.agent:
             return "Agent not initialized. Please connect first."
         
         logger.info(f"📝 Processing season planning query: '{message[:100]}{'...' if len(message) > 100 else ''}'")
         
-        # Add to conversation history
-        self._conversation_history.append({"role": "user", "content": message})
+        # Create SQLiteSession for conversation persistence
+        session = None
+        if session_id:
+            try:
+                session = SQLiteSession(session_id, "season_planning_conversations.db")
+                logger.info(f"📚 Using SQLiteSession for conversation persistence: {session_id}")
+            except Exception as e:
+                logger.warning(f"⚠️  Could not create SQLiteSession: {e}. Continuing without persistence.")
         
         # Create trace metadata
         trace_metadata = {
@@ -154,7 +159,8 @@ class SeasonPlanningAgent(WebNativeMCPAgent):
             "query_preview": message[:100],
             "agent_type": "season_planning_specialist",
             "mcp_server": "localhost:8000",
-            "conversation_length": str(len(self._conversation_history))
+            "session_id": session_id or "none",
+            "has_session_persistence": str(session is not None)
         }
         
         # Generate trace ID
@@ -168,12 +174,9 @@ class SeasonPlanningAgent(WebNativeMCPAgent):
             metadata=trace_metadata
         ):
             try:
-                # Run the agent within trace context
+                # Run the agent within trace context with session
                 logger.info("🏒 Running season planning agent with MCP tools and WebSearch...")
-                result = await Runner.run(self.agent, message)
-                
-                # Add response to conversation history
-                self._conversation_history.append({"role": "assistant", "content": result.final_output})
+                result = await Runner.run(self.agent, message, session=session)
                 
                 # Analyze tool usage
                 analysis = self.analyze_tool_usage(message, result)
@@ -222,7 +225,8 @@ class SeasonPlanningAgent(WebNativeMCPAgent):
             # Create filename with timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"season_plan_{timestamp}.md"
-            filepath = Path("season_plans") / filename
+            # Save to outputs directory
+            filepath = Path(__file__).resolve().parent.parent.parent / "outputs" / "season_plans" / filename
             
             # Ensure directory exists
             filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -238,14 +242,25 @@ class SeasonPlanningAgent(WebNativeMCPAgent):
             logger.error(f"❌ Error saving season plan: {e}")
             return None
     
-    def get_conversation_history(self) -> list:
-        """Get conversation history."""
-        return self._conversation_history.copy()
-    
-    def clear_conversation_history(self):
-        """Clear conversation history."""
-        self._conversation_history = []
-        logger.info("🧹 Conversation history cleared")
+    def get_session_info(self, session_id: str = None) -> dict:
+        """Get session information for debugging."""
+        info = {
+            "session_persistence": "SQLiteSession (automatic)",
+            "database_file": "season_planning_conversations.db",
+            "session_id": session_id or "not_provided"
+        }
+        
+        # Try to get conversation count from database if session_id provided
+        if session_id:
+            try:
+                session = SQLiteSession(session_id, "season_planning_conversations.db")
+                # Note: SQLiteSession doesn't expose message count directly
+                # This is handled internally by the SDK
+                info["status"] = "active"
+            except Exception as e:
+                info["status"] = f"error: {e}"
+        
+        return info
 
 
 # Factory function for easy use
@@ -260,13 +275,13 @@ async def create_season_planning_agent() -> SeasonPlanningAgent:
 
 
 # API runner function
-async def run_season_planning_agent(message: str, group_id: Optional[str] = None) -> str:
+async def run_season_planning_agent(message: str, group_id: Optional[str] = None, session_id: Optional[str] = None) -> str:
     """
     Run the season planning agent with comprehensive logging and tracing.
     
     This function handles the complete lifecycle:
     1. Create and connect agent
-    2. Process query with tool logging and tracing
+    2. Process query with tool logging and tracing (with session persistence if session_id provided)
     3. Save season plan if generated
     4. Clean up connections
     5. Return response
@@ -274,6 +289,7 @@ async def run_season_planning_agent(message: str, group_id: Optional[str] = None
     Args:
         message: User query for season planning
         group_id: Optional group ID for trace linking
+        session_id: Optional session ID for conversation persistence
     
     Returns:
         Season planning response with trace recorded
@@ -284,8 +300,8 @@ async def run_season_planning_agent(message: str, group_id: Optional[str] = None
         # Create connected agent
         agent = await create_season_planning_agent()
         
-        # Run with logging and tracing
-        response = await agent.run(message, group_id=group_id)
+        # Run with logging and tracing (with session persistence)
+        response = await agent.run(message, group_id=group_id, session_id=session_id)
         return response
         
     except Exception as e:
@@ -308,10 +324,14 @@ if __name__ == "__main__":
         print("Type 'quit' to exit\n")
         
         agent = None
+        session_id = f"cli_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
         try:
             # Create agent once for the session
             agent = await create_season_planning_agent()
             print(f"✅ Agent created successfully")
+            print(f"📝 Session ID: {session_id}")
+            print(f"💾 Conversation persistence: Enabled (SQLiteSession)")
             print("-" * 50)
             
             while True:
@@ -325,9 +345,9 @@ if __name__ == "__main__":
                 if not message:
                     continue
                 
-                # Process message
+                # Process message with session persistence
                 print("\nAssistant: ", end="", flush=True)
-                response = await agent.run(message)
+                response = await agent.run(message, session_id=session_id)
                 print(response)
                 print("-" * 50)
                 
