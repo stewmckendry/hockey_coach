@@ -139,6 +139,82 @@ def search_hockey_knowledge(
     logger.info(f"✅ [TOOL COMPLETE] search_hockey_knowledge: returned {len(unified_results)} results in {duration:.2f}s")
     return unified_results
 
+@mcp.tool("find_skills_by_age_group")
+def find_skills_by_age_group(
+    age_group: str,
+    skill_categories: Optional[List[str]] = None,
+    n_results: int = 15
+) -> List[HockeyKnowledgeResult]:
+    """
+    Find age-appropriate skills and development guidelines using LTAD framework.
+    
+    Args:
+        age_group: Age group (e.g., "U8", "U10", "U12", "U14", "U16", "U18")
+        skill_categories: Optional filter for specific skills (e.g., ["skating", "shooting", "passing"])
+        n_results: Number of results to return
+    """
+    start_time = datetime.now()
+    logger.info(f"🎯 [TOOL CALL] find_skills_by_age_group: age_group='{age_group}', categories={skill_categories}, n_results={n_results}")
+    
+    # Build search query for LTAD skills
+    if skill_categories:
+        query = f"{age_group} {' '.join(skill_categories)} skill development LTAD"
+    else:
+        query = f"{age_group} skill development LTAD framework hockey canada"
+    
+    logger.debug(f"Search query: '{query}'")
+    
+    # Use the existing search function with specific content types for skills
+    results = search_hockey_knowledge(
+        query=query,
+        content_types=["skill", "drill", "video"],  # Focus on skill development content
+        age_groups=[age_group],
+        n_results=n_results
+    )
+    
+    duration = (datetime.now() - start_time).total_seconds()
+    logger.info(f"✅ [TOOL COMPLETE] find_skills_by_age_group: returned {len(results)} skills for {age_group} in {duration:.2f}s")
+    return results
+
+@mcp.tool("find_rules_by_league_age")
+def find_rules_by_league_age(
+    age_group: str,
+    league_type: Optional[str] = "house_league",
+    rule_categories: Optional[List[str]] = None,
+    n_results: int = 10
+) -> List[HockeyKnowledgeResult]:
+    """
+    Find age-specific rules and league regulations.
+    
+    Args:
+        age_group: Age group (e.g., "U8", "U10", "U12", "U14", "U16", "U18")
+        league_type: Type of league ("house_league", "competitive", "rep", "aa", "aaa")
+        rule_categories: Optional specific rule areas (e.g., ["body_checking", "game_length", "ice_time"])
+        n_results: Number of results to return
+    """
+    start_time = datetime.now()
+    logger.info(f"⚖️ [TOOL CALL] find_rules_by_league_age: age_group='{age_group}', league_type='{league_type}', categories={rule_categories}, n_results={n_results}")
+    
+    # Build search query for rules and conduct
+    if rule_categories:
+        query = f"{age_group} {league_type} {' '.join(rule_categories)} rules regulations hockey canada"
+    else:
+        query = f"{age_group} {league_type} rules regulations game format hockey canada"
+    
+    logger.debug(f"Search query: '{query}'")
+    
+    # Use the existing search function with focus on rules content
+    results = search_hockey_knowledge(
+        query=query,
+        content_types=["rule", "skill"],  # Include skill content for age-appropriate guidelines
+        age_groups=[age_group],
+        n_results=n_results
+    )
+    
+    duration = (datetime.now() - start_time).total_seconds()
+    logger.info(f"✅ [TOOL COMPLETE] find_rules_by_league_age: returned {len(results)} rules for {age_group} {league_type} in {duration:.2f}s")
+    return results
+
 @mcp.tool("get_coaching_recommendations")
 def get_coaching_recommendations(
     team_age: str,
@@ -349,10 +425,10 @@ def create_practice_plan(
             )
             
             # Add to knowledge sources with skill tagging
-            knowledge_sources['on_ice_drills'].extend(_process_search_results(drill_results, skill, "drill"))
-            knowledge_sources['development_skills'].extend(_process_search_results(skill_results, skill, "skill"))
-            knowledge_sources['video_instructions'].extend(_process_search_results(video_results, skill, "video"))
-            knowledge_sources['coaching_insights'].extend(_process_search_results(insight_results, skill, "insight"))
+            knowledge_sources['on_ice_drills'].extend(_process_search_results(drill_results, f"{skill}_drill"))
+            knowledge_sources['development_skills'].extend(_process_search_results(skill_results, f"{skill}_skill"))
+            knowledge_sources['video_instructions'].extend(_process_search_results(video_results, f"{skill}_video"))
+            knowledge_sources['coaching_insights'].extend(_process_search_results(insight_results, f"{skill}_insight"))
             
             logger.debug(f"Found knowledge for '{skill}': {len(drill_results.get('documents', [[]])[0])} drills, {len(skill_results.get('documents', [[]])[0])} skills, {len(video_results.get('documents', [[]])[0])} videos, {len(insight_results.get('documents', [[]])[0])} insights")
         
@@ -365,7 +441,7 @@ def create_practice_plan(
                     query_texts=[f"{system} hockey system tactic positioning"],
                     n_results=4
                 )
-                knowledge_sources['team_systems'].extend(_process_search_results(system_results, system, "tactic"))
+                knowledge_sources['team_systems'].extend(_process_search_results(system_results, f"{system}_tactic"))
                 logger.debug(f"Found {len(system_results.get('documents', [[]])[0])} results for system '{system}'")
         
         # Search for dryland if requested
@@ -379,7 +455,7 @@ def create_practice_plan(
                     n_results=3,
                     where={"document_type": "off_ice_workout"}
                 )
-                knowledge_sources['dryland_exercises'].extend(_process_search_results(dryland_results, skill, "dryland"))
+                knowledge_sources['dryland_exercises'].extend(_process_search_results(dryland_results, f"{skill}_dryland"))
                 logger.debug(f"Found {len(dryland_results.get('documents', [[]])[0])} dryland exercises for '{skill}'")
         
         # Get context-specific insights if practice context provided
@@ -390,7 +466,7 @@ def create_practice_plan(
                 query_texts=[f"{practice_context} coaching advice preparation"],
                 n_results=3
             )
-            context_insights = _process_search_results(context_results, "context", "insight")
+            context_insights = _process_search_results(context_results, "context_insight")
             logger.debug(f"Found {len(context_insights)} context-specific insights")
         
         # Log knowledge source summary

@@ -988,7 +988,7 @@ Claude Code sub-agents are specialized AI assistants that handle specific aspect
 
 ---
 
-#### **6. Reviewer Agent**
+#### **7. Reviewer Agent**
 **Command**: `@reviewer-agent`  
 **Role**: Code Review & Quality Specialist  
 **Responsibilities**:
@@ -996,12 +996,11 @@ Claude Code sub-agents are specialized AI assistants that handle specific aspect
 - Integration compatibility analysis
 - Standards compliance verification
 - Performance and maintainability review
-
 **Usage in Workflow**: Pre-integration review and quality gates
 
 ---
 
-#### **7. Debug Agent**
+#### **8. Debug Agent**
 **Command**: `@debug-agent`  
 **Role**: Troubleshooting & Problem Resolution Specialist  
 **Responsibilities**:
