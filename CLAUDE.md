@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ CRITICAL: Virtual Environment Setup
+
+**ALWAYS activate the virtual environment before running any Python commands:**
+```bash
+# From project root (thunder_playbook/)
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+```
+
+**Common issue**: If you see import errors or missing dependencies, you likely forgot to activate the virtual environment. The `spacy_env` is located in the parent directory, not in the project root.
+
 ## Project Architecture
 
 This is a Hockey Coach AI Assistant platform with a **hybrid MCP + Responses API architecture**:
@@ -22,6 +32,9 @@ This is a Hockey Coach AI Assistant platform with a **hybrid MCP + Responses API
 
 ### Starting Services
 ```bash
+# IMPORTANT: First activate virtual environment
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+
 # All services at once (recommended)
 python start_services.py
 
@@ -44,9 +57,19 @@ npm run type-check   # TypeScript check
 
 ### Python Testing
 ```bash
+# IMPORTANT: Activate virtual environment first
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+
+# Install pytest if not already installed
+pip install pytest
+
 # Run specific tests
 python -m pytest tests/test_fastmcp_client.py
 python -m pytest tests/test_age_group.py
+python -m pytest tests/test_season_planning_cli.py -v
+
+# Run all tests
+python -m pytest tests/ -v
 
 # Test MCP server endpoints
 curl http://localhost:8000/health
@@ -55,11 +78,21 @@ curl http://localhost:3003/api/mcp
 
 ### ChromaDB Management
 ```bash
+# IMPORTANT: Activate virtual environment first
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+
+# Start ChromaDB server (required before indexing)
+chroma run --host localhost --port 8000 --no-auth &
+
 # Index all hockey data (first-time setup)
 python chroma_load/scripts/index_drills_chroma.py
 python chroma_load/scripts/index_ltad_chroma.py
 python chroma_load/scripts/index_tactics.py
-# ... (other indexing scripts)
+python chroma_load/scripts/index_conduct_chroma.py
+python chroma_load/scripts/index_nhl_insights_chroma.py
+python chroma_load/scripts/index_office_manual_chroma.py
+python chroma_load/scripts/index_video_clips_chroma.py
+python chroma_load/scripts/index_video_clips_dryland.py
 ```
 
 ## Key Architecture Patterns
@@ -69,6 +102,10 @@ python chroma_load/scripts/index_tactics.py
 - `get_coaching_recommendations`: AI coaching advice
 - `create_practice_plan`: Structured practice planning
 - `analyze_player_development`: Player skill progression
+
+### Specialized Agents
+- **Season Planning Agent** (`servers/hockey_agents/season_planning_agent.py`): Interactive CLI for comprehensive season planning with conversation persistence
+- **POC Agents** (`servers/poc/poc_agents/`): Native MCP and web-native MCP agent implementations for testing
 
 ### ChromaDB Collections
 - `conduct-*`: Rules and ethics
@@ -105,10 +142,14 @@ LOG_LEVEL=INFO
 
 Virtual environment setup:
 ```bash
-# Use existing spacy_env (as per README)
+# CRITICAL: The virtual environment is in the PARENT directory
+# This is the most common source of errors!
 cd ..
 source spacy_env/bin/activate  
 cd thunder_playbook
+
+# Verify activation - you should see (spacy_env) in your prompt
+which python  # Should show path to spacy_env/bin/python
 ```
 
 ## Important File Locations
@@ -118,6 +159,9 @@ cd thunder_playbook
 - `web_app/hooks/useChat.ts`: Chat state management
 - `web_app/lib/types.ts`: TypeScript type definitions
 - `image_gen/image_agent/hockey_image_iterative.py`: AI diagram generation
+- `servers/hockey_agents/season_planning_agent.py`: Season planning agent implementation
+- `servers/poc/`: Proof of concept implementations and testing utilities
+- `coordination/`: Task planning and integration documentation
 
 ## Service Health Checks
 
@@ -132,12 +176,18 @@ curl http://localhost:3000            # Web App
 
 ### MCP Server Testing
 ```bash
+# IMPORTANT: Always use the virtual environment Python
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+
 # Test MCP connection and tools
 cd servers/poc
-/Users/liammckendry/spacy_env/bin/python test_mcp_connection.py
+python test_mcp_connection.py
 
 # Test agent directly
-/Users/liammckendry/spacy_env/bin/python test_agent_cli.py
+python test_agent_cli.py
+
+# Validate complete agent setup
+python validate_agent_setup.py
 ```
 
 ### Web Integration Testing
@@ -155,8 +205,11 @@ curl -X POST -H "Content-Type: application/json" \
 
 ### Trace Validation
 ```bash
+# IMPORTANT: Activate virtual environment first
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+
 # Direct agent test with trace logging
-/Users/liammckendry/spacy_env/bin/python -c "
+python -c "
 import asyncio
 from servers.poc.poc_agents.web_native_mcp_agent import run_web_mcp_agent_with_logging
 
@@ -287,4 +340,43 @@ python -m pytest tests/test_specific_component.py
 
 # Check MCP server health
 curl http://localhost:8000/health
+```
+
+## Common Troubleshooting
+
+### Virtual Environment Issues
+```bash
+# Error: ModuleNotFoundError: No module named 'fastmcp'
+# Solution: You forgot to activate the virtual environment
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+
+# Error: -bash: spacy_env/bin/activate: No such file or directory
+# Solution: You're in the wrong directory. The venv is in the PARENT directory
+cd ..  # Go to parent directory first
+source spacy_env/bin/activate
+cd thunder_playbook
+
+# Verify correct Python is being used
+which python  # Should show: ../spacy_env/bin/python
+python --version  # Should show Python 3.x
+```
+
+### Service Startup Issues
+```bash
+# Error: Port already in use
+# Solution: Kill existing processes
+lsof -i :8000  # Find process using port 8000
+kill -9 <PID>  # Kill the process
+
+# Error: ChromaDB connection refused
+# Solution: Start ChromaDB first
+chroma run --host localhost --port 8000 --no-auth &
+```
+
+### Import Errors in Tests
+```bash
+# Error: ImportError when running tests
+# Solution: Run from project root with proper Python path
+cd .. && source spacy_env/bin/activate && cd thunder_playbook
+PYTHONPATH=$PWD python -m pytest tests/test_file.py
 ```
