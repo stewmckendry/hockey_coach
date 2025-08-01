@@ -18,11 +18,17 @@ You are tasked with implementing a feature based on a GitHub issue. Follow this 
 1. **Parse Arguments**: Extract primary issue URL and related issue URLs from: `$ARGUMENTS`
 2. **Fetch and Analyze Primary Issue**: Use WebFetch to retrieve the main GitHub issue
 3. **Fetch Related Issues**: Use WebFetch to retrieve all related GitHub issues for additional context
-4. **Cross-Reference Analysis**: Identify dependencies, conflicts, or complementary requirements across all issues
-5. **Understand Requirements**: Parse issue descriptions, acceptance criteria, and any linked discussions
-6. **Architecture Planning**: Consider how this feature fits into the existing codebase structure
-7. **Risk Assessment**: Identify potential challenges, breaking changes, and edge cases
-8. **Create Comprehensive Todo List**: Use TodoWrite to break down EVERY step needed (as applicable):
+4. **Analyze Issue Comments**: Review all comments on the primary issue for:
+   - Implementation updates and progress
+   - Clarifications or requirement changes
+   - Technical decisions made during discussion
+   - Dependencies or blockers identified
+   - Completed work that impacts implementation approach
+5. **Cross-Reference Analysis**: Identify dependencies, conflicts, or complementary requirements across all issues
+6. **Understand Requirements**: Parse issue descriptions, acceptance criteria, comments, and any linked discussions
+7. **Architecture Planning**: Consider how this feature fits into the existing codebase structure
+8. **Risk Assessment**: Identify potential challenges, breaking changes, and edge cases
+9. **Create Comprehensive Todo List**: Use TodoWrite to break down EVERY step needed (as applicable):
    - Code changes required
    - Tests to write/update
    - Documentation to create/update

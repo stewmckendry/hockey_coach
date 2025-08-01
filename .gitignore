@@ -19,3 +19,6 @@ venv/
 bridge_env/
 web_app/.next/
 logs/*
+logs/claude_telemetry/
+telemetry/logs/
+*.jsonl

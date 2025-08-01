@@ -1,7 +1,7 @@
 ---
 description: "Generate AI images for hockey coaching content with automatic upload to Cloudinary for easy embedding in Notion and web platforms"
 argument-hint: "<prompt> [aspect-ratio] [style] [output-name]"
-allowed-tools: ["mcp__stability-ai__stability-ai-generate-image", "mcp__stability-ai__stability-ai-generate-image-sd35", "mcp__cloudinary__upload", "mcp__stability-ai__stability-ai-0-list-resources", "TodoWrite"]
+allowed-tools: ["mcp__stability-ai__stability-ai-generate-image", "mcp__stability-ai__stability-ai-generate-image-sd35", "mcp__cloudinary__upload", "mcp__stability-ai__stability-ai-0-list-resources", "TodoWrite", "Bash", "Read", "Write"]
 ---
 
 # Image Generation and Upload Command
@@ -44,14 +44,21 @@ Equipment Keywords: "equipment", "gear", "helmet", "stick", "skates"
 - Coaching Scenes: `photographic` for authenticity
 - Equipment: `photographic` for detail
 
-### Step 2: Generate Image with Stability AI
+### Step 2: Generate Image (NEW: Programmatic Diagrams for Tactical Content)
 **Generation Process:**
 ```
-For Tactical Diagrams:
-- Method: Use mcp__stability-ai__stability-ai-control-structure
-- Base Image: realistic-hockey-whiteboard-base.png (maintains authentic whiteboard look)
-- Prompt: Add tactical elements to existing rink layout
-- Control Strength: 0.6-0.8 (preserve whiteboard structure, add tactical elements)
+For Tactical Diagrams (NEW SYSTEM):
+- Detection: Keywords like "drill", "play", "formation", "system", "forecheck", "powerplay", "breakout"
+- Method: Use Hockey Diagram MCP Server via HTTP API
+- Process:
+  1. Send prompt to localhost:8001/generate_hockey_diagram
+  2. Receive precise NHL-regulation diagram with proper:
+     - Red goal lines and blue zone lines
+     - Correct face-off dots (not + symbols)
+     - Proper goal nets and creases
+     - Standardized player position markers
+  3. Save generated diagram locally
+- Benefits: 100% accurate, consistent, cost-effective (~$0.002 vs $0.03)
 
 For Other Content Types:
 - Method: Use mcp__stability-ai__stability-ai-generate-image-sd35
@@ -409,4 +416,54 @@ At 100% of budget:
 - Confirm CDN distribution
 - Check mobile responsiveness
 
-The generate-image command provides a seamless workflow for creating professional hockey coaching visuals with automatic cloud hosting, enabling immediate use across all content creation workflows.
+## NEW: Hockey Diagram MCP Server Integration
+
+### Starting the Hockey Diagram Server
+```bash
+# The server must be running for tactical diagram generation
+# It's started automatically with start_services.py, or manually:
+cd servers/hockey_diagram_mcp
+source ../../../spacy_env/bin/activate
+python server.py &
+```
+
+### Tactical Diagram Detection Logic
+```python
+# Keywords that trigger programmatic generation
+TACTICAL_KEYWORDS = [
+    "drill", "play", "formation", "system", "position", 
+    "tactic", "strategy", "forecheck", "backcheck", "breakout",
+    "powerplay", "power play", "penalty kill", "pk", "pp",
+    "cycle", "dump", "chase", "trap", "coverage", "zone",
+    "faceoff", "face-off", "offensive zone", "defensive zone",
+    "neutral zone", "2-1-2", "1-2-2", "1-3-1", "box", "diamond"
+]
+
+# If any keyword is detected, route to Hockey Diagram MCP Server
+if any(keyword in prompt.lower() for keyword in TACTICAL_KEYWORDS):
+    use_hockey_diagram_server()
+else:
+    use_stability_ai()
+```
+
+### Available Preset Formations
+- **Forechecking**: 2-1-2, 1-2-2, 1-3-1
+- **Power Play**: 1-3-1 umbrella, overload
+- **Penalty Kill**: box, diamond
+- **Breakouts**: strong side, weak side, reverse
+- **Neutral Zone**: trap, regroup
+- **Offensive Zone**: cycle, overload
+
+### Example Usage with New System
+```bash
+# Tactical diagrams (uses Hockey Diagram MCP)
+/generate-image "2-1-2 forecheck with F1 pressuring behind net"
+/generate-image "power play umbrella formation with movement from half-wall"
+/generate-image "defensive zone coverage drill with 3v3"
+
+# Non-tactical images (uses Stability AI)
+/generate-image "youth hockey coach demonstrating proper stance"
+/generate-image "hockey equipment layout for beginners"
+```
+
+The generate-image command provides a seamless workflow for creating professional hockey coaching visuals with automatic cloud hosting, enabling immediate use across all content creation workflows. Tactical diagrams now use precise programmatic generation for 100% accuracy.

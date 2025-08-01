@@ -204,6 +204,67 @@ The hockey content creation commands follow a structured workflow: **Research â†
 
 ---
 
+### `/sync-issues` - GitHub-Notion Issue Status Synchronization
+**Who**: Project Manager/Tracker  
+**When**: Regular project status updates, issue tracking  
+**What**:
+- Fetch GitHub issue status from stewmckendry/hockey_coach repository
+- Extract progress from issue body (checklist items, comments)
+- Determine status based on state, keywords, and progress
+- Update or create Notion tracking pages in Issue Tracking database
+- Generate comprehensive sync summary report
+
+**Arguments**: 
+- No args: Sync all tracked issues (88-95)
+- Single number: Sync specific issue (e.g., "88")
+- Range: Sync issue range (e.g., "88-90")
+
+**Impact**: HIGH - Essential for project visibility and tracking
+
+---
+
+### `/review-open-issues` - Post-Completion Impact Analysis
+**Who**: Developer who completed work, Project Manager  
+**When**: After completing any issue, before starting new work  
+**What**:
+- Analyze completed issue for new patterns, utilities, and approaches
+- Review specified open issues for alignment opportunities
+- Post contextual comments with implementation guidance
+- Identify dependencies resolved and new integration points
+- Recommend concrete approaches based on established patterns
+- Update remaining issues with specific code locations and utilities to use
+
+**Arguments**: 
+- Required: Completed issue number (e.g., "88")
+- Optional: Issues to review ("89-95", "all", "related")
+- Optional: Project context ("U10-site")
+
+**Impact**: HIGH - Ensures alignment and knowledge transfer between issues
+
+---
+
+### `/review-notion-tracker` - Development Context Analysis
+**Who**: Any developer starting new work  
+**When**: Before implementing features, beginning new development sessions  
+**What**:
+- Fetch main Notion development tracking page (U10 Hockey Team Development Plan)
+- Review Issue Tracking Database for current progress and dependencies
+- Analyze Content Pages Database for established patterns and resources
+- Extract team context (Ted Reeves Thunder U10) and content standards
+- Identify available infrastructure, databases, and integration points
+- Generate comprehensive development context summary with recommendations
+
+**Page IDs**:
+- Main Tracker: `2420cdbf-4977-819c-a24b-f3f50cccf501`
+- Issue Tracking DB: `51302ace3fe44297b7524c6b9c5e08cf`
+
+**Arguments**: 
+- Optional: Focus area ("content", "infrastructure", "team", "workflow")
+
+**Impact**: HIGH - Essential for understanding project context before development
+
+---
+
 ## ðŸš€ PHASE 1 COMMANDS (Critical Automation - Implementing Now)
 
 ### `/multi-claude-setup` - Multi-Claude Infrastructure Setup  

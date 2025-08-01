@@ -219,19 +219,22 @@ class TelemetryCollector:
         event_dict = event.dict()
         event_json = safe_json_serialize(event_dict)
         
-        # Session-based logging
+        # PRIMARY: Session-based logging - one file per Claude Code session
         session_file = self.config.get_session_log_path(event.session_id)
         self._append_to_file(session_file, event_json)
         
-        # Event-type logging  
-        event_file = self.config.get_event_log_path(event.event_type)
-        self._append_to_file(event_file, event_json)
+        # DISABLED: Event-type logging (per user request to organize by session)
+        # Keeping code commented for potential future re-enablement
+        # event_file = self.config.get_event_log_path(event.event_type)
+        # self._append_to_file(event_file, event_json)
         
-        # Daily aggregated logging
-        daily_file = self.config.get_daily_log_path(
-            datetime.now().strftime('%Y%m%d')
-        )
-        self._append_to_file(daily_file, event_json)
+        # SECONDARY: Daily summary file for high-level analytics
+        # Only log key events to reduce file size
+        if event.event_type in ["SessionStart", "Stop", "SubagentStop"]:
+            daily_file = self.config.get_daily_log_path(
+                datetime.now().strftime('%Y%m%d')
+            )
+            self._append_to_file(daily_file, event_json)
     
     def _append_to_file(self, file_path: Path, content: str) -> None:
         """Safely append content to a log file."""

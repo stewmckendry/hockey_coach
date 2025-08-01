@@ -138,20 +138,27 @@ def extract_user_prompt_data(claude_data: dict) -> dict:
     """Extract UserPromptSubmit-specific data from Claude input."""
     data = {}
     
-    # According to official docs, UserPromptSubmit has "prompt" field
+    # Based on debug logs, UserPromptSubmit DOES have "prompt" field in recent Claude Code versions
     prompt = claude_data.get("prompt", "")
     if prompt:
         data["prompt_length"] = len(prompt)
         data["prompt_hash"] = hash_content(prompt)
         # Store first 100 chars for debugging (can be disabled later)
-        data["prompt_preview"] = prompt[:100] + "..." if len(prompt) > 100 else prompt
+        data["prompt_content"] = prompt[:100] + "..." if len(prompt) > 100 else prompt
     else:
         data["prompt_length"] = 0
-        data["prompt_preview"] = ""
+        data["prompt_hash"] = None
+        data["prompt_content"] = ""
     
-    # Extract session metadata
+    # Extract session metadata from actual Claude Code JSON structure
     data["transcript_path"] = claude_data.get("transcript_path", "")
     data["cwd"] = claude_data.get("cwd", "")
+    data["hook_event_name"] = claude_data.get("hook_event_name", "")
+    
+    # Additional fields for compatibility with existing log structure
+    data["context_length"] = None  # Could be enhanced to analyze prompt structure
+    data["has_file_uploads"] = False  # Could be enhanced to detect file uploads in prompt
+    data["upload_count"] = 0  # Could be enhanced later
     
     return data
 

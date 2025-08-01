@@ -21,9 +21,22 @@ def get_client() -> ClientAPI:
     host = os.getenv("CHROMA_SERVER_HOST", "localhost")
     port = int(os.getenv("CHROMA_SERVER_HTTP_PORT", "8000"))
     token = os.getenv("CHROMA_TOKEN")
-    headers = {"Authorization": f"Bearer {token}"} if token else None
-    print(f"Connecting to Chroma server at {host}:{port} with token: {bool(token)}")
-    return chromadb.HttpClient(host=host, port=port, headers=headers)
+    
+    # Try remote connection first
+    try:
+        headers = {"Authorization": f"Bearer {token}"} if token else None
+        print(f"Connecting to Chroma server at {host}:{port} with token: {bool(token)}")
+        client = chromadb.HttpClient(host=host, port=port, headers=headers)
+        client.heartbeat()  # Test connection
+        print("✅ Connected to remote Chroma server")
+        return client
+    except Exception as e:
+        print(f"Remote server connection failed: {e}")
+        print("Falling back to local PersistentClient...")
+        # Fallback to local client
+        local_client = chromadb.PersistentClient(path="./chroma_data")
+        print("✅ Using local PersistentClient")
+        return local_client
 
 def get_chroma_collection():
     client = get_client()

@@ -1,0 +1,294 @@
+"""
+FastMCP server for generating precise hockey tactical diagrams.
+Provides natural language interface for creating NHL-regulation hockey diagrams.
+"""
+
+import os
+import sys
+import json
+import asyncio
+import logging
+from typing import Dict, List, Optional, Any
+from datetime import datetime
+from pathlib import Path
+
+from mcp.server.fastmcp import FastMCP
+from mcp.types import TextContent
+
+# Add parent directory to path for imports
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
+from servers.hockey_diagram_mcp.generator import HockeyDiagramGenerator, Player, Movement, Zone
+from servers.hockey_diagram_mcp.parser import HockeyPromptParser, DiagramSpec
+from servers.hockey_diagram_mcp.enhanced_parser import EnhancedHockeyParser
+from servers.hockey_diagram_mcp.elements import FORMATIONS, get_formation, list_available_elements
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize MCP server
+mcp = FastMCP("Hockey Diagram Generator")
+
+# Initialize components
+diagram_generator = HockeyDiagramGenerator()
+prompt_parser = HockeyPromptParser()
+enhanced_parser = EnhancedHockeyParser()
+
+# Storage directory for generated diagrams
+DIAGRAM_DIR = Path("servers/hockey_diagram_mcp/generated_diagrams")
+DIAGRAM_DIR.mkdir(parents=True, exist_ok=True)
+
+@mcp.tool()
+async def generate_hockey_diagram(
+    prompt: str,
+    diagram_type: Optional[str] = "tactical",
+    view: Optional[str] = "full",
+    output_format: Optional[str] = "png"
+) -> Dict[str, Any]:
+    """
+    Generate a hockey diagram from natural language instructions.
+    
+    Args:
+        prompt: Natural language description (e.g., "2-1-2 forecheck with center pressuring puck carrier")
+        diagram_type: Type of diagram - 'tactical', 'drill', or 'system' (default: tactical)
+        view: Rink view - 'full', 'offensive', 'defensive', or 'neutral' (default: full)
+        output_format: Output format - 'png' or 'svg' (default: png)
+    
+    Returns:
+        Dictionary containing:
+        - diagram_path: Path to saved diagram file
+        - base64_image: Base64 encoded image data
+        - diagram_spec: Parsed specification used to generate diagram
+        - generation_time: Time taken to generate
+    """
+    start_time = datetime.now()
+    logger.info(f"Generating hockey diagram: {prompt[:50]}...")
+    
+    try:
+        # Parse the natural language prompt
+        context = {
+            "diagram_type": diagram_type,
+            "requested_view": view
+        }
+        
+        # Try enhanced parser first for better accuracy
+        try:
+            diagram_spec = await enhanced_parser.parse_prompt(prompt, context)
+            logger.info("Using enhanced parser for improved accuracy")
+        except Exception as enhanced_error:
+            logger.warning(f"Enhanced parser failed: {enhanced_error}, falling back to preset parser")
+            # Fallback to preset-based parser
+            diagram_spec = await prompt_parser.parse_with_presets(prompt, FORMATIONS)
+        
+        # Override view if specified
+        if view != "full":
+            diagram_spec.view = view
+            
+        # Convert parsed spec to generator objects
+        players = [
+            Player(
+                position=p.position,
+                x=p.x,
+                y=p.y,
+                team=p.team,
+                has_puck=p.has_puck
+            ) for p in diagram_spec.players
+        ]
+        
+        movements = None
+        if diagram_spec.movements:
+            movements = []
+            for m in diagram_spec.movements:
+                # Handle both string and list to_position
+                to_pos = m.to_position
+                if isinstance(to_pos, list):
+                    to_pos = tuple(to_pos)
+                movements.append(
+                    Movement(
+                        from_position=m.from_position,
+                        to_position=to_pos,
+                        movement_type=m.movement_type
+                    )
+                )
+        
+        zones = None
+        if diagram_spec.zones:
+            zones = []
+            for z in diagram_spec.zones:
+                # Handle both string and list area
+                area = z.area
+                if isinstance(area, list):
+                    area = tuple(area)
+                zones.append(
+                    Zone(
+                        zone_type=z.zone_type,
+                        area=area,
+                        team=z.team
+                    )
+                )
+        
+        # Generate the diagram
+        base64_image = diagram_generator.generate_diagram(
+            players=players,
+            movements=movements,
+            zones=zones,
+            view=diagram_spec.view,
+            title=diagram_spec.title,
+            output_format=output_format
+        )
+        
+        # Save to file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"hockey_diagram_{timestamp}.{output_format}"
+        filepath = DIAGRAM_DIR / filename
+        
+        diagram_generator.save_to_file(base64_image, str(filepath), output_format)
+        
+        # Calculate generation time
+        generation_time = (datetime.now() - start_time).total_seconds()
+        
+        logger.info(f"Successfully generated diagram: {filepath}")
+        
+        # Check payload size (1MB = 1,048,576 bytes)
+        # Base64 encoding increases size by ~33%, so check base64 length
+        MAX_PAYLOAD_SIZE = 1048576  # 1MB
+        base64_size = len(base64_image) if base64_image else 0
+        
+        if base64_size > MAX_PAYLOAD_SIZE:
+            # Return file path only for large images
+            return {
+                "diagram_path": str(filepath),
+                "file_output": True,
+                "message": f"Image saved to {filepath} (size: {base64_size:,} bytes exceeds 1MB limit)",
+                "diagram_spec": diagram_spec.dict(),
+                "generation_time": generation_time,
+                "success": True
+            }
+        else:
+            # Return base64 for small images
+            return {
+                "diagram_path": str(filepath),
+                "base64_image": base64_image,
+                "file_output": False,
+                "diagram_spec": diagram_spec.dict(),
+                "generation_time": generation_time,
+                "success": True
+            }
+        
+    except Exception as e:
+        logger.error(f"Error generating diagram: {e}")
+        return {
+            "error": str(e),
+            "success": False,
+            "generation_time": (datetime.now() - start_time).total_seconds()
+        }
+
+@mcp.tool()
+async def list_hockey_formations() -> Dict[str, List[str]]:
+    """
+    List all available preset hockey formations and tactical elements.
+    
+    Returns:
+        Dictionary containing available formations, zones, and patterns
+    """
+    return list_available_elements()
+
+@mcp.tool()
+async def get_formation_details(formation_name: str) -> Dict[str, Any]:
+    """
+    Get detailed specification for a specific formation.
+    
+    Args:
+        formation_name: Name of the formation (e.g., '2-1-2_forecheck', '1-3-1_powerplay')
+    
+    Returns:
+        Formation specification including player positions and movements
+    """
+    formation = get_formation(formation_name)
+    if not formation:
+        return {
+            "error": f"Formation '{formation_name}' not found",
+            "available_formations": list(FORMATIONS.keys())
+        }
+    
+    return formation
+
+@mcp.resource("hockey://diagram_examples")
+async def get_diagram_examples() -> str:
+    """
+    Get example prompts for generating hockey diagrams.
+    """
+    examples = """
+# Hockey Diagram Generation Examples
+
+## Basic Formations
+- "Create a 2-1-2 forecheck with F1 pressuring behind the net"
+- "Show 1-3-1 power play umbrella formation"
+- "Draw box penalty kill formation in defensive zone"
+- "Illustrate neutral zone trap with 1-3-1 setup"
+
+## Plays with Movement
+- "2-1-2 forecheck with weak side winger rotating to support"
+- "Breakout play with D-to-D pass and winger support"
+- "Offensive zone cycle with low forward rotation"
+- "Power play entry with drop pass at blue line"
+
+## Drills
+- "3v2 rush drill starting from neutral zone"
+- "Corner battle drill with 2v2 in offensive zone"
+- "Defensive zone coverage drill with 3v3"
+- "Passing drill with figure-8 pattern"
+
+## Zone Views
+- "Offensive zone face-off play" (with view='offensive')
+- "Defensive zone coverage" (with view='defensive')
+- "Neutral zone regroup" (with view='neutral')
+
+## Advanced Specifications
+- "Power play with overload on left side, movement from half-wall to slot"
+- "Penalty kill with aggressive pressure on puck carrier, box rotation"
+- "Breakout with reverse behind net, center swing support"
+"""
+    return examples
+
+@mcp.resource("hockey://generated_diagrams")
+async def list_generated_diagrams() -> str:
+    """
+    List all previously generated diagrams.
+    """
+    diagrams = []
+    for file in DIAGRAM_DIR.glob("hockey_diagram_*.png"):
+        diagrams.append(str(file.name))
+    
+    return json.dumps({
+        "diagram_count": len(diagrams),
+        "diagrams": diagrams[-20:]  # Last 20 diagrams
+    }, indent=2)
+
+# Health check endpoint
+@mcp.resource("hockey://health")
+async def health_check() -> str:
+    """Check if the hockey diagram MCP server is running."""
+    return json.dumps({
+        "status": "healthy",
+        "service": "Hockey Diagram MCP Server",
+        "version": "1.0.0",
+        "components": {
+            "generator": "operational",
+            "parser": "operational",
+            "formations": len(FORMATIONS)
+        }
+    })
+
+def main():
+    """Run the MCP server."""
+    logger.info("Starting Hockey Diagram MCP Server...")
+    logger.info(f"Diagram storage directory: {DIAGRAM_DIR}")
+    logger.info(f"Available formations: {len(FORMATIONS)}")
+    
+    # FastMCP handles stdio transport automatically
+    mcp.run()
+
+if __name__ == "__main__":
+    main()

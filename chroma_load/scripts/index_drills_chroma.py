@@ -1,38 +1,48 @@
-# scripts/index_drills_chroma.py
-import os
-import json
-import argparse
-from pathlib import Path
-from typing import List
-from more_itertools import chunked
-import tiktoken
+#!/usr/bin/env python3
+"""
+Hockey Drills Indexing Script
 
+This script loads enriched drills data and indexes it into Chroma vector database
+for semantic search and retrieval.
+"""
+
+import argparse
+import json
+import os
+import sys
+from pathlib import Path
+from typing import Dict, List, Any, Optional
 import chromadb
 from chromadb.config import Settings
-from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
-from dotenv import load_dotenv
+# Setup paths
+SCRIPT_DIR = Path(__file__).parent
+PROCESSED_DIR = SCRIPT_DIR.parent / "processed"
+INDEXED_DIR = SCRIPT_DIR.parent / "indexed"
 
-load_dotenv()
+# Add parent directories to path for imports
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-# Setup Chroma client
-import sys
-sys.path.append(str(Path(__file__).parent.parent.parent))  # Go up to project root
-from utils.chroma_utils import get_chroma_collection, clear_chroma_collection
+from utils.chroma_utils import get_client, clear_chroma_collection
 
-# === Helper functions ===
-def drill_text(drill: dict) -> str:
+def doc_text(drill: dict) -> str:
+    """Create document text for enriched drill."""
     def join_list(label, items):
         if isinstance(items, list):
-            return f"{label}: {', '.join(str(item) for item in items)}" if items else ""
+            return f"{label}: {'; '.join(str(item) for item in items)}" if items else ""
         elif isinstance(items, str) and items:
             return f"{label}: {items}"
         return ""
 
+    # Handle instructions which can be a list or string
+    instructions = drill.get('instructions', '')
+    if isinstance(instructions, list):
+        instructions = ' '.join(instructions)
+
     parts = [
         f"Title: {drill.get('title', '')}",
         f"Summary: {drill.get('summary', '')}",
-        f"Instructions: {drill.get('instructions', '')}",
+        f"Instructions: {instructions}",
         join_list("Teaching Points", drill.get("teaching_points", [])),
         join_list("Equipment", drill.get("equipment", [])),
         join_list("Skills", drill.get("skills", [])),
@@ -42,133 +52,366 @@ def drill_text(drill: dict) -> str:
         f"Source: {drill.get('source', '')}",
         f"URL: {drill.get('url', '')}",
     ]
-    return "\n".join(part for part in parts if part)
+    text = "\n".join([p for p in parts if p and not p.endswith(': ') and not p.endswith(': N/A')])
+    return text[:16000]
 
-def safe_str(value) -> str:
-    return value if isinstance(value, str) else ""
-
-def safe_list_to_str(value) -> str:
-    """Convert list to semicolon-separated string, or return string as-is."""
-    if isinstance(value, list):
-        return "; ".join(str(item) for item in value)
-    elif isinstance(value, str):
-        return value
-    return ""
 
 def metadata_for(drill: dict) -> dict:
+    """Create metadata for enriched drill."""
+    def safe_str(val) -> str:
+        return val if isinstance(val, str) else ""
+    
+    def safe_list_str(val) -> str:
+        if isinstance(val, list):
+            return "; ".join(str(item) for item in val)
+        return safe_str(val)
+    
+    # Handle instructions which can be a list or string
+    instructions = drill.get('instructions', '')
+    if isinstance(instructions, list):
+        instructions = ' '.join(instructions)
+    
     return {
         "title": safe_str(drill.get("title")),
         "summary": safe_str(drill.get("summary")),
-        "instructions": safe_str(drill.get("instructions")),
-        "teaching_points": safe_list_to_str(drill.get("teaching_points", [])),
-        "equipment": safe_list_to_str(drill.get("equipment", [])),
-        "skills": safe_list_to_str(drill.get("skills", [])),
-        "sub_skills": safe_list_to_str(drill.get("sub_skills", [])),
-        "positions": safe_list_to_str(drill.get("positions", [])),
+        "instructions": safe_str(instructions),
+        "teaching_points": safe_list_str(drill.get("teaching_points", [])),
+        "equipment": safe_list_str(drill.get("equipment", [])),
+        "skills": safe_list_str(drill.get("skills", [])),
+        "sub_skills": safe_list_str(drill.get("sub_skills", [])),
+        "positions": safe_list_str(drill.get("positions", [])),
         "complexity": safe_str(drill.get("complexity")),
         "source": safe_str(drill.get("source")),
         "url": safe_str(drill.get("url")),
+        "document_type": "drill"
     }
 
+class DrillsIndexer:
+    def __init__(self, dry_run: bool = False, collection_name: str = "hockey_drills"):
+        """Initialize the drills indexer."""
+        self.dry_run = dry_run
+        self.collection_name = collection_name
+    
+    def find_latest_enriched_file(self, input_file: Optional[Path] = None) -> Path:
+        """Find the latest enriched drills file."""
+        if input_file is not None:
+            if input_file.exists():
+                return input_file
+            else:
+                # Try relative to processed directory
+                full_path = PROCESSED_DIR / input_file
+                if full_path.exists():
+                    return full_path
+                else:
+                    raise FileNotFoundError(f"Input file not found: {input_file}")
+        
+        # Look for the most recent enriched drills file
+        drills_dir = PROCESSED_DIR / "drills"
+        pattern = "enriched_drills_*.json"
+        enriched_files = list(drills_dir.glob(pattern))
+        
+        if not enriched_files:
+            # Fall back to looking in processed directory
+            enriched_files = list(PROCESSED_DIR.glob(pattern))
+        
+        if not enriched_files:
+            raise FileNotFoundError(f"No enriched drills files found in {PROCESSED_DIR} or {drills_dir}")
+        
+        # Sort by modification time to get latest
+        latest_file = max(enriched_files, key=lambda f: f.stat().st_mtime)
+        return latest_file
+    
+    def load_enriched_drills(self, input_file: Path) -> List[Dict[str, Any]]:
+        """Load enriched drills from JSON file."""
+        try:
+            with open(input_file, 'r', encoding='utf-8') as f:
+                drills = json.load(f)
+            print(f"📂 Loaded {len(drills)} enriched drills from {input_file}")
+            return drills
+        except Exception as e:
+            raise Exception(f"Error loading drills from {input_file}: {e}")
+    
+    def index_drills(self, drills: List[Dict[str, Any]], clear_existing: bool = True) -> Dict[str, Any]:
+        """Index all drills into Chroma database."""
+        
+        print(f"\n🚀 Indexing {len(drills)} drills...")
+        
+        if self.dry_run:
+            print("🔍 DRY RUN MODE: Analyzing indexing structure")
+            
+            # Show sample documents
+            sample_count = min(3, len(drills))
+            for i in range(sample_count):
+                drill = drills[i]
+                doc_content = doc_text(drill)
+                metadata = metadata_for(drill)
+                print(f"\n📄 Sample Document {i+1}:")
+                print(f"   Title: {drill.get('title', 'Unknown')}")
+                print(f"   Content length: {len(doc_content)} chars")
+                print(f"   Content preview: {doc_content[:200]}...")
+                print(f"   Metadata keys: {list(metadata.keys())}")
+            
+            return {
+                "success": True,
+                "dry_run": True,
+                "total_drills": len(drills),
+                "sample_count": sample_count
+            }
+        
+        try:
+            # Get or create dedicated drills collection
+            client = get_client()
+            
+            if clear_existing:
+                try:
+                    print(f"🗑️  Clearing existing drills collection '{self.collection_name}'...")
+                    client.delete_collection(name=self.collection_name)
+                except Exception as e:
+                    print(f"   (Collection may not exist yet: {e})")
+            
+            print(f"📚 Creating/accessing drills collection: '{self.collection_name}'")
+            collection = client.get_or_create_collection(
+                name=self.collection_name,
+                metadata={"description": "Hockey drills, training exercises, and skill development"}
+            )
+            
+            # Prepare documents for indexing
+            print(f"📝 Preparing {len(drills)} documents for indexing...")
+            
+            documents = []
+            metadatas = []
+            ids = []
+            
+            for i, drill in enumerate(drills):
+                # Create document content
+                doc_content = doc_text(drill)
+                documents.append(doc_content)
+                
+                # Create metadata
+                metadata = metadata_for(drill)
+                metadatas.append(metadata)
+                
+                # Create unique ID
+                drill_title = drill.get('title', f'drill_{i}')
+                safe_title = drill_title.lower().replace(' ', '_').replace('-', '_')
+                doc_id = f"drill_{i}_{safe_title}"
+                ids.append(doc_id)
+            
+            # Add to collection
+            print(f"📦 Adding documents to Chroma collection...")
+            collection.add(
+                documents=documents,
+                metadatas=metadatas,
+                ids=ids
+            )
+            
+            # Verify insertion
+            collection_count = collection.count()
+            print(f"✅ Successfully indexed {collection_count} drills")
+            
+            return {
+                "success": True,
+                "indexed_count": collection_count
+            }
+            
+        except Exception as e:
+            print(f"❌ Error during indexing: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "indexed_count": 0
+            }
+    
+    def verify_indexing(self, original_count: int) -> Dict[str, Any]:
+        """Verify the indexing results with sample queries."""
+        if self.dry_run:
+            return {"dry_run": True, "verification_skipped": True}
+        
+        print(f"\n🔍 Verifying indexing results...")
+        
+        try:
+            # Get drills collection and check count
+            client = get_client()
+            collection = client.get_collection(name=self.collection_name)
+            collection_count = collection.count()
+            print(f"📊 Collection contains {collection_count} documents")
+            
+            # Test sample queries
+            test_queries = [
+                "passing drills",
+                "skating fundamentals", 
+                "goaltending practice",
+                "shooting accuracy",
+                "defensive positioning"
+            ]
+            
+            verification_results = {
+                "collection_count": collection_count,
+                "original_count": original_count,
+                "count_match": collection_count == original_count,
+                "sample_queries": {}
+            }
+            
+            for query in test_queries:
+                try:
+                    results = collection.query(
+                        query_texts=[query],
+                        n_results=3
+                    )
+                    
+                    result_count = len(results['documents'][0]) if results['documents'] else 0
+                    verification_results["sample_queries"][query] = {
+                        "result_count": result_count,
+                        "success": True
+                    }
+                    
+                    if result_count > 0:
+                        # Show first result preview
+                        first_result = results['documents'][0][0]
+                        print(f"  🔎 '{query}': {result_count} results")
+                        print(f"     Top result: {first_result[:100]}...")
+                    else:
+                        print(f"  🔎 '{query}': No results found")
+                        
+                except Exception as e:
+                    verification_results["sample_queries"][query] = {
+                        "result_count": 0,
+                        "success": False,
+                        "error": str(e)
+                    }
+                    print(f"  ❌ '{query}': Query failed - {e}")
+            
+            return verification_results
+            
+        except Exception as e:
+            print(f"❌ Verification failed: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def save_indexing_summary(self, 
+                            input_file: Path, 
+                            indexing_results: Dict[str, Any], 
+                            verification_results: Dict[str, Any]) -> str:
+        """Save indexing summary to JSON file."""
+        
+        if self.dry_run:
+            print("🔍 DRY RUN: Would save indexing summary")
+            return "dry-run-summary"
+        
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        summary = {
+            "timestamp": timestamp,
+            "input_file": str(input_file),
+            "indexing_results": indexing_results,
+            "verification_results": verification_results
+        }
+        
+        # Ensure indexed directory exists
+        INDEXED_DIR.mkdir(parents=True, exist_ok=True)
+        
+        output_file = INDEXED_DIR / f"drills_indexed_{timestamp}.json"
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
+        
+        print(f"💾 Saved indexing summary to: {output_file}")
+        return str(output_file)
+
 def main():
-    parser = argparse.ArgumentParser(description="Index hockey drills into Chroma vector database")
+    parser = argparse.ArgumentParser(description="Index enriched hockey drills into Chroma database")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        help="Input enriched drills file (default: latest enriched_drills_*.json)"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Analyze indexing structure without actual indexing"
+    )
     parser.add_argument(
         "--clear-drills",
         action="store_true",
-        help="Clear existing drill documents (with 'drill-' prefix) before indexing"
+        help="Clear existing drills collection before indexing"
     )
     parser.add_argument(
-        "--input-file",
-        help="Path to specific drill JSON file to index (default: use processed/drills.json)"
-    )
-    parser.add_argument(
-        "--chunk-size",
-        type=int,
-        default=100,
-        help="Number of drills per indexing chunk (default: 100)"
+        "--collection-name",
+        type=str,
+        default="hockey_drills",
+        help="Name for the drills collection (default: hockey_drills)"
     )
     
     args = parser.parse_args()
-    chunk_size = args.chunk_size
-    enc = tiktoken.get_encoding("cl100k_base")
     
-    # Clear existing drill documents if requested
-    if args.clear_drills:
-        print("🧹 Clearing existing drill documents...")
-        clear_chroma_collection(mode="type", prefix="drill-")
+    print("🏒 Hockey Drills Indexing Script")
+    print("=" * 50)
+    print(f"Mode: {'DRY RUN' if args.dry_run else 'FULL INDEXING'}")
+    print(f"Collection: {args.collection_name}")
+    print(f"Clear existing: {'YES' if args.clear_drills else 'NO'}")
     
-    collection = get_chroma_collection()
+    indexer = DrillsIndexer(dry_run=args.dry_run, collection_name=args.collection_name)
     
-    # Determine input file
-    if args.input_file:
-        data_path = Path(args.input_file)
-    else:
-        # Look for the most recent enriched drills file
-        processed_dir = Path(__file__).parent.parent / "processed"
-        enriched_files = list(processed_dir.glob("enriched_drills_*.json"))
+    try:
+        # Find and load input file
+        input_file = indexer.find_latest_enriched_file(args.input)
+        print(f"📂 Input file: {input_file}")
         
-        if enriched_files:
-            # Use the most recent enriched file
-            data_path = max(enriched_files, key=lambda p: p.stat().st_mtime)
-            print(f"📂 Using most recent enriched drills file: {data_path}")
+        drills = indexer.load_enriched_drills(input_file)
+        
+        if not drills:
+            print("❌ No drills found!")
+            return 1
+        
+        # Index drills
+        indexing_results = indexer.index_drills(drills, clear_existing=args.clear_drills)
+        
+        if not indexing_results.get("success", False):
+            print(f"❌ Indexing failed: {indexing_results.get('error', 'Unknown error')}")
+            return 1
+        
+        # Verify indexing
+        verification_results = indexer.verify_indexing(len(drills))
+        
+        # Save summary
+        summary_file = indexer.save_indexing_summary(input_file, indexing_results, verification_results)
+        
+        # Print final summary
+        print(f"\n📋 INDEXING SUMMARY")
+        print("=" * 50)
+        
+        if args.dry_run:
+            print(f"Documents analyzed: {indexing_results.get('total_drills', 0)}")
+            print(f"Sample documents: {indexing_results.get('sample_count', 0)}")
         else:
-            # Fall back to legacy drills.json
-            data_path = processed_dir / "drills.json"
-            print(f"📂 Using legacy drills file: {data_path}")
-    
-    if not data_path.exists():
-        print(f"❌ Data file not found: {data_path}")
-        print("   Run the drill enrichment script first or specify --input-file")
+            print(f"Documents indexed: {indexing_results.get('indexed_count', 0)}")
+            
+            if verification_results.get("count_match", False):
+                print("✅ Document count verification: PASSED")
+            else:
+                print("❌ Document count verification: FAILED")
+                print(f"   Expected: {verification_results.get('original_count', 0)}")
+                print(f"   Actual: {verification_results.get('collection_count', 0)}")
+            
+            # Show query test results
+            successful_queries = sum(1 for q in verification_results.get("sample_queries", {}).values() if q.get("success", False))
+            total_queries = len(verification_results.get("sample_queries", {}))
+            print(f"Sample queries: {successful_queries}/{total_queries} successful")
+        
+        print(f"Input file: {input_file}")
+        print(f"Summary file: {summary_file}")
+        
+        if args.dry_run:
+            print(f"\n🔍 DRY RUN COMPLETE - Run without --dry-run to index all drills")
+        else:
+            print(f"\n✅ INDEXING COMPLETE")
+            
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
         return 1
-        
-    # Load drill data
-    with open(data_path, "r") as f:
-        data = json.load(f)
-    
-    print(f"📚 Loaded {len(data)} drills from {data_path}")
-    
-    # === Build text chunks to embed ===
-    docs = [drill_text(d) for d in data]
-    metadatas = [metadata_for(d) for d in data]
-    ids = [f"drill-{i}" for i in range(len(data))]
-    
-    # Check token counts
-    max_tokens = 0
-    for doc in docs:
-        tokens = len(enc.encode(doc))
-        if tokens > max_tokens:
-            max_tokens = tokens
-    
-    print(f"📏 Largest document has {max_tokens} tokens")
-    
-    # Index drills in chunks
-    if docs:
-        for i, (doc_chunk, meta_chunk, id_chunk) in enumerate(
-            zip(
-                chunked(docs, chunk_size),
-                chunked(metadatas, chunk_size),
-                chunked(ids, chunk_size),
-            )
-        ):
-            print(f"📦 Indexing chunk {i+1} with {len(doc_chunk)} drills...")
-            try:
-                collection.add(documents=doc_chunk, metadatas=meta_chunk, ids=id_chunk)
-            except Exception as e:
-                print(f"❌ Failed to index chunk {i+1}: {e}")
-                continue
-    
-    print("Count:", collection.count())
-    
-    # Show sample results
-    results = collection.get(include=["documents", "metadatas"], limit=5)
-    for i, doc in enumerate(results["documents"]):
-        print(f"Doc {i+1}:")
-        print("  ID:", results["ids"][i])  # this is always included even if not in `include`
-        print("  Title:", results["metadatas"][i].get("title"))
-        print("  Text:", doc[:100], "...")
-        
-    print(f"✅ Indexed {len(docs)} drills into Chroma")
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

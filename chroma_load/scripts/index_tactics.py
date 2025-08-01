@@ -23,7 +23,7 @@ INDEXED_DIR = SCRIPT_DIR.parent / "indexed"
 # Add parent directories to path for imports
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-from utils.chroma_utils import get_chroma_collection, clear_chroma_collection
+from utils.chroma_utils import get_client, clear_chroma_collection
 
 def doc_text(tactic: dict) -> str:
     """Create document text for enriched tactic."""
@@ -68,9 +68,10 @@ def metadata_for(tactic: dict) -> dict:
 
 
 class TacticsIndexer:
-    def __init__(self, dry_run: bool = False):
+    def __init__(self, dry_run: bool = False, collection_name: str = "hockey_tactics"):
         """Initialize the tactics indexer."""
         self.dry_run = dry_run
+        self.collection_name = collection_name
     def find_latest_enriched_file(self, input_file: Optional[Path] = None) -> Path:
         """Find the latest enriched tactics file."""
         if input_file is not None:
@@ -133,15 +134,21 @@ class TacticsIndexer:
             }
         
         try:
-            # Clear existing collection if requested
-            if clear_existing:
-                print(f"🗑️  Clearing existing tactics collection...")
-                clear_chroma_collection(mode="type", prefix="tactic_")
-            else:
-                print(f"📝 Appending to existing tactics collection...")
+            # Get or create dedicated tactics collection
+            client = get_client()
             
-            # Get collection
-            collection = get_chroma_collection()
+            if clear_existing:
+                try:
+                    print(f"🗑️  Clearing existing tactics collection '{self.collection_name}'...")
+                    client.delete_collection(name=self.collection_name)
+                except Exception as e:
+                    print(f"   (Collection may not exist yet: {e})")
+            
+            print(f"📚 Creating/accessing tactics collection: '{self.collection_name}'")
+            collection = client.get_or_create_collection(
+                name=self.collection_name,
+                metadata={"description": "Hockey tactics, systems, and strategic plays"}
+            )
             
             # Prepare documents for indexing
             print(f"📝 Preparing {len(tactics)} documents for indexing...")
@@ -198,8 +205,9 @@ class TacticsIndexer:
         print(f"\n🔍 Verifying indexing results...")
         
         try:
-            # Get collection and check count
-            collection = get_chroma_collection()
+            # Get tactics collection and check count
+            client = get_client()
+            collection = client.get_collection(name=self.collection_name)
             collection_count = collection.count()
             print(f"📊 Collection contains {collection_count} documents")
             
@@ -303,7 +311,13 @@ def main():
     parser.add_argument(
         "--clear-tactics",
         action="store_true",
-        help="Clear existing tactic documents (with 'tactic_' prefix) before indexing"
+        help="Clear existing tactics collection before indexing"
+    )
+    parser.add_argument(
+        "--collection-name",
+        type=str,
+        default="hockey_tactics",
+        help="Name for the tactics collection (default: hockey_tactics)"
     )
     
     args = parser.parse_args()
@@ -311,9 +325,10 @@ def main():
     print("🏒 Hockey Tactics Indexing Script")
     print("=" * 50)
     print(f"Mode: {'DRY RUN' if args.dry_run else 'FULL INDEXING'}")
+    print(f"Collection: {args.collection_name}")
     print(f"Clear existing: {'YES' if args.clear_tactics else 'NO'}")
     
-    indexer = TacticsIndexer(dry_run=args.dry_run)
+    indexer = TacticsIndexer(dry_run=args.dry_run, collection_name=args.collection_name)
     
     try:
         # Find and load input file
