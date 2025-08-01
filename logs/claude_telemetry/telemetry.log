@@ -1,0 +1,936 @@
+2025-07-31 13:50:22,372 - telemetry.collector - DEBUG - Background processing thread started
+2025-07-31 14:07:36,825 - telemetry.collector - DEBUG - Background processing thread started
+2025-07-31 14:07:56,025 - telemetry.collector - WARNING - Failed to create UserPromptSubmit event: 1 validation error for UserPromptEvent
+prompt_length
+  Field required [type=missing, input_value={'event_type': 'UserPromptSubmit'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing, using BaseEvent
+2025-07-31 14:21:35,807 - telemetry.collector - WARNING - Failed to create Notification event: 2 validation errors for NotificationEvent
+notification_type
+  Field required [type=missing, input_value={'event_type': 'Notification'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+message
+  Field required [type=missing, input_value={'event_type': 'Notification'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing, using BaseEvent
+2025-07-31 14:26:08,280 - telemetry.collector - DEBUG - Background processing thread started
+2025-07-31 14:27:03,209 - telemetry.collector - DEBUG - Background processing thread started
+2025-07-31 14:31:17,193 - telemetry.collector - DEBUG - Background processing thread started
+2025-07-31 15:07:32,532 - telemetry.collector - DEBUG - Background processing thread started
+2025-07-31 16:26:43,370 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:26:43,371 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:26:58,254 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:26:58,254 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:26:59,441 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:26:59,441 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:27:19,631 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:27:20,636 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:27:20,637 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:28:04,610 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:28:04,611 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:28:12,730 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:28:12,730 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:28:13,902 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:28:13,902 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:28:59,898 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:28:59,900 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:29:07,161 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:29:07,161 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:10,346 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:10,346 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:18,761 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:18,762 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:18,764 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:18,765 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:19,967 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:19,968 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:20,033 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:20,033 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:24,978 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:24,978 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:26,136 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:26,136 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:40,351 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:40,351 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:41,533 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:41,533 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:47,991 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:47,992 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:34:49,162 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:34:49,162 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:35:03,654 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:35:03,655 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:35:10,887 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:35:10,888 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:35:22,097 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:35:22,097 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:35:29,124 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:35:29,125 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:35:36,336 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:35:36,336 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:02,378 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:02,380 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:10,098 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:10,099 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:11,261 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:11,262 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:21,125 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:21,125 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:28,308 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:28,310 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:33,079 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:33,079 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:44,432 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:44,432 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:48,133 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:48,133 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:55,297 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:55,297 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:36:56,462 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:36:56,463 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:11,824 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:11,825 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:14,569 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:14,569 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:27,980 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:27,980 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:35,115 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:35,116 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:44,498 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:44,498 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:47,516 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:47,517 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:54,281 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:54,282 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 16:37:55,451 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 16:37:55,452 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:39:52,560 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:39:52,561 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:40:09,438 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:40:09,438 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:40:16,700 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:40:16,700 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:40:54,281 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:40:54,281 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:41:02,000 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:41:02,000 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:41:12,527 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:41:12,528 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:41:14,712 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:41:14,712 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:41:19,712 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:41:19,712 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:41:22,969 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:41:22,969 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:43:45,526 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:43:45,527 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:43:58,661 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:43:58,662 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:43:59,868 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:43:59,868 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:44:35,044 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:44:35,045 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:44:42,222 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:44:42,222 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:44:44,978 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:44:44,978 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:45:04,194 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:45:04,195 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:45:11,428 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:45:11,429 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 20:45:50,234 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 20:45:50,234 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:28:34,364 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:28:34,364 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:28:39,769 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:28:39,770 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:28:56,162 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:28:56,163 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:29:01,488 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:29:01,488 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:29:02,681 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:29:02,681 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:29:03,375 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:29:03,375 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:29:03,959 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:29:03,959 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:29:33,563 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:29:33,563 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:29:50,914 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:29:50,914 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:29:52,096 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:29:52,096 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:30:09,034 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:30:09,034 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:30:20,505 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:30:20,506 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:30:28,752 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:30:28,752 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:32:27,722 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:32:27,722 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:32:41,927 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:32:41,927 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:32:43,126 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:32:43,127 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:32:51,633 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:32:51,633 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:33:06,290 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:33:07,296 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:33:07,296 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:33:52,832 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:33:52,833 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:34:06,018 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:34:06,018 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:34:07,231 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:34:07,231 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:34:25,428 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:34:26,432 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:34:26,433 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:38:21,421 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:38:21,421 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:38:34,811 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:38:34,812 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:38:42,011 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:38:42,011 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:38:51,382 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:38:51,383 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:38:52,492 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:38:52,492 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:39:06,615 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:06,616 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:39:12,629 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:12,630 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:39:15,040 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:15,040 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:39:18,026 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:18,027 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:39:35,169 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:35,170 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:39:36,363 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:36,363 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:39:49,188 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:50,194 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:39:50,194 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:41:02,728 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:41:02,728 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:41:13,918 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:41:13,919 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:41:35,761 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:41:35,762 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:41:56,192 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:41:56,193 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:43:10,220 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:43:10,220 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:43:30,163 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:43:30,164 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:43:31,372 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:43:31,372 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:43:46,652 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:43:47,658 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:43:47,658 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:44:03,853 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:44:03,854 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:44:16,175 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:44:16,176 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:44:32,062 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:44:32,063 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:45:10,277 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:45:10,278 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:45:22,040 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:45:22,040 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:45:36,346 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:45:36,347 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:45:55,440 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:45:55,441 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:46:06,477 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:46:06,478 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:46:07,635 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:46:07,635 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:46:21,191 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:46:21,192 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:46:21,505 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:46:22,511 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:46:22,511 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:46:29,676 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:46:29,676 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:46:51,444 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:46:51,444 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:47:02,616 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:47:02,616 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:47:16,797 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:47:16,798 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:48:21,567 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:48:21,568 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:48:30,259 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:48:30,259 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:48:31,404 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:48:31,404 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:48:40,648 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:48:40,648 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:48:48,976 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:48:48,976 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:49:08,466 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:49:08,466 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:49:19,830 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:49:19,830 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:49:27,432 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:49:27,433 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:49:36,985 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:49:36,986 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:49:45,153 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:49:45,153 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:50:41,007 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:50:41,008 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:50:51,397 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:50:51,397 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:50:59,582 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:50:59,582 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:52:49,651 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:52:49,651 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:53:00,627 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:53:00,628 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:53:08,802 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:53:08,803 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:54:41,877 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:54:41,877 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:54:49,140 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:54:49,140 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:54:58,188 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:54:58,188 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:55:05,360 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:55:05,361 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:55:37,417 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:55:37,418 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:55:43,592 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:55:43,592 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:55:54,161 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:55:54,161 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:02,519 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:02,519 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:04,692 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:04,692 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:13,136 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:13,136 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:15,234 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:15,235 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:22,417 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:22,417 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:23,563 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:23,564 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:24,710 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:24,710 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:34,342 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:34,342 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:35,479 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:35,480 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:40,321 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:40,322 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:44,264 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:44,264 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:45,413 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:45,414 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:54,781 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:54,781 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:55,021 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:55,021 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:56:56,170 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:56:56,170 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:57:07,254 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:57:07,254 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:57:07,395 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:57:07,395 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:57:08,399 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:57:08,399 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:57:26,483 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:57:26,484 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:57:33,933 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:57:33,934 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:57:34,646 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:57:34,646 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:57:42,183 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:57:42,184 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:58:58,764 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:58:58,765 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:59:09,057 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:59:09,057 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:59:25,617 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:59:25,618 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:59:37,332 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:59:37,332 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 21:59:45,804 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 21:59:45,805 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:00:50,932 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:00:50,932 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:01:08,532 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:01:09,538 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:01:09,539 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:02:01,032 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:02:01,032 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:02:10,425 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:02:10,425 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:02:32,893 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:02:32,894 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:02:51,330 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:02:51,330 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:02:58,536 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:02:58,537 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:03:13,673 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:03:13,674 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:03:14,492 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:03:14,492 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:03:20,840 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:03:20,840 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:03:28,748 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:03:28,748 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:03:29,905 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:03:29,905 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:04:03,799 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:04:04,805 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:04:04,805 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:04:20,992 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:04:20,993 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:07,636 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:07,636 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:22,882 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:22,883 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:24,048 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:24,048 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:35,098 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:35,098 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:36,256 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:36,257 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:46,715 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:46,715 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:47,870 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:47,870 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:05:49,686 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:05:49,686 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:06:39,473 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:06:40,479 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:06:40,479 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:07:04,884 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:07:04,884 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:07:16,488 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:07:16,488 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:07:23,631 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:07:23,632 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:11:10,544 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:11:10,545 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:11:11,750 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:11:11,750 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:12:07,359 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:12:07,359 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:12:14,520 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:12:14,521 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:12:31,844 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:12:31,844 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:12:32,978 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:12:32,978 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:12:40,159 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:12:40,159 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:12:42,256 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:12:42,256 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:12:49,434 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:12:49,435 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:13:10,449 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:13:10,450 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:13:24,810 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:13:24,810 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:13:37,988 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:13:37,989 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:14:53,736 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:14:53,736 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:14:54,892 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:14:54,893 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:15:08,821 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:15:08,822 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:15:17,173 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:15:17,173 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:15:35,077 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:15:35,079 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:15:42,304 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:15:42,304 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:15:51,309 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:15:51,309 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:15:59,514 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:15:59,515 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:16:06,691 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:16:06,693 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:16:19,782 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:16:19,783 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:16:25,688 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:16:25,688 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:16:33,526 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:16:33,526 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:16:48,161 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:16:48,162 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:16:56,403 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:16:56,404 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:17:06,535 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:17:06,536 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:17:13,551 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:17:13,552 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:17:32,872 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:17:32,873 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:17:38,698 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:17:38,698 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:17:45,032 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:17:45,033 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:17:51,111 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:17:51,112 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:17:52,257 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:17:52,257 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:18:08,218 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:18:08,218 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:18:15,373 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:18:15,373 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:18:29,918 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:18:29,918 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:18:45,298 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:18:45,298 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:18:51,051 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:18:51,051 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:19:06,946 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:19:06,946 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:19:12,488 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:19:12,488 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:19:25,431 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:19:25,432 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:19:32,603 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:19:32,603 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:20:10,634 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:20:10,635 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:20:22,212 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:20:22,213 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:20:30,342 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:20:30,342 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:20:51,039 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:20:51,040 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:21:05,796 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:05,797 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:21:06,941 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:06,941 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:21:17,348 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:17,349 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:21:20,247 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:20,247 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:21:33,448 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:33,450 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:21:34,610 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:34,611 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:21:44,898 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:45,904 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:21:45,904 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:22:15,857 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:22:15,857 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:22:30,187 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:22:31,192 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:22:31,193 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:22:47,536 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:22:47,536 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:23:16,075 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:23:16,075 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:24:39,675 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:24:39,675 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:24:40,819 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:24:40,819 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:24:50,681 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:24:50,681 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:24:57,879 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:24:57,880 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:26:22,423 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:26:22,424 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:26:36,243 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:26:36,243 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:26:44,933 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:26:44,933 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:26:50,657 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:26:50,658 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:26:51,825 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:26:51,825 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:27:02,290 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:27:02,290 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:27:09,482 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:27:09,482 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:27:12,119 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:27:12,119 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:27:19,296 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:27:19,296 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:27:37,525 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:27:37,525 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:27:44,709 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:27:44,710 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:28:04,265 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:28:04,266 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:28:11,451 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:28:11,451 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:28:29,001 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:28:29,002 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:28:30,172 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:28:30,172 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:28:40,686 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:28:40,686 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:28:48,179 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:28:48,179 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:29:01,836 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:29:01,836 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:29:09,073 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:29:09,074 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:29:30,622 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:29:30,622 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:29:31,800 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:29:31,800 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:29:42,838 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:29:42,838 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:29:51,147 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:29:51,148 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:30:22,483 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:30:22,484 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:30:29,983 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:30:29,983 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:30:39,619 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:30:39,619 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:30:46,798 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:30:46,798 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:00,176 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:00,177 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:04,619 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:04,619 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:10,412 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:10,412 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:37,908 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:37,909 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:39,073 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:39,073 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:44,335 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:44,335 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:51,539 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:51,540 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:31:56,745 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:57,751 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:31:57,752 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:32:40,082 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:32:40,082 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:32:54,309 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:32:55,315 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:32:55,316 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:33:48,167 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:33:48,169 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:33:59,356 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:33:59,357 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:06,550 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:34:06,551 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:25,519 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:34:25,520 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:35,445 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:34:35,445 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:40,369 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:34:40,369 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:46,369 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:34:46,370 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:51,481 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:34:51,482 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:54,015 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:34:54,015 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:34:59,461 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:35:00,467 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:35:00,467 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:35:40,195 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:35:40,196 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:35:47,413 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:35:47,414 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:37:07,267 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:37:07,268 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:37:12,702 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:37:12,702 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:37:27,184 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:37:27,185 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:37:34,360 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:37:34,361 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:37:58,313 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:37:58,314 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:38:06,526 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:38:06,527 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:38:11,210 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:38:11,211 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:38:26,020 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:38:26,021 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:38:27,178 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:38:27,179 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:38:37,711 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:38:37,711 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:39:38,743 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:39:38,744 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:39:45,952 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:39:45,953 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:41:10,995 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:41:10,995 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:41:18,241 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:41:18,241 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:42:15,902 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:42:15,902 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:42:17,072 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:42:17,073 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:42:25,804 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:42:25,805 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:42:50,688 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:42:50,688 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:42:57,857 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:42:57,857 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:43:52,906 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:43:52,906 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:00,106 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:00,106 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:20,999 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:20,999 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:30,994 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:30,995 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:37,824 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:37,824 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:39,511 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:39,512 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:46,684 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:46,684 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:50,462 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:50,463 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:44:51,633 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:44:51,634 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:45:18,507 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:45:18,508 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:45:27,369 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:45:27,370 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:45:33,387 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:45:33,387 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:45:39,586 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:45:39,587 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:45:49,642 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:45:49,642 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:45:58,107 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:45:58,107 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:03,313 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:03,313 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:15,265 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:15,265 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:23,884 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:23,885 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:25,049 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:25,050 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:26,562 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:26,562 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:33,738 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:33,738 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:35,840 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:35,840 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:46:56,775 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:46:56,776 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:47:00,951 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:47:00,951 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:47:03,960 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:47:03,960 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:47:08,144 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:47:08,144 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:47:55,069 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:47:55,070 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:48:02,328 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:48:02,328 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:49:01,842 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:49:01,843 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:49:03,014 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:49:03,014 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:50:14,476 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:50:14,477 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:50:22,533 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:50:22,533 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:50:34,213 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:50:34,213 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:50:46,755 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:50:46,755 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:51:05,388 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:51:05,389 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:51:19,508 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:51:19,510 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:51:45,076 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:51:45,076 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:51:52,314 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:51:52,315 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:52:36,119 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:52:36,120 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:52:59,797 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:53:00,803 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:53:00,804 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:53:59,138 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:53:59,138 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:54:09,140 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:09,140 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:54:31,723 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:31,724 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:54:33,045 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:33,046 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:54:35,046 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:36,051 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:36,052 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:54:38,867 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:38,868 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:54:58,319 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:59,324 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:54:59,325 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:55:18,974 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:55:18,975 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:55:28,061 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:55:28,062 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:55:34,765 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:55:34,765 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:55:56,527 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:55:56,529 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 22:56:06,742 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 22:56:06,742 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:01:30,363 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:01:30,364 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:01:47,115 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:01:47,115 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:01:53,762 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:01:53,763 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:01:54,928 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:01:54,928 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:02:07,659 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:02:07,660 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:02:14,120 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:02:14,120 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:02:14,482 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:02:14,482 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:02:21,331 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:02:21,331 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:02:22,917 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:02:22,917 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:02:42,822 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:02:42,822 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:03:01,834 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:03:01,835 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:03:14,237 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:03:14,238 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:03:34,041 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:03:34,042 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:03:35,194 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:03:35,194 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:03:45,792 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:03:45,792 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:03:52,984 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:03:52,985 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:04:18,663 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:04:18,663 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:04:31,836 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:04:31,837 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:05:15,782 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:05:15,782 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:05:23,025 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:05:23,026 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:05:47,816 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:05:47,816 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:06:03,210 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:06:03,212 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:06:10,441 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:06:10,442 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:06:38,907 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:06:38,907 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:06:40,070 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:06:40,070 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:06:56,641 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:06:56,643 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:07:05,210 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:07:05,210 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:08:01,553 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:08:01,554 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:08:12,974 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:08:12,975 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:08:17,618 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:08:17,619 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:08:28,165 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:08:28,166 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:09:10,280 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:09:10,280 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:09:17,582 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:09:17,583 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:09:31,495 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:09:31,496 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:09:44,116 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:09:44,116 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:09:49,326 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:09:49,326 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:10:06,704 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:10:06,705 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:10:14,520 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:10:14,520 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:10:17,798 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:10:17,798 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:10:18,958 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:10:18,958 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:10:28,170 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:10:28,170 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:10:36,313 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:10:36,314 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:10:58,723 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:10:58,723 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:11:20,828 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:11:20,829 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:11:28,129 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:11:28,130 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:11:53,744 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:11:53,745 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:12:02,139 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:12:02,140 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:12:03,283 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:12:03,283 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:12:11,585 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:12:11,586 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:12:12,740 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:12:12,741 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:13:40,167 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:13:40,167 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:13:47,400 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:13:47,400 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:15,168 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:15,169 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:19,047 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:19,047 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:35,625 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:35,626 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:41,341 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:41,341 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:42,499 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:42,499 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:43,867 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:43,867 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:48,166 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:48,166 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:15:56,832 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:15:56,832 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:16:00,412 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:16:00,413 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:16:06,708 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:16:06,709 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:16:14,033 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:16:14,034 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:16:21,014 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:16:21,014 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:16:30,699 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:16:30,701 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:16:45,470 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:16:45,471 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:16:52,680 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:16:52,680 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:17:08,275 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:17:08,276 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:17:21,085 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:17:21,085 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:17:28,393 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:17:28,394 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:17:43,533 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:17:43,533 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:18:07,388 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:18:07,389 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:18:14,674 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:18:14,675 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:18:45,096 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:18:45,097 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:18:48,203 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:18:48,203 - telemetry.collector - INFO - Telemetry collector shutdown complete
+2025-07-31 23:19:08,452 - telemetry.collector - ERROR - Failed to finalize session metrics: `dumps_kwargs` keyword arguments are no longer supported.
+2025-07-31 23:19:08,453 - telemetry.collector - INFO - Telemetry collector shutdown complete
