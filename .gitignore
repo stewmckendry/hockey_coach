@@ -18,3 +18,4 @@ node_modules/
 venv/
 bridge_env/
 web_app/.next/
+logs/*

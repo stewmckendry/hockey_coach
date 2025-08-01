@@ -1,7 +1,7 @@
 ---
 description: "Research hockey content using Thunder Playbook files, Hockey MCP tools, Exa web search, and YouTube videos for comprehensive content creation"
 argument-hint: "<topic> <age-group> [team-name] [research-depth]"
-allowed-tools: ["mcp__exa__web_search_exa", "mcp__exa__deep_researcher_start", "mcp__exa__deep_researcher_check", "mcp__youtube__search_videos", "mcp__youtube__get_video", "mcp__youtube__get_transcript", "mcp__notion-remote__search", "mcp__notion-remote__fetch", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "search_hockey_knowledge", "Read", "Glob", "Grep", "TodoWrite"]
+allowed-tools: ["mcp__exa__web_search_exa", "mcp__exa__deep_researcher_start", "mcp__exa__deep_researcher_check", "mcp__youtube__search_videos", "mcp__youtube__get_video", "mcp__youtube__get_transcript", "mcp__notion-remote__search", "mcp__notion-remote__fetch", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "search_hockey_knowledge", "mcp__stability-ai__stability-ai-generate-image-sd35", "mcp__stability-ai__stability-ai-control-structure", "mcp__cloudinary__upload", "Read", "Glob", "Grep", "TodoWrite"]
 ---
 
 # Hockey Research Command
@@ -163,7 +163,34 @@ U14+ (13+ years):
 - Development Path: Position-specific skills and advanced techniques
 ```
 
-### Step 7: Research Page Creation and Content Library Integration
+### Step 7: Visual Research Enhancement
+**Generate Supporting Diagrams:**
+- Identify key concepts from research that would benefit from visual representation
+- For tactical topics: Generate whiteboard diagrams using realistic hockey whiteboard base
+- For skill development: Create instructional demonstration images
+- For dryland training: Generate exercise diagrams with proper form illustrations
+- Upload all images to Cloudinary for immediate embedding in research page
+- Include image URLs in research documentation for easy reference
+
+**Visual Content Generation Process:**
+```
+If research contains tactical concepts:
+  1. Generate tactical diagrams using control-structure mode with realistic whiteboard base
+  2. Include player positions, movement arrows, and tactical elements
+  3. Upload to hockey-coaching/research/ folder in Cloudinary
+
+If research contains skill techniques:
+  1. Generate instructional demonstration images showing proper technique
+  2. Focus on clear body positioning and equipment usage
+  3. Upload with descriptive naming for easy reference
+
+If research contains dryland exercises:
+  1. Generate exercise diagrams showing proper form and progression
+  2. Include numbered steps and movement indicators
+  3. Upload to hockey-coaching/dryland/ folder
+```
+
+### Step 8: Research Page Creation and Content Library Integration
 **Research Documentation Process:**
 - Create full Notion page with comprehensive research findings
 - Use structured format for easy reference and navigation
@@ -410,6 +437,16 @@ If video quality below threshold:
 
 ### Visual Demonstrations
 [Timestamped references for specific techniques]
+
+## 📊 Visual Research Content
+### Generated Tactical Diagrams
+[AI-generated whiteboard diagrams showing key tactical concepts]
+
+### Instructional Images
+[Skill demonstration images and exercise diagrams]
+
+### Supporting Visuals
+[Equipment, safety, and contextual images for enhanced understanding]
 
 ## Integrated Recommendations
 ### Age-Appropriate Implementation

@@ -1,1 +1,0 @@
-{"event_type": "Stop", "timestamp": "2025-08-01T01:43:46.651503", "session_id": "93bdf6bc-d3ff-4407-934b-0c44f6133267", "project_dir": ".", "total_duration_ms": 0, "total_tools_used": 0, "total_subagents": 0, "success_rate": 0.0, "error_count": 0, "unique_tools": [], "most_used_tool": null, "files_modified": []}

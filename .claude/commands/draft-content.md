@@ -1,7 +1,7 @@
 ---
 description: "Create draft coaching content pages from research findings, applying team context and UX Guidelines"
 argument-hint: "<research-page-url-or-topic> [team-name] [custom-title]"
-allowed-tools: ["mcp__notion-remote__search", "mcp__notion-remote__fetch", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "mcp__notion-remote__update-database", "Read", "TodoWrite"]
+allowed-tools: ["mcp__notion-remote__search", "mcp__notion-remote__fetch", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "mcp__notion-remote__update-database", "mcp__stability-ai__stability-ai-generate-image-sd35", "mcp__stability-ai__stability-ai-control-structure", "mcp__cloudinary__upload", "Read", "TodoWrite"]
 ---
 
 # Draft Content Command
@@ -161,6 +161,7 @@ U14+ (13+ years):
 
 ### For Skill Development Topics:
 #### Skill Breakdown
+<image source="[Cloudinary URL]">Proper technique demonstration for [skill name]</image>
 [Progressive teaching points from research]
 [Common mistakes to avoid]
 [Age-appropriate technique cues]
@@ -176,8 +177,8 @@ U14+ (13+ years):
 
 ### For Tactical Topics:
 #### System Overview
-[Visual description placeholder]
-[Key positions and movements]
+<image source="[Cloudinary URL]">Tactical diagram showing [system name] with player positions and movements</image>
+[Key positions and movements explained]
 [Simple rules for age group]
 
 #### Teaching Progression
@@ -259,19 +260,45 @@ U14+ (13+ years):
 14. Write clear, step-by-step instructions
 15. Apply team-specific adaptations throughout
 
-### Phase 4: Quality Enhancement
-16. Add coaching points using appropriate terminology
-17. Ensure safety considerations are prominent
-18. Include adaptation options for different levels
-19. Add parent/player communication elements
-20. Create clear progression and next steps
+### Phase 4: Visual Content Integration
+16. Identify key concepts that need visual representation
+17. Generate tactical diagrams for systems/plays using realistic whiteboard base
+18. Create skill demonstration images for technique instruction
+19. Generate exercise diagrams for dryland/training content
+20. Upload all images to Cloudinary and embed in draft page
 
-### Phase 5: Documentation and Tracking
-21. Create Content Library entry with Page Type: "Draft"
-22. Link to source research page
-23. Include team association if applicable
-24. Set metadata for version tracking
-25. Provide clear indication this is a draft
+**Visual Content Generation:**
+```
+For Tactical Content:
+- Use mcp__stability-ai__stability-ai-control-structure with realistic whiteboard base
+- Generate diagrams showing player positions, movements, and tactical concepts
+- Include proper position markings (C, RW, LW, LD, RD, G)
+- Add movement arrows and pass indicators
+
+For Skill Development:
+- Use mcp__stability-ai__stability-ai-generate-image-sd35 for technique demonstrations
+- Focus on proper body positioning and equipment usage
+- Show progression steps with clear visual differences
+
+For Training/Dryland:
+- Generate exercise diagrams with numbered steps
+- Include proper form indicators and movement patterns
+- Show equipment setup and safety considerations
+```
+
+### Phase 5: Quality Enhancement
+21. Add coaching points using appropriate terminology
+22. Ensure safety considerations are prominent
+23. Include adaptation options for different levels
+24. Add parent/player communication elements
+25. Create clear progression and next steps
+
+### Phase 6: Documentation and Tracking
+26. Create Content Library entry with Page Type: "Draft"
+27. Link to source research page
+28. Include team association if applicable
+29. Set metadata for version tracking
+30. Provide clear indication this is a draft
 
 **Draft Creation Error Handling:**
 ```

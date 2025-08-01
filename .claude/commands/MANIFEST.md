@@ -103,7 +103,7 @@ The hockey content creation commands follow a structured workflow: **Research â†
 - Support tactical diagrams, drill illustrations, coaching photos
 - Track costs (~$0.03 per image)
 
-**Integration**: Works seamlessly with all content commands, especially `/research-hockey` and `/draft-content`
+**Integration**: Seamlessly integrated with `/research-hockey` and `/draft-content` commands for automatic visual content generation
 
 **Impact**: HIGH - Visual content essential for coaching
 

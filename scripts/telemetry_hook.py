@@ -110,8 +110,8 @@ def collect_hook_data(event_type: str) -> dict:
         if os.getenv("TELEMETRY_DEBUG", "false").lower() == "true":
             print(f"Error reading stdin: {e}", file=sys.stderr)
     
-    # Extract session_id from Claude data or generate one
-    hook_data["session_id"] = claude_data.get("session_id", str(uuid.uuid4())[:8])
+    # Extract session_id from Claude data
+    hook_data["session_id"] = claude_data.get("session_id", "unknown")
     
     # Extract event-specific data from Claude Code JSON input
     if event_type == "UserPromptSubmit":
@@ -230,15 +230,11 @@ def extract_stop_data(claude_data: dict) -> dict:
     """Extract Stop-specific data from Claude input."""
     data = {}
     
+    # According to official docs, Stop has "stop_hook_active" field
     data["stop_hook_active"] = claude_data.get("stop_hook_active", False)
+    data["transcript_path"] = claude_data.get("transcript_path", "")
     
-    # Session summary data if available
-    if "session_summary" in claude_data:
-        summary = claude_data["session_summary"]
-        data["total_tools_used"] = summary.get("tools_used", 0)
-        data["total_duration_ms"] = summary.get("duration_ms", 0)
-        data["success_rate"] = summary.get("success_rate", 0.0)
-        data["error_count"] = summary.get("error_count", 0)
+    # We can potentially analyze the transcript file later for session summary
     
     return data
 
@@ -247,13 +243,11 @@ def extract_subagent_data(claude_data: dict) -> dict:
     """Extract SubagentStop-specific data from Claude input."""
     data = {}
     
-    data["subagent_type"] = claude_data.get("subagent_type", "unknown")
-    data["task_description"] = claude_data.get("task_description", "")
-    data["outcome"] = claude_data.get("outcome", "unknown")
+    # According to official docs, SubagentStop has same structure as Stop
     data["stop_hook_active"] = claude_data.get("stop_hook_active", False)
+    data["transcript_path"] = claude_data.get("transcript_path", "")
     
-    if "duration_ms" in claude_data:
-        data["duration_ms"] = claude_data["duration_ms"]
+    # Could potentially identify subagent from transcript path or other context
     
     return data
 

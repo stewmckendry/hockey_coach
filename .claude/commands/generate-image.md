@@ -12,15 +12,49 @@ Streamlined workflow for generating AI images using Stability AI and automatical
 
 ### Step 1: Parse Arguments and Initialize
 - Extract prompt description from arguments
+- **Detect content type** from keywords (tactical, dryland, skill, coaching, equipment)
 - Parse optional aspect ratio (default: 16:9 for presentations, 4:5 for diagrams)
-- Parse optional style preset (default: digital-art for clean diagrams)
+- Parse optional style preset (auto-selected based on content type if not specified)
 - Generate descriptive filename from prompt if not provided
 - Create TodoWrite entry for tracking generation process
+
+### Step 1.5: Automatic Prompt Enhancement
+**Content Type Detection:**
+```
+Tactical Keywords: "drill", "play", "formation", "system", "position", "tactic", "strategy"
+→ Transform to Whiteboard Style
+
+Dryland Keywords: "dryland", "off-ice", "workout", "exercise", "fitness", "training"
+→ Transform to Training Diagram Style
+
+Skill Keywords: "technique", "skill", "demonstration", "how to", "proper form"
+→ Transform to Realistic Demonstration Style
+
+Coaching Keywords: "coach", "instruction", "teaching", "explaining"
+→ Transform to Coaching Scene Style
+
+Equipment Keywords: "equipment", "gear", "helmet", "stick", "skates"
+→ Transform to Product Photography Style
+```
+
+**Automatic Style Selection:**
+- Tactical Diagrams: `line-art` or `digital-art` for clarity
+- Dryland Training: `digital-art` for instructional clarity
+- Skill Demonstrations: `photographic` for realism
+- Coaching Scenes: `photographic` for authenticity
+- Equipment: `photographic` for detail
 
 ### Step 2: Generate Image with Stability AI
 **Generation Process:**
 ```
-Image Generation Parameters:
+For Tactical Diagrams:
+- Method: Use mcp__stability-ai__stability-ai-control-structure
+- Base Image: realistic-hockey-whiteboard-base.png (maintains authentic whiteboard look)
+- Prompt: Add tactical elements to existing rink layout
+- Control Strength: 0.6-0.8 (preserve whiteboard structure, add tactical elements)
+
+For Other Content Types:
+- Method: Use mcp__stability-ai__stability-ai-generate-image-sd35
 - Prompt: Enhanced with coaching context keywords
 - Aspect Ratio: Optimized for intended use case
 - Style: Selected based on content type
@@ -51,7 +85,58 @@ Cloudinary Settings:
 - `hockey-coaching/equipment/` - Equipment and safety visuals
 - `hockey-coaching/team/` - Team photos and events
 
-### Step 4: Return Public URL and Usage Instructions
+### Step 4: Review and Quality Check Generated Image
+**Automatic Image Review Process:**
+```
+1. Read the generated image file using Read tool
+2. Analyze image quality against intended content type:
+   - Tactical Diagrams: Check for whiteboard aesthetic, simple symbols, clean lines
+   - Dryland Training: Verify exercise clarity and instructional value
+   - Skill Demonstrations: Confirm realistic hockey context
+   - Coaching Scenes: Validate authentic hockey environment
+   - Equipment: Check product clarity and detail
+
+3. Quality Assessment Criteria:
+   - Content Accuracy: Does it match the intended hockey concept?
+   - Style Appropriateness: Does it match the expected format (whiteboard/photo/diagram)?
+   - Clarity: Are symbols, positions, and movements clearly visible?
+   - Realism: Does it look authentic to hockey coaching context?
+   - Simplicity: Is it clean and uncluttered (especially for tactical diagrams)?
+
+4. If quality issues detected:
+   - Identify specific problems (too complex, wrong style, unclear symbols)
+   - Generate refined prompt addressing the issues
+   - Regenerate image with improved prompt
+   - Repeat review process (max 2 iterations to control costs)
+```
+
+**Quality Issue Examples and Fixes:**
+```
+Issue: "Generated soccer field instead of hockey rink"
+Fix: Add "ice hockey rink" and remove ambiguous terms
+
+Issue: "Too much text and complex graphics on whiteboard"  
+Fix: Add "minimal text, simple line drawing, clean markers only"
+
+Issue: "Computer graphics instead of hand-drawn style"
+Fix: Add "hand-drawn appearance, slightly imperfect lines, marker sketch"
+
+Issue: "Wrong equipment or setting"
+Fix: Specify "hockey equipment, ice rink environment, proper hockey context"
+```
+
+### Step 5: Upload to Cloudinary (After Quality Approval)
+**Upload Configuration:**
+```
+Cloudinary Settings:
+- Resource Type: image  
+- Folder Structure: hockey-coaching/[category]/
+- Public ID: Descriptive naming for easy reference
+- Tags: Auto-generated from prompt keywords
+- Optimization: Automatic format and quality optimization
+```
+
+### Step 6: Return Public URL and Usage Instructions
 **Output Format:**
 ```
 ✅ Image Generated and Uploaded Successfully!
@@ -77,20 +162,79 @@ https://res.cloudinary.com/dmygzngzd/image/upload/v[version]/[path].png
 ### Enhanced Prompt Engineering
 **Automatic Prompt Improvements:**
 ```
-For Tactical Diagrams:
-- Add: "overhead view, ice rink visible, clear player positions"
-- Include: "movement arrows, tactical annotations"
-- Style: "clean diagram style, high contrast"
+For Tactical Diagrams (Drills, Plays, Systems, Formations):
+- Detect: Keywords like "drill", "play", "formation", "system", "position", "tactic"
+- Use Base Whiteboard: Apply tactical elements to realistic hockey whiteboard base
+- Transform to Whiteboard Style:
+  - Base Image: Use realistic-hockey-whiteboard-base.png as control structure
+  - Add: tactical elements over existing rink layout
+  - Player symbols: "letter markers for positions (C, RW, LW, LD, RD, G)"
+  - Movement: "hand-drawn arrows for player movement, dotted lines for passes"
+  - Style: "coaching diagram aesthetic, maintain whiteboard authenticity"
+- Process: Use control-structure mode with realistic whiteboard base for consistency
+- Example: "Add tactical elements to hockey whiteboard: [original prompt], 
+           position letters (C, RW, LW, LD, RD), movement arrows, maintain rink layout"
+
+For Dryland/Off-Ice Training:
+- Detect: Keywords like "dryland", "off-ice", "workout", "exercise", "fitness"
+- Transform to Training Diagram:
+  - Add: "fitness training diagram, exercise illustration"
+  - Include: "gym or training facility background"
+  - Style: "clean instructional diagram with exercise positions"
+  - Movement: "numbered sequences, motion arrows"
+- Example: "Off-ice training exercise diagram showing [original prompt],
+           numbered sequence steps, clear body positions, training facility setting"
 
 For Skill Demonstrations:
-- Add: "side view, proper technique visible"
-- Include: "step-by-step progression markers"
-- Style: "educational illustration style"
+- Add: "realistic hockey environment, proper technique visible"
+- Include: "professional hockey player demonstrating"
+- Style: "photographic" for realism
 
 For Coaching Scenes:
-- Add: "professional coaching environment"
-- Include: "age-appropriate players, proper equipment"
-- Style: "photographic or digital-art"
+- Add: "realistic hockey rink or training facility"
+- Include: "authentic hockey equipment and uniforms"
+- Style: "photographic" for authenticity
+
+For Equipment/Safety:
+- Add: "detailed product photography style"
+- Include: "proper lighting, educational context"
+- Style: "commercial photography"
+```
+
+### Tactical Diagram Legend Standards
+**Consistent Symbols for All Whiteboard Diagrams:**
+```
+Player Position Symbols (Your Team):
+- C = Center
+- RW = Right Wing  
+- LW = Left Wing
+- LD = Left Defense
+- RD = Right Defense
+- G = Goaltender
+
+Opposing Team Symbols:
+- X₁, X₂, X₃, X₄, X₅ = Opposing players (numbered)
+- X = Generic opposing player
+- OG = Opposing goaltender
+
+Coach/Officials:
+- COACH = Coach position
+- REF = Referee position
+
+Movement Indicators:
+- Solid arrows (→) = Player skating/movement
+- Dashed arrows (-->) = Pass or puck movement
+- Curved arrows (↷) = Turning or pivoting
+- Zigzag lines (~) = Stickhandling path
+- Double arrows (⟷) = Back and forth movement
+
+Objects:
+- Triangle (△) = Cones
+- Square (□) = Obstacles/barriers
+- Circle with dot (⊙) = Puck
+- Double lines (||) = Boards/glass
+- Dotted circle = Face-off circle
+- X in circle = Player starting position
 ```
 
 ### Error Handling
