@@ -42,7 +42,7 @@ def generate_drill_tests():
         title="Triangle Passing Drill"
     )
     filepath_1 = Path("test_drill_1_triangle_passing.png")
-    generator.save_image(image_1, filepath_1)
+    generator.save_to_file(image_1, str(filepath_1))
     print(f"Generated: {filepath_1}")
     
     # Test 4.2: Breakout Drill (D to D pass)
@@ -78,7 +78,7 @@ def generate_drill_tests():
         title="Breakout Drill - D to D Pass"
     )
     filepath_2 = Path("test_drill_2_breakout.png")
-    generator.save_image(image_2, filepath_2)
+    generator.save_to_file(image_2, str(filepath_2))
     print(f"Generated: {filepath_2}")
     
     # Test 4.3: 2v1 Rush Drill
@@ -120,7 +120,7 @@ def generate_drill_tests():
         title="2v1 Rush Drill"
     )
     filepath_3 = Path("test_drill_3_2v1_rush.png")
-    generator.save_image(image_3, filepath_3)
+    generator.save_to_file(image_3, str(filepath_3))
     print(f"Generated: {filepath_3}")
     
     return [filepath_1, filepath_2, filepath_3]

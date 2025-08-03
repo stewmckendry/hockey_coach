@@ -1,7 +1,7 @@
 ---
 description: "Research hockey content using Thunder Playbook files, Hockey MCP tools, Exa web search, and YouTube videos for comprehensive content creation"
 argument-hint: "<topic> <age-group> [team-name] [research-depth]"
-allowed-tools: ["mcp__exa__web_search_exa", "mcp__exa__deep_researcher_start", "mcp__exa__deep_researcher_check", "mcp__youtube__search_videos", "mcp__youtube__get_video", "mcp__youtube__get_transcript", "mcp__notion-remote__search", "mcp__notion-remote__fetch", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "search_hockey_knowledge", "mcp__stability-ai__stability-ai-generate-image-sd35", "mcp__stability-ai__stability-ai-control-structure", "mcp__cloudinary__upload", "Read", "Glob", "Grep", "TodoWrite"]
+allowed-tools: ["mcp__exa__web_search_exa", "mcp__exa__deep_researcher_start", "mcp__exa__deep_researcher_check", "mcp__youtube__search_videos", "mcp__youtube__get_video", "mcp__youtube__get_transcript", "mcp__notion-remote__search", "mcp__notion-remote__fetch", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "mcp__hockey-coaching__search_hockey_tactics", "mcp__hockey-coaching__search_hockey_videos", "mcp__hockey-coaching__search_hockey_drills", "mcp__hockey-coaching__search_hockey_skills", "mcp__hockey-coaching__search_hockey_dryland", "mcp__hockey-coaching__search_hockey_dryland_videos", "mcp__hockey-coaching__search_hockey_nhl_insights", "mcp__hockey-coaching__search_hockey_rules", "mcp__stability-ai__stability-ai-generate-image-sd35", "mcp__stability-ai__stability-ai-control-structure", "mcp__cloudinary__upload", "Read", "Glob", "Grep", "TodoWrite"]
 ---
 
 # Hockey Research Command
@@ -261,16 +261,24 @@ Before creating research page:
 11. Identify coaching tips and common implementation challenges
 
 ### Phase 3: Hockey MCP Knowledge Base Search
-12. Use search_hockey_knowledge tool with topic and age group filters
-13. Search across all ChromaDB collections for relevant coaching content
-14. Apply content type filters based on topic (drill, tactics, ltad, etc.)
+12. Use specialized search tools based on topic type:
+    - `search_hockey_tactics` for systems, formations, and plays
+    - `search_hockey_drills` for on-ice practice activities
+    - `search_hockey_skills` for LTAD and skill development
+    - `search_hockey_rules` for regulations and conduct
+    - `search_hockey_videos` for instructional video content
+    - `search_hockey_dryland` for off-ice training
+    - `search_hockey_dryland_videos` for training demonstrations
+    - `search_hockey_nhl_insights` for expert knowledge
+13. Execute targeted searches across relevant specialized collections
+14. Apply age group and position filters as appropriate
 15. Extract validated coaching recommendations and best practices
 16. Cross-reference MCP findings with Thunder Playbook source files
-17. Document any unique insights from the structured knowledge base
+17. Document unique insights from each specialized collection
 
 **Hockey MCP Error Handling:**
 ```
-If search_hockey_knowledge unavailable:
+If specialized search tools unavailable:
   "Hockey MCP server not responding.
    This may be due to:
    - MCP server not running
@@ -279,12 +287,12 @@ If search_hockey_knowledge unavailable:
    Proceeding with alternative research sources.
    To fix: Check MCP server status with /mcp-test"
 
-If no results from knowledge base:
-  "No results found in hockey knowledge base for '[topic]'.
+If no results from specialized collections:
+  "No results found in [collection type] for '[topic]'.
    
-   Expanding search with:
+   Trying alternative collections:
+   - Related content types
    - Broader search terms
-   - Related concepts
    - External web research"
 ```
 
@@ -409,14 +417,26 @@ If video quality below threshold:
 [Typical implementation issues and proven solutions]
 
 ## Hockey Knowledge Base Findings
-### Structured Coaching Content
-[Validated drills and exercises from ChromaDB collections]
+### Tactics and Systems (from search_hockey_tactics)
+[Team formations, plays, and strategic concepts]
 
-### Age-Specific Recommendations
-[Targeted coaching guidance from search_hockey_knowledge]
+### Practice Drills (from search_hockey_drills)
+[On-ice activities and skill development exercises]
 
-### Best Practices and Methodologies
-[Proven approaches from the structured knowledge base]
+### Skill Development (from search_hockey_skills)
+[LTAD framework progressions and age-specific skills]
+
+### Rules and Conduct (from search_hockey_rules)
+[Regulations, safety guidelines, and fair play principles]
+
+### Video Resources (from search_hockey_videos)
+[Instructional video clips with teaching points]
+
+### Off-Ice Training (from search_hockey_dryland)
+[Dryland exercises and conditioning programs]
+
+### NHL Insights (from search_hockey_nhl_insights)
+[Expert wisdom and professional coaching perspectives]
 
 ## External Research Insights
 ### Current Coaching Trends

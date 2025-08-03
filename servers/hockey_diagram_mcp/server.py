@@ -21,6 +21,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from servers.hockey_diagram_mcp.generator import HockeyDiagramGenerator, Player, Movement, Zone
 from servers.hockey_diagram_mcp.parser import HockeyPromptParser, DiagramSpec
 from servers.hockey_diagram_mcp.enhanced_parser import EnhancedHockeyParser
+from servers.hockey_diagram_mcp.two_stage_parser import TwoStageHockeyParser
 from servers.hockey_diagram_mcp.elements import FORMATIONS, get_formation, list_available_elements
 
 # Set up logging
@@ -34,10 +35,70 @@ mcp = FastMCP("Hockey Diagram Generator")
 diagram_generator = HockeyDiagramGenerator()
 prompt_parser = HockeyPromptParser()
 enhanced_parser = EnhancedHockeyParser()
+two_stage_parser = TwoStageHockeyParser()
 
 # Storage directory for generated diagrams
 DIAGRAM_DIR = Path("servers/hockey_diagram_mcp/generated_diagrams")
 DIAGRAM_DIR.mkdir(parents=True, exist_ok=True)
+
+def _filter_players_by_view(diagram_spec, view: str):
+    """
+    Filter players based on view boundaries to improve diagram clarity.
+    Removes players that are outside the specified view area.
+    """
+    if view == "full":
+        return diagram_spec  # No filtering needed for full view
+    
+    # Define view boundaries (expanded for better tactical visibility)
+    # NOTE: Some formations may have coordinate mapping issues - these boundaries are more permissive to debug
+    view_bounds = {
+        "offensive": {"x_min": 15, "x_max": 100, "y_min": -42.5, "y_max": 42.5},  # Include defenders pinching at blue line
+        "defensive": {"x_min": -100, "x_max": 100, "y_min": -42.5, "y_max": 42.5},  # TEMP: Allow all X coords to debug coordinate mapping issue
+        "neutral": {"x_min": -35, "x_max": 35, "y_min": -42.5, "y_max": 42.5}  # Allow drill progressions beyond center
+    }
+    
+    if view not in view_bounds:
+        return diagram_spec
+    
+    bounds = view_bounds[view]
+    filtered_players = []
+    
+    for player in diagram_spec.players:
+        # Check if player is within view boundaries
+        if (bounds["x_min"] <= player.x <= bounds["x_max"] and 
+            bounds["y_min"] <= player.y <= bounds["y_max"]):
+            filtered_players.append(player)
+        else:
+            logger.info(f"Filtered out {player.position} at ({player.x}, {player.y}) - outside {view} view")
+    
+    # Update diagram spec with filtered players
+    diagram_spec.players = filtered_players
+    
+    # Also filter movements that reference removed players
+    if diagram_spec.movements:
+        player_positions = {p.position for p in filtered_players}
+        filtered_movements = []
+        
+        for movement in diagram_spec.movements:
+            # Keep movement if both from and to positions are still present
+            from_pos = movement.from_position
+            to_pos = movement.to_position
+            
+            # Handle to_position being coordinates vs player position
+            if isinstance(to_pos, list):
+                to_pos_in_bounds = (bounds["x_min"] <= to_pos[0] <= bounds["x_max"] and 
+                                  bounds["y_min"] <= to_pos[1] <= bounds["y_max"])
+            else:
+                to_pos_in_bounds = to_pos in player_positions
+            
+            if from_pos in player_positions and to_pos_in_bounds:
+                filtered_movements.append(movement)
+            else:
+                logger.info(f"Filtered out movement {from_pos} → {to_pos} - player not in {view} view")
+        
+        diagram_spec.movements = filtered_movements
+    
+    return diagram_spec
 
 @mcp.tool()
 async def generate_hockey_diagram(
@@ -72,18 +133,27 @@ async def generate_hockey_diagram(
             "requested_view": view
         }
         
-        # Try enhanced parser first for better accuracy
+        # Try two-stage parser first for best accuracy
         try:
-            diagram_spec = await enhanced_parser.parse_prompt(prompt, context)
-            logger.info("Using enhanced parser for improved accuracy")
-        except Exception as enhanced_error:
-            logger.warning(f"Enhanced parser failed: {enhanced_error}, falling back to preset parser")
-            # Fallback to preset-based parser
-            diagram_spec = await prompt_parser.parse_with_presets(prompt, FORMATIONS)
+            diagram_spec = await two_stage_parser.parse_prompt(prompt, context)
+            logger.info("Using two-stage parser for maximum accuracy")
+        except Exception as two_stage_error:
+            logger.warning(f"Two-stage parser failed: {two_stage_error}, falling back to enhanced parser")
+            # Fallback to enhanced parser
+            try:
+                diagram_spec = await enhanced_parser.parse_prompt(prompt, context)
+                logger.info("Using enhanced parser")
+            except Exception as enhanced_error:
+                logger.warning(f"Enhanced parser failed: {enhanced_error}, falling back to preset parser")
+                # Final fallback to preset-based parser
+                diagram_spec = await prompt_parser.parse_with_presets(prompt, FORMATIONS)
         
         # Override view if specified
         if view != "full":
             diagram_spec.view = view
+            
+        # Apply view filtering to remove players outside view boundaries
+        diagram_spec = _filter_players_by_view(diagram_spec, view)
             
         # Convert parsed spec to generator objects
         players = [
@@ -124,7 +194,8 @@ async def generate_hockey_diagram(
                     Zone(
                         zone_type=z.zone_type,
                         area=area,
-                        team=z.team
+                        team=z.team,
+                        opacity=getattr(z, 'opacity', 0.2)
                     )
                 )
         
@@ -150,38 +221,39 @@ async def generate_hockey_diagram(
         
         logger.info(f"Successfully generated diagram: {filepath}")
         
-        # Check payload size (1MB = 1,048,576 bytes)
-        # Base64 encoding increases size by ~33%, so check base64 length
-        MAX_PAYLOAD_SIZE = 1048576  # 1MB
-        base64_size = len(base64_image) if base64_image else 0
-        
-        if base64_size > MAX_PAYLOAD_SIZE:
-            # Return file path only for large images
-            return {
-                "diagram_path": str(filepath),
-                "file_output": True,
-                "message": f"Image saved to {filepath} (size: {base64_size:,} bytes exceeds 1MB limit)",
-                "diagram_spec": diagram_spec.dict(),
-                "generation_time": generation_time,
-                "success": True
-            }
-        else:
-            # Return base64 for small images
-            return {
-                "diagram_path": str(filepath),
-                "base64_image": base64_image,
-                "file_output": False,
-                "diagram_spec": diagram_spec.dict(),
-                "generation_time": generation_time,
-                "success": True
-            }
-        
-    except Exception as e:
-        logger.error(f"Error generating diagram: {e}")
+        # Always return file path only to avoid token limit issues
         return {
-            "error": str(e),
+            "diagram_path": str(filepath),
+            "message": f"Diagram successfully generated and saved to {filepath}",
+            "diagram_spec": diagram_spec.dict(),
+            "generation_time": generation_time,
+            "success": True
+        }
+        
+    except ValueError as e:
+        logger.error(f"Validation error in diagram generation: {e}")
+        return {
+            "error": f"Invalid input: {str(e)}",
             "success": False,
-            "generation_time": (datetime.now() - start_time).total_seconds()
+            "generation_time": (datetime.now() - start_time).total_seconds(),
+            "error_type": "validation"
+        }
+    except ConnectionError as e:
+        logger.error(f"Connection error (likely OpenAI API): {e}")
+        return {
+            "error": "Failed to connect to AI service. Please check your API key and connection.",
+            "success": False,
+            "generation_time": (datetime.now() - start_time).total_seconds(),
+            "error_type": "connection"
+        }
+    except Exception as e:
+        logger.error(f"Unexpected error generating diagram: {e}", exc_info=True)
+        return {
+            "error": f"An unexpected error occurred: {str(e)}",
+            "success": False,
+            "generation_time": (datetime.now() - start_time).total_seconds(),
+            "error_type": "unknown",
+            "fallback_used": False
         }
 
 @mcp.tool()
@@ -205,14 +277,35 @@ async def get_formation_details(formation_name: str) -> Dict[str, Any]:
     Returns:
         Formation specification including player positions and movements
     """
-    formation = get_formation(formation_name)
-    if not formation:
+    try:
+        if not formation_name:
+            return {
+                "error": "Formation name is required",
+                "success": False,
+                "available_formations": list(FORMATIONS.keys())
+            }
+        
+        formation = get_formation(formation_name)
+        if not formation:
+            # Try to find similar formations
+            similar = [f for f in FORMATIONS.keys() if formation_name.lower() in f.lower()]
+            return {
+                "error": f"Formation '{formation_name}' not found",
+                "success": False,
+                "available_formations": list(FORMATIONS.keys()),
+                "suggestions": similar if similar else None
+            }
+        
         return {
-            "error": f"Formation '{formation_name}' not found",
-            "available_formations": list(FORMATIONS.keys())
+            "formation": formation,
+            "success": True
         }
-    
-    return formation
+    except Exception as e:
+        logger.error(f"Error getting formation details: {e}")
+        return {
+            "error": f"Failed to retrieve formation: {str(e)}",
+            "success": False
+        }
 
 @mcp.resource("hockey://diagram_examples")
 async def get_diagram_examples() -> str:

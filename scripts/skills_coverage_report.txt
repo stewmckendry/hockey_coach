@@ -1,0 +1,494 @@
+================================================================================
+SKILLS COVERAGE VALIDATION REPORT
+================================================================================
+
+SUMMARY
+----------------------------------------
+Coverage Percentage: 10.9%
+Total Hockey Canada Skills: 293
+Total Notion Skills: 130
+Covered Skills: 32
+Missing from Notion: 261
+Extra in Notion: 98
+
+MISSING SKILLS FROM HOCKEY CANADA CURRICULUM
+----------------------------------------
+
+Skating:
+  - Shuffle (All Ages - Goalies)
+  - Pivot (All Ages - Goalies)
+  - Stance (All Ages - Goalies)
+  - Positioning (All Ages - Goalies)
+  - Save Selection (All Ages - Goalies)
+  - C-Cut (All Ages - Goalies)
+  - Advanced Skating (All Ages - Goalies)
+  - Advanced C-cuts (All Ages - Goalies)
+  - Advanced Pivots into t-push / shuffles / butterfly / powerslides / recovery (All Ages - Goalies)
+  - Breakouts basics (All Ages - Defence)
+  - Regroup (All Ages - Defence)
+  - Neutral zone play (All Ages - Defence)
+  - Defensive zone: 1-1 play (All Ages - Defence)
+  - Agility Skating (All Ages - Defence)
+  - Agility (All Ages - Defence)
+  - Balance (All Ages - Defence)
+  - Coordination (All Ages - Defence)
+  - Backward starts & stops (All Ages - Defence)
+  - Transition bwd to fwd (All Ages - Defence)
+  - Transition fwd to bwd (All Ages - Defence)
+  - Forward stride (All Ages - Defence)
+  - Escapes (All Ages - Defence)
+  - Toe turns (All Ages - Defence)
+  - Slide stops (All Ages - Defence)
+  - Blue line - sprints (All Ages - Defence)
+  - spins (All Ages - Defence)
+  - hip turn deception (All Ages - Defence)
+  - fakes (All Ages - Defence)
+  - Backward Starts and Stops (All Ages - Defence)
+  - Transition Backward to Forward (All Ages - Defence)
+  - Transition Forward to Backward (All Ages - Defence)
+  - Forward Stride (All Ages - Defence)
+  - Puck Handling While Skating (All Ages - Defence)
+  - Passing and Receiving While Skating (All Ages - Defence)
+  - Straight line skating in defensive zone when playing 1‐1 (All Ages - Defence)
+  - Blue line (All Ages - Defence)
+  - Toes Up Ice (All Ages - Defence)
+  - Spin move (All Ages - Defence)
+  - Hip shuffle (All Ages - Defence)
+  - Turn corner (All Ages - Defence)
+  - Straight line skating: stops and starts vs. loops (All Ages - Defence)
+  - Stops and starts (All Ages - Defence)
+  - Transition skating (All Ages - Defence)
+  - Edge Control (U11)
+  - Starting and Stopping (U11)
+  - Forward Skating and Striding (U11)
+  - Backward Skating (U11)
+  - Turning and Crossovers (U11)
+  - Forward Scissor Skate (U11)
+  - Lateral Crossovers (U11)
+  - C‐cuts toe on puck (U11)
+  - Figure 8’s – forward – inside & outside edge (U11)
+  - Figure 8’s – backward – inside & outside edge (U11)
+  - Heel to Heel (Mohawk) (U11)
+  - 1 leg weaving – fwd / bwd (U11)
+  - Front v‐start (U11)
+  - Crossover start (U11)
+  - Backward c‐cut start (U11)
+  - Outside leg stop (U11)
+  - Two‐foot parallel stop (U11)
+  - One‐leg backward stop (U11)
+  - Two‐leg backward stop (U11)
+  - Forward striding (U11)
+  - Linear crossovers (U11)
+  - Acceleration (U11)
+  - Quick Feet (U11)
+  - Evasive skating (U11)
+  - C‐cuts – left foot / right foot (U11)
+  - Backward Scissor skate (U11)
+  - 1 Crossover / Reach (U11)
+  - Backward Striding (U11)
+  - Glide turns / Tight turns (U11)
+  - C‐cuts – around circle – outside foot – forward & backward (U11)
+  - Crossovers – forward & backward (U11)
+  - Pivots – bwd to fwd & fwd to bwd (U11)
+  - Pivots – open & reverse (U11)
+
+Goaltending:
+  - Find the Puck (Eyes First) (All Ages - Goalies)
+  - Movement (Getting into position) (All Ages - Goalies)
+  - Position (Stance, angles, square to puck, depth) (All Ages - Goalies)
+  - Save Selection (Appropriate to the situation) (All Ages - Goalies)
+  - Puck Control (Rebounds & recovery) (All Ages - Goalies)
+  - Advanced Puck Handling (All Ages - Goalies)
+  - 10 Scoring Situations (All Ages - Goalies)
+  - Moving fwd / bwd (All Ages - Goalies)
+  - Moving east / west (All Ages - Goalies)
+  - Setting Pucks (All Ages - Goalies)
+  - Rims (All Ages - Goalies)
+  - Glove Saves and Stick Saves (All Ages - Goalies)
+  - Rebound Control and Puck Tracking (All Ages - Goalies)
+  - Lateral Movement and Post Integration (All Ages - Goalies)
+
+Positioning:
+  - Square (All Ages - Goalies)
+
+Save Selection:
+  - Basic Saves (All Ages - Goalies)
+
+Skills:
+  - Eye Skills (All Ages - Goalies)
+
+Stickhandling:
+  - Advanced Hands (All Ages - Goalies)
+  - Advanced Puckhandling (All Ages - Goalies)
+
+Scoring:
+  - Scoring Situation (All Ages - Goalies)
+
+Scoring Situations:
+  - Clear Shots (All Ages - Goalies)
+  - Entries (All Ages - Goalies)
+  - Net Drives (All Ages - Goalies)
+  - Rebounds (All Ages - Goalies)
+  - Low / High (All Ages - Goalies)
+  - East / West (All Ages - Goalies)
+  - Below the Goal Line (All Ages - Goalies)
+  - Deflections (All Ages - Goalies)
+  - Screens (All Ages - Goalies)
+
+Goaltending Skills Progressions:
+  - Basic Rebound Control (All Ages - Goalies)
+
+Defence:
+  - Defensive positioning (All Ages - Defence)
+  - Breakouts (All Ages - Defence)
+
+DEFENCEMAN SKILLS:
+  - Neutral Zone Defend (All Ages - Defence)
+  - Neutral Zone Regroups (All Ages - Defence)
+  - Offensive Zone Play (All Ages - Defence)
+  - Defensive Zone Coverage (All Ages - Defence)
+
+Shooting:
+  - Shooting (All Ages - Defence)
+  - Head up (All Ages - Defence)
+  - Getting pucks through (All Ages - Defence)
+  - Finding the lane (All Ages - Defence)
+  - Fake - push (All Ages - Defence)
+  - Fake - pull (All Ages - Defence)
+  - Pull - stop back (All Ages - Defence)
+  - Spin (All Ages - Defence)
+  - Shoot for sticks (All Ages - Defence)
+  - Find the lane (All Ages - Defence)
+  - Rims (All Ages - Defence)
+  - Fake push (All Ages - Defence)
+  - Fake pull (All Ages - Defence)
+  - Pull stop back (All Ages - Defence)
+  - Drag/pull and shoot (All Ages - Defence)
+  - Shot stick length (All Ages - Defence)
+  - One timers (All Ages - Defence)
+  - Shoot off the ice (All Ages - Defence)
+  - Short side/middle shots (All Ages - Defence)
+  - Hit the net (All Ages - Defence)
+  - Get shots through (All Ages - Defence)
+  - Slide and shoot (All Ages - Defence)
+  - Walk the line (All Ages - Defence)
+  - Head up on all shots (All Ages - Defence)
+  - Watch for goalie looking around a screen (All Ages - Defence)
+  - Turn corner and shoot to avoid F1 high 'wide outs' (All Ages - Defence)
+  - Shoot for sticks at times (All Ages - Defence)
+  - Handle 'dirty passes', off glass and rims (All Ages - Defence)
+  - Scoring options (All Ages - Defence)
+  - Support your partner and be staggered in the OZ (All Ages - Defence)
+  - Practice different options: One Timers (All Ages - Defence)
+
+Puck Handling:
+  - Puck Handling for Defensemen (All Ages - Defence)
+
+Puck Control:
+  - Efficiency (All Ages - Defence)
+  - Smoothness (All Ages - Defence)
+  - Good first pass (All Ages - Defence)
+  - Retrievals (All Ages - Defence)
+
+Defense:
+  - D Zone Coverage (All Ages - Defence)
+  - Straight line skating (All Ages - Defence)
+  - Shading (All Ages - Defence)
+
+Passing:
+  - Partner Support (All Ages - Defence)
+  - 1 on 1's (All Ages - Defence)
+  - D-D pass (All Ages - Defence)
+  - Breakout passes (All Ages - Defence)
+
+Breakout Skills:
+  - Quick up (All Ages - Defence)
+  - Wheel (All Ages - Defence)
+  - Overs (All Ages - Defence)
+  - Reverse (All Ages - Defence)
+  - Rim (All Ages - Defence)
+  - Set (All Ages - Defence)
+  - D to D (All Ages - Defence)
+  - D to D up (All Ages - Defence)
+  - D to D open ice reverse (All Ages - Defence)
+  - D to D hinge (All Ages - Defence)
+  - D to D to F2 (All Ages - Defence)
+
+Offensive Zone Play:
+  - Stagger (All Ages - Defence)
+  - Look Offs (All Ages - Defence)
+  - Fake Pass (All Ages - Defence)
+  - Rush (All Ages - Defence)
+  - Protect the ice between dots (All Ages - Defence)
+  - Good gap (All Ages - Defence)
+  - Stick on Puck (All Ages - Defence)
+  - Read the attack (All Ages - Defence)
+  - Stride and maintain good balance (All Ages - Defence)
+  - Pinch decisions (All Ages - Defence)
+  - Maintaining gap (All Ages - Defence)
+  - Cycling down (All Ages - Defence)
+  - Back door positioning (All Ages - Defence)
+  - Slot positioning (All Ages - Defence)
+  - Rim down if lanes blocked (All Ages - Defence)
+  - Head up and see ice from point (All Ages - Defence)
+  - Weak Side D be an option (All Ages - Defence)
+  - If one D attacks net, the other slide to mid-ice (All Ages - Defence)
+  - Play the zone on your forehand (All Ages - Defence)
+  - One touch passing especially on PP (All Ages - Defence)
+
+Defensive Zone Coverage:
+  - Good Stick (All Ages - Defence)
+  - D side positioning (All Ages - Defence)
+  - Stick on the ice (All Ages - Defence)
+  - Body protect path to net (All Ages - Defence)
+  - Stick in passing lane (All Ages - Defence)
+  - Stick on puck (All Ages - Defence)
+  - Body on body (All Ages - Defence)
+  - Shoulders square (All Ages - Defence)
+  - Move feet (All Ages - Defence)
+  - No lunging (All Ages - Defence)
+  - Contain and pressure situations (All Ages - Defence)
+  - Step up on delays into the zone (All Ages - Defence)
+  - Playing crossing forwards (All Ages - Defence)
+  - Beat them to net front after check (All Ages - Defence)
+  - 1‐1 low 'take your stick with you' when containing (All Ages - Defence)
+  - Pin and hold briefly ; release on stay on D side (All Ages - Defence)
+  - Net front: box out, face the puck, control sticks, toes up ice, front shots, control F rebounds (All Ages - Defence)
+  - Shade on F3 ½ way (All Ages - Defence)
+  - Defend cycle and ride them off (All Ages - Defence)
+  - Turn inside to post if beaten wide (All Ages - Defence)
+  - Get in shooting lanes for blocks (All Ages - Defence)
+
+Tactical Play:
+  - Reading and Reacting (All Ages - Defence)
+
+Breakouts:
+  - Picking up the puck (All Ages - Defence)
+  - Support decision making (All Ages - Defence)
+  - Taking a hit and protecting the puck (All Ages - Defence)
+
+Defensive Play:
+  - Puck Recovery (All Ages - Defence)
+  - Reading the Attack (All Ages - Defence)
+  - Breakout Initiation (All Ages - Defence)
+  - Angle and steer the attack wide (All Ages - Defence)
+  - Recognize different situations (1-1, 2-1, etc.) (All Ages - Defence)
+  - Stick on ice and deny lanes (All Ages - Defence)
+  - Challenge in the neutral zone (All Ages - Defence)
+  - Hold the offensive blueline (All Ages - Defence)
+  - Angling/Steering (All Ages - Defence)
+
+Game Awareness:
+  - Head Up (All Ages - Defence)
+  - Read and react decision making (All Ages - Defence)
+
+Game Strategy:
+  - Supporting Rush (All Ages - Defence)
+  - Defensive Positioning (All Ages - Defence)
+
+Offensive Tactics:
+  - Backdoor play (All Ages - Defence)
+  - Wide for rebound (All Ages - Defence)
+  - Rebounds out front (All Ages - Defence)
+  - Active puck board rebounds (All Ages - Defence)
+
+Offensive Play:
+  - Joining Offensive Rush (All Ages - Defence)
+  - Decision Making in Offensive Zone (All Ages - Defence)
+
+Physical Play:
+  - Body Contact/Contact Confidence (All Ages - Defence)
+
+Game Situations:
+  - 1-1 battles (All Ages - Defence)
+
+Defensive Skills:
+  - Filter Defence (All Ages - Defence)
+
+Puck Control and Passing:
+  - Stationary Puck Control (U11)
+  - Moving Puck Control (U11)
+  - Stationary Passing and Receiving (U11)
+  - Moving Passing and Receiving (U11)
+
+Individual Offensive Tactics:
+  - Narrow / Wide (U11)
+  - Side – front – side (U11)
+  - Toe drag – side/front (U11)
+  - Attack Triangle (U11)
+  - Open ice carry – forehand & backhand (U11)
+  - Weaving with puck (U11)
+  - Toe drag – front & side (U11)
+  - Attack the Triangle (U11)
+  - Stationary fhd pass (U11)
+  - Stationary bhd pass (U11)
+  - Forehand saucer pass (U11)
+  - Moving forehand pass (U11)
+  - Moving backhand pass (U11)
+  - Pass and Follow (U11)
+  - Cross and Drop (U11)
+  - Forehand ‐ wrist shot (U11)
+  - Forehand / backhand shots in motion (U11)
+  - Forehand ‐ flip shot (U11)
+  - Backhand ‐ flip shot (U11)
+  - Tips / Deflections (U11)
+  - Body fakes (U11)
+  - Dekes (U11)
+  - Moves in Combination (U11)
+  - Net Drives (U11)
+
+Defensive Tactics:
+  - Basic 1 on 1’s (U11)
+  - Puck retrievals (U11)
+  - Tracking (U11)
+  - Basic Positioning – D Zone (U11)
+  - Basic Breakouts (U11)
+  - Basic Entries (U11)
+
+ADDITIONAL SKILLS IN NOTION (Not in Hockey Canada dataset)
+----------------------------------------
+  - 2-on-1 execution
+  - 3-on-2 patterns
+  - accuracy over power
+  - anticipation
+  - arm swing
+  - awareness
+  - backchecking
+  - backhand control
+  - backhand pass
+  - backhand reception
+  - backward crossovers
+  - backward skating mastery
+  - backward start
+  - backward starts
+  - backward stops
+  - backward to forward pivot
+  - basic fakes
+  - basic stance
+  - board passes
+  - body dekes
+  - body positioning
+  - center responsibilities
+  - change of pace
+  - change of pace with puck
+  - clearing rebounds
+  - combined moves
+  - communication
+  - corner battles
+  - creating space
+  - cushioning
+  - cycling
+  - d-to-d passes
+  - decision making
+  - defence partnerships
+  - defensive stance
+  - edge transitions
+  - faceoff positioning
+  - figure-8 patterns
+  - flexibility
+  - forehand control
+  - forehand pass
+  - forehand reception
+  - forward crossovers
+  - forward start
+  - give-and-go
+  - gliding
+  - in-motion receiving
+  - inside edges
+  - jumping
+  - leading passes
+  - line changes
+  - mohawk turns
+  - narrow carries
+  - net-front positioning
+  - net-front presence
+  - one-foot stop
+  - one-timers
+  - one-touch pass
+  - outside edges
+  - passing
+  - passing while skating
+  - penalty kill basics
+  - point shots
+  - post integration
+  - power play basics
+  - puck control while skating
+  - quick release
+  - recovery
+  - regroup support
+  - rimreverse
+  - saucer pass
+  - screen shots
+  - shooting in stride
+  - shot fakes
+  - shot selection
+  - skate-to-stick
+  - skating the puck
+  - snap shot
+  - speed generation
+  - stationary balance
+  - stick positioning
+  - stickhandling
+  - stride development
+  - support positioning
+  - t-stop
+  - teamwork
+  - toe drags
+  - toe turnspivots
+  - transition timing
+  - transitions
+  - two-foot stop
+  - walking the line
+  - weight transfer
+  - wide carries
+  - wide dribbling
+  - wide turns
+  - winger responsibilities
+  - zone coverage
+
+CATEGORY ALIGNMENT
+----------------------------------------
+Hockey Canada Categories:
+  - Basic Puck Control: 1 skills
+  - Breakout Skills: 12 skills
+  - Breakouts: 3 skills
+  - DEFENCEMAN SKILLS: 4 skills
+  - Defence: 4 skills
+  - Defense: 3 skills
+  - Defensive Play: 9 skills
+  - Defensive Skills: 1 skills
+  - Defensive Tactics: 9 skills
+  - Defensive Zone Coverage: 21 skills
+  - Game Awareness: 2 skills
+  - Game Situations: 1 skills
+  - Game Strategy: 2 skills
+  - Goaltending: 16 skills
+  - Goaltending Skills Progressions: 11 skills
+  - Individual Offensive Tactics: 26 skills
+  - Offensive Play: 2 skills
+  - Offensive Tactics: 4 skills
+  - Offensive Zone Play: 20 skills
+  - Passing: 4 skills
+  - Physical Play: 1 skills
+  - Positioning: 3 skills
+  - Puck Control: 4 skills
+  - Puck Control and Passing: 4 skills
+  - Puck Handling: 1 skills
+  - Save Selection: 1 skills
+  - Scoring: 1 skills
+  - Scoring Situations: 10 skills
+  - Shooting: 33 skills
+  - Skating: 85 skills
+  - Skills: 1 skills
+  - Stickhandling: 2 skills
+  - Tactical Play: 3 skills
+
+Notion Categories:
+  - Core Skating Skills
+  - Puck Handling Skills
+  - Passing Skills
+  - Shooting Skills
+  - Defensive Skills
+  - Defence Position Skills
+  - Goaltender Skills
+  - Hockey IQ & Team Play

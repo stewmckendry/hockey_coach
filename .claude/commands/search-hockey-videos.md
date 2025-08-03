@@ -1,12 +1,12 @@
 ---
-description: "Search for high-quality hockey coaching videos with age-appropriate filtering and safety validation"
+description: "Search for high-quality hockey coaching videos with age-appropriate filtering and safety validation using YouTube and Hockey MCP sources"
 argument-hint: "<topic> <age-group> [quality-level] [max-results]"
-allowed-tools: ["mcp__youtube__search_videos", "mcp__youtube__get_video", "mcp__youtube__get_transcript", "mcp__notion-remote__search", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "TodoWrite"]
+allowed-tools: ["mcp__youtube__search_videos", "mcp__youtube__get_video", "mcp__youtube__get_transcript", "mcp__hockey-coaching__search_hockey_videos", "mcp__hockey-coaching__search_hockey_dryland_videos", "mcp__notion-remote__search", "mcp__notion-remote__create-pages", "mcp__notion-remote__update-page", "TodoWrite"]
 ---
 
 # Search Hockey Videos Command
 
-Intelligent YouTube video search with hockey-specific quality validation, age-appropriate filtering, and safety guardrails for seamless integration into Notion content creation.
+Comprehensive hockey video search combining YouTube API and Hockey MCP's curated video collections for maximum coverage of quality coaching content with age-appropriate filtering and safety validation.
 
 ## Quality Assessment Framework
 
@@ -42,6 +42,21 @@ Priority Sources:
 - University/college hockey programs
 ```
 
+## Dual-Source Search Strategy
+
+### Video Sources
+1. **Hockey MCP Collections** (Primary - Curated Content)
+   - `search_hockey_videos`: 1,159 instructional video clips with timestamps
+   - `search_hockey_dryland_videos`: 939 off-ice training demonstrations
+   - Pre-validated for coaching quality and safety
+   - Includes teaching points and skill metadata
+
+2. **YouTube API** (Secondary - Expanded Coverage)
+   - Live search for latest content
+   - Broader coverage of emerging techniques
+   - Access to new channels and creators
+   - Real-time availability checking
+
 ## Search and Validation Workflow
 
 ### Step 1: Parse Arguments and Initialize
@@ -49,8 +64,24 @@ Priority Sources:
 - Default: standard quality, 5 results max
 - Create TodoWrite list for search process tracking
 - Load age-appropriate content standards from UX Guidelines
+- Determine if topic is on-ice or off-ice training
 
-### Step 2: Construct Smart Search Queries
+### Step 2: Search Hockey MCP Collections First
+```
+Priority Search Order:
+1. For on-ice topics: Use search_hockey_videos
+2. For off-ice/dryland: Use search_hockey_dryland_videos
+3. Apply age group and skill filters
+4. Collect pre-validated results with metadata
+
+Benefits of MCP Search:
+- Pre-curated coaching content
+- Validated teaching points included
+- Timestamp segments for specific techniques
+- No additional quality validation needed
+```
+
+### Step 3: Construct Smart YouTube Search Queries
 ```
 Query Construction Pattern:
 - Base: "[topic] hockey [age-group] coaching tutorial"
@@ -64,13 +95,28 @@ Examples:
 - U16: "power play systems hockey U16 advanced tactics"
 ```
 
-### Step 3: Execute YouTube Search
+### Step 4: Execute YouTube Search (Complementary)
 - Use `mcp__youtube__search_videos` with constructed query
-- Request 2x desired results to account for filtering
+- Request enough results to complement MCP findings
+- Focus on filling gaps not covered by MCP collections
 - Capture video IDs, titles, channels, durations, view counts
-- Sort by relevance and view count combination
+- Avoid duplicates already found in MCP search
 
-### Step 4: Quality and Safety Validation
+### Step 5: Merge and Deduplicate Results
+```
+Result Merging Strategy:
+1. Prioritize MCP results (pre-validated quality)
+2. Add YouTube results that aren't duplicates
+3. Balance sources based on quality scores
+4. Maintain requested max_results limit
+
+Deduplication:
+- Match by video ID when available
+- Match by title + channel for similar content
+- Keep highest quality version if duplicates found
+```
+
+### Step 6: Quality and Safety Validation (YouTube Results Only)
 ```
 For each video result:
 1. Channel Validation:
@@ -96,7 +142,7 @@ For each video result:
    - Assess explanation clarity
 ```
 
-### Step 5: Age-Appropriate Filtering
+### Step 7: Age-Appropriate Filtering
 ```
 U8 (8-9 years):
 - Maximum 5-minute videos preferred
@@ -123,7 +169,7 @@ U14+ (13+ years):
 - Mental game elements included
 ```
 
-### Step 6: Create Curated Results
+### Step 8: Create Curated Results
 ```
 Video Result Structure:
 {
@@ -140,7 +186,7 @@ Video Result Structure:
 }
 ```
 
-### Step 7: Integration with Draft Workflow
+### Step 9: Integration with Draft Workflow
 - Store curated video results in temporary context
 - Make results available to draft-notion-page command
 - Include quality scores and safety validations
@@ -187,19 +233,32 @@ Warning Flags (require review):
 
 ## Error Handling
 
-### Search Failures
+### MCP Collection Errors
+```
+If hockey MCP unavailable:
+  "Hockey MCP collections not accessible.
+   Proceeding with YouTube-only search.
+   
+   To fix: Check MCP server status with /mcp-test"
+
+If no MCP results found:
+  "No videos found in Hockey MCP for '[topic]'.
+   Expanding search to YouTube for broader coverage."
+```
+
+### YouTube Search Failures
 - Fallback to broader search terms
 - Suggest alternative search queries
 - Provide manual search guidance
 
 ### No Quality Results
-- Explain filtering criteria
+- Explain filtering criteria from both sources
 - Suggest adjusting parameters
-- Offer to search without strict filtering
+- Show results from either source if available
 
 ### API Limitations
 - Handle rate limiting gracefully
-- Cache results when possible
+- Prioritize MCP results when YouTube limited
 - Provide partial results if needed
 
 ## Integration Examples
@@ -226,43 +285,78 @@ Warning Flags (require review):
 
 ## Success Metrics
 
+- ✅ Dual-source coverage (MCP + YouTube)
 - ✅ 90%+ search results meet quality standards
 - ✅ 100% inappropriate content filtered
 - ✅ Age-appropriate validation on all results  
-- ✅ Clear quality scoring for each video
+- ✅ Clear source attribution (MCP vs YouTube)
 - ✅ Seamless integration with draft workflow
 - ✅ Safety considerations documented
-- ✅ Trusted source prioritization
-- ✅ Transcript analysis when available
+- ✅ Pre-validated MCP content prioritized
+- ✅ No duplicate results between sources
+- ✅ Teaching points extracted from both sources
+
+## Enhanced Result Structure
+
+### MCP Collection Results
+```
+MCP Video Result:
+{
+  "source": "hockey_mcp",
+  "collection": "hockey_videos" | "hockey_dryland_videos",
+  "title": "Video title from collection",
+  "video_id": "YouTube ID",
+  "url": "https://youtube.com/watch?v=...",
+  "timestamps": {
+    "start": "1:23",
+    "end": "4:56"
+  },
+  "teaching_points": ["Pre-validated teaching points"],
+  "skills": ["skating", "passing"],
+  "complexity": "beginner|intermediate|advanced",
+  "transcript_segment": "Relevant transcript excerpt",
+  "quality_score": "Premium (pre-validated)"
+}
+```
 
 ## Output Format
 
 ```
 🎥 Hockey Video Search Results: [Topic] for [Age Group]
 
-Found 5 high-quality coaching videos:
+📚 From Hockey MCP Collections (Pre-validated):
 
-1. **[Video Title]** (Premium ⭐⭐⭐)
-   - Channel: [Trusted Channel Name]
-   - Duration: 6:42
-   - Key Points: Proper stance, weight transfer, edge control
-   - Safety: Ensure proper protective equipment
+1. **[Video Title]** (Premium ⭐⭐⭐) [MCP]
+   - Source: Hockey Videos Collection
+   - Duration: 3:33 (Full video: 12:45)
+   - Teaching Points: Weight transfer, edge control, knee bend
+   - Skills: Forward skating, balance
+   - 🔗 [View Segment](url#t=1m23s)
+
+2. **[Video Title]** (Premium ⭐⭐⭐) [MCP]
+   - Source: Dryland Videos Collection  
+   - Duration: 2:15 segment
+   - Teaching Points: Core stability, explosive movement
+   - Equipment: Resistance bands, cones
    - 🔗 [View Video](url)
 
-2. **[Video Title]** (Standard ⭐⭐)
-   - Channel: [Coaching Channel]
-   - Duration: 8:15
-   - Key Points: Progressive drill sequence, common mistakes
-   - Age Note: Perfect complexity for U10
+🔍 From YouTube Search (Quality Validated):
+
+3. **[Video Title]** (Standard ⭐⭐)
+   - Channel: [Trusted Channel Name]
+   - Duration: 8:42
+   - Key Points: Progressive skill development
+   - Safety: Proper warm-up emphasized
    - 🔗 [View Video](url)
 
 [Additional results...]
 
 📊 Search Quality Summary:
-- Videos screened: 12
+- MCP Collection hits: 3
+- YouTube additions: 2
+- Total screened: 15
 - Quality passed: 5
-- Trusted channels: 3/5
-- Average quality: Standard+
+- Average quality: Premium-
 
-These results are ready for integration into your Notion content!
+These results combine curated content from Hockey MCP with fresh YouTube discoveries!
 ```

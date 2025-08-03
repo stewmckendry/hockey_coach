@@ -35,6 +35,7 @@ class Zone:
     zone_type: str  # "coverage", "pressure", "neutral"
     area: Union[str, Tuple[float, float, float, float]]  # Named area or bounds
     team: Literal["home", "away"]
+    opacity: float = 0.2  # Zone opacity for better visibility
 
 class HockeyDiagramGenerator:
     """Generates precise hockey tactical diagrams using sportypy."""
@@ -257,10 +258,12 @@ class HockeyDiagramGenerator:
                 
             if bounds:
                 x, y, width, height = bounds
+                # Use zone opacity
+                opacity = zone.opacity
                 rect = Rectangle(
                     (x, y), width, height,
                     facecolor=color,
-                    alpha=0.2,
+                    alpha=opacity,
                     zorder=1
                 )
                 ax.add_patch(rect)

@@ -111,16 +111,25 @@ The Hockey Diagram MCP Server provides precise NHL-regulation hockey tactical di
 - **Fast Generation**: Instant diagram creation without AI processing time
 - **Natural Language**: Accepts coaching instructions in plain English
 
-### Technical Architecture
+### Technical Architecture (Two-Stage Parser)
 ```
-Natural Language Input → GPT-4 Parser → Structured JSON → sportypy Renderer → Base64 PNG Output
+Natural Language Input → Stage 1: Entity Extraction → Stage 2: Coordinate Mapping → sportypy Renderer → Base64 PNG Output
 ```
 
 **Core Components:**
 - `generator.py`: Diagram generation using sportypy for NHL-standard rinks  
-- `parser.py`: LLM-based natural language to JSON conversion
+- `two_stage_parser.py`: Two-stage parsing system for maximum accuracy
+  - Stage 1: Extract semantic entities (players, movements, zones)
+  - Stage 2: Map entities to precise NHL coordinates
+- `parser.py`: Basic LLM parser (fallback)
+- `enhanced_parser.py`: Enhanced parser (secondary fallback)
 - `elements.py`: Tactical formations library with preset plays
 - `server.py`: FastMCP server exposing `generate_hockey_diagram` tool
+
+**Parser Cascade (Priority Order):**
+1. Two-stage parser (highest accuracy, comprehensive pick lists)
+2. Enhanced parser (good accuracy, direct parsing)
+3. Preset parser (basic functionality, template matching)
 
 ### Usage Examples
 ```bash
@@ -201,6 +210,56 @@ curl -X POST http://localhost:8001/mcp \
 - **Fallback**: Automatically falls back to Stability AI if MCP server unavailable
 - **Validation**: Validates diagram specifications before rendering
 - **Logging**: Comprehensive logging for debugging and monitoring
+
+## Practice Planning Workflow
+
+### Natural Language Practice Planning
+You can create comprehensive practice plans through natural conversation with Claude Code. No slash commands needed - just describe what you need.
+
+**Example requests:**
+- "I need a practice plan for tomorrow's U10 practice. 60 minutes, focus on passing and defensive positioning."
+- "Create a 45-minute practice for U12s focusing mainly on skating skills"
+- "Help me plan a fun practice for U8s with lots of small games"
+
+### How Practice Planning Works
+
+1. **You describe your needs** - Duration, age group, focus areas, any special considerations
+2. **Claude searches for team context** - Looks up your team information in Notion (if available)
+3. **Research phase** - Claude uses hockey MCP tools to find appropriate drills, skills, and videos
+4. **Plan generation** - Creates structured practice following best practices from PRACTICE_GUIDELINES.md
+5. **Visual content** - Generates tactical diagrams and finds instructional videos
+6. **Notion creation** - Creates a complete practice plan page in your Notion workspace
+7. **Feedback loop** - You can request changes and Claude will update the plan
+
+### Practice Plan Components
+
+Each practice plan includes:
+- Warm-up activities
+- Skill development stations
+- Team concepts/systems work
+- Game simulation/scrimmage
+- Cool-down activities
+- Coaching points and safety reminders
+- Visual diagrams for drills
+- Video demonstrations
+- Time allocations (flexible based on your needs)
+
+### Post-Practice Workflow
+
+After practice, update your plan in Notion with:
+- What worked well
+- What didn't work
+- Player engagement level
+- Adjustments for next time
+
+This feedback helps Claude create better plans in the future by learning what works for your team.
+
+### Files Supporting Practice Planning
+
+- `PRACTICE_GUIDELINES.md` - Best practices for structuring practices
+- `PRACTICE_PLAN_TEMPLATE.md` - Standard format for practice plans
+- `NOTION_PRACTICE_ARCHITECTURE.md` - How practice plans are organized in Notion
+- `PRACTICE_PLAN_ARCHITECTURE.md` - Technical implementation details
 
 ## Essential Development Commands
 
