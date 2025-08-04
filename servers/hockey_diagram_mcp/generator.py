@@ -12,6 +12,7 @@ import matplotlib.patches as patches
 from matplotlib.patches import FancyArrowPatch, Circle, Rectangle
 import numpy as np
 from sportypy.surfaces.hockey import NHLRink
+from zone_grid import zone_grid
 
 @dataclass
 class Player:
@@ -30,7 +31,7 @@ class Movement:
     movement_type: Literal["skating", "pass", "shot", "forecheck"]
     
 @dataclass 
-class Zone:
+class CoverageZone:
     """Represents a coverage or pressure zone."""
     zone_type: str  # "coverage", "pressure", "neutral"
     area: Union[str, Tuple[float, float, float, float]]  # Named area or bounds
@@ -64,7 +65,7 @@ class HockeyDiagramGenerator:
         self,
         players: List[Player],
         movements: Optional[List[Movement]] = None,
-        zones: Optional[List[Zone]] = None,
+        zones: Optional[List[CoverageZone]] = None,
         view: Literal["full", "offensive", "defensive", "neutral"] = "full",
         title: Optional[str] = None,
         output_format: Literal["png", "svg"] = "png"
@@ -245,7 +246,7 @@ class HockeyDiagramGenerator:
                 
             ax.add_patch(arrow)
             
-    def _draw_zones(self, ax, zones: List[Zone]):
+    def _draw_zones(self, ax, zones: List[CoverageZone]):
         """Draw coverage or pressure zones."""
         for zone in zones:
             color = self.HOME_COLOR if zone.team == "home" else self.AWAY_COLOR
@@ -269,16 +270,33 @@ class HockeyDiagramGenerator:
                 ax.add_patch(rect)
                 
     def _get_zone_bounds(self, area_name: str) -> Optional[Tuple[float, float, float, float]]:
-        """Get bounds for named areas."""
-        # Define common hockey zones
+        """Get bounds for named areas using ZoneGrid system."""
+        
+        # First check if it's a ZoneGrid zone name
+        if area_name in zone_grid.zone_lookup:
+            zone = zone_grid.zone_lookup[area_name]
+            # Return as (x, y, width, height) for Rectangle
+            width = zone.x_max - zone.x_min
+            height = zone.y_max - zone.y_min
+            return (zone.x_min, zone.y_min, width, height)
+        
+        # Handle legacy zone names and parser output format
         zone_bounds = {
             "slot": (-20, -8, 40, 16),  # Slot area
             "point": (-30, 15, 60, 10),  # Point area
             "crease": (-6, -4, 12, 8),   # Goal crease
-            "corner_left": (-100, -42.5, 20, 20),  # Left corner
-            "corner_right": (-100, 22.5, 20, 20),  # Right corner
             "high_slot": (-20, -12, 40, 24),  # High slot
             "low_zone": (-100, -42.5, 30, 85),  # Low defensive zone
+            
+            # Fix zone name mismatch - parser outputs these names:
+            "left_corner": (80, -42.5, 20, 20),  # Left corner (offensive)
+            "right_corner": (80, 22.5, 20, 20),  # Right corner (offensive)
+            "defensive_left_corner": (-100, -42.5, 20, 20),  # Left corner (defensive)
+            "defensive_right_corner": (-100, 22.5, 20, 20),  # Right corner (defensive)
+            
+            # Keep legacy names for backward compatibility
+            "corner_left": (-100, -42.5, 20, 20),  # Left corner (legacy)
+            "corner_right": (-100, 22.5, 20, 20),  # Right corner (legacy)
         }
         return zone_bounds.get(area_name)
     
@@ -315,7 +333,7 @@ def create_hockey_diagram(
     # Convert dicts to dataclasses
     player_objects = [Player(**p) for p in players]
     movement_objects = [Movement(**m) for m in movements] if movements else None
-    zone_objects = [Zone(**z) for z in zones] if zones else None
+    zone_objects = [CoverageZone(**z) for z in zones] if zones else None
     
     return generator.generate_diagram(
         players=player_objects,

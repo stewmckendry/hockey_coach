@@ -265,6 +265,95 @@ This feedback helps Claude create better plans in the future by learning what wo
 
 ### Custom Slash Commands
 
+#### Git Worktree Workflow Commands
+
+These three commands provide a complete git worktree workflow for GitHub issues:
+
+##### `/worktree-issue <github-issue-url>`
+**Purpose**: Create a git worktree for working on a GitHub issue with automated branch setup
+
+**Usage**: 
+```bash
+/worktree-issue https://github.com/stewmckendry/hockey_coach/issues/123
+```
+
+**Workflow**:
+1. **Issue Validation**: Fetches and validates the GitHub issue
+2. **Branch Creation**: Creates branch `issue-{number}-{sanitized-title}`
+3. **Worktree Setup**: Creates worktree at `../thunder_playbook_worktrees/issue-{number}`
+4. **GitHub Integration**: Comments on issue with branch reference
+5. **Instructions**: Provides clear navigation commands
+
+**Output Example**:
+```
+✅ Worktree Setup Complete!
+
+📍 Issue: #123 - Add user authentication
+🌿 Branch: issue-123-add-user-authentication
+📂 Worktree: ../thunder_playbook_worktrees/issue-123
+
+To start working:
+cd ../thunder_playbook_worktrees/issue-123
+```
+
+##### `/commit-worktree <github-issue-url> [branch-name]`
+**Purpose**: Commit changes, create PR, and update issue - maintains worktree for PR feedback
+
+**Usage**: 
+```bash
+/commit-worktree https://github.com/stewmckendry/hockey_coach/issues/123
+# or with explicit branch
+/commit-worktree https://github.com/stewmckendry/hockey_coach/issues/123 issue-123-auth
+```
+
+**Workflow**:
+1. **Quality Checks**: Runs tests, linting, and build verification
+2. **Commit Changes**: Creates descriptive commit with issue reference
+3. **Push Branch**: Pushes to remote with tracking
+4. **Create PR**: Uses gh CLI to create PR with template
+5. **Update Issue**: Comments on issue with PR link
+6. **Keep Worktree**: Maintains worktree for addressing PR feedback
+
+**Quality Gates**:
+- Python: `pytest`, type checking
+- Web: `npm run lint`, `npm run type-check`, `npm run build`
+- Stops on any failures to ensure quality
+
+##### `/merge-worktree <github-issue-url> <pr-url>`
+**Purpose**: Complete the workflow by merging PR, cleaning up, and closing issue
+
+**Usage**: 
+```bash
+/merge-worktree https://github.com/stewmckendry/hockey_coach/issues/123 https://github.com/stewmckendry/hockey_coach/pull/456
+```
+
+**Workflow**:
+1. **PR Validation**: Checks approval status and CI checks
+2. **Conflict Resolution**: Guides through any merge conflicts
+3. **Merge PR**: Squash merges by default (configurable)
+4. **Cleanup**: Removes worktree and prunes references
+5. **Close Issue**: Updates issue with completion summary
+6. **Update Main**: Pulls latest changes to main branch
+
+**Complete Workflow Example**:
+```bash
+# 1. Start work on issue
+/worktree-issue https://github.com/stewmckendry/hockey_coach/issues/123
+
+# 2. After implementation
+/commit-worktree https://github.com/stewmckendry/hockey_coach/issues/123
+
+# 3. After PR approval
+/merge-worktree https://github.com/stewmckendry/hockey_coach/issues/123 https://github.com/stewmckendry/hockey_coach/pull/456
+```
+
+**Key Benefits**:
+- **Organized**: All worktrees in `../thunder_playbook_worktrees/`
+- **Clean History**: Descriptive branches and commits
+- **Quality First**: Automated testing before commits
+- **Full Lifecycle**: From issue to merged code
+- **GitHub Integration**: Automatic updates and linking
+
 #### `/implement-feature <primary-issue-url> [related-issue-url-1] [related-issue-url-2] ...`
 **Purpose**: Implement features from GitHub issues with comprehensive planning and validation
 

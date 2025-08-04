@@ -11,19 +11,24 @@ Effective hockey practices balance skill development, team concepts, and fun whi
 - Game schedule and preparation
 - Player energy and engagement levels
 
-### Standard Practice Structure (Maximum 4 Segments)
-**Segment-Based Approach:**
+### Standard Practice Structure (Guideline: 3-4 Segments)
+**Flexible Segment-Based Approach:**
 1. **Warm-up Segment** (8 minutes) - Movement, fun, engagement
 2. **Skill Development Segment** (22 minutes) - 2-3 stations with focus area drills
 3. **Game Application Segment** (15 minutes) - Scrimmage or game situations  
 4. **Cool-down Segment** (5 minutes) - Fun, positive ending
 
 **Key Principles:**
-- **Maximum 4 segments total** (never exceed this limit)
+- **Typical 3-4 segments** (but adapt to coach's specific needs)
 - Each segment can have multiple stations running simultaneously
 - Stations within a segment can run same or different drills
 - Water breaks (3-4 minutes) built into transitions between segments
 - Total: 50 minutes + 10 minutes transitions/setup = 60 minutes
+
+**When to Adapt:**
+- Coach requests specific structure (e.g., "Just skills and scrimmage today")
+- Extended single-focus practices (e.g., "All shooting practice")
+- Special situations (tournaments, pre-game, evaluations)
 
 ### Realistic Time Considerations
 **Additional time factors to plan for:**
@@ -390,6 +395,64 @@ Station 3 (Other End):
 - Rest and recovery
 - Individual programs
 - Fun tournaments
+
+## Goalie Integration in Practice
+
+### Philosophy
+Goalies are hockey players first, specialists second. Every practice should include both goalie-specific development and integration with team activities.
+
+### Practice Structure for Goalies
+
+**Warm-up (Integrated):**
+- Goalies participate in team warm-up
+- Add goalie-specific movements (butterfly slides, t-pushes)
+- Include goalies in passing/shooting portions
+
+**Skill Development (Split/Integrated):**
+- **Option 1: Goalie Coach Available**
+  - Separate goalie station with specialized drills
+  - Coordinate with main drill timing
+  
+- **Option 2: No Goalie Coach**
+  - Integrate goalies into shooting drills naturally
+  - Designate assistant or parent for goalie focus
+  - Use drill progressions that work for both
+
+**Station Examples:**
+```
+Main Station: 2v1 Rush Drill
+Goalie Focus: Angle play, rebound control
+
+Main Station: Passing Progression  
+Goalie Work: Movement drill with coach/shooter
+```
+
+### Age-Specific Goalie Considerations
+
+**U8-U10:**
+- All players try goalie (rotation system)
+- Focus on basic stance and movement
+- Make it fun - no pressure
+- Short goalie shifts (5-10 minutes)
+
+**U12-U14:**
+- Dedicated goalies emerging
+- Technical skill development
+- Mental game introduction
+- 50/50 split between team/goalie work
+
+**U16+:**
+- Position-specific training essential
+- Advanced technical work
+- Game situation focus
+- Mental preparation critical
+
+### Goalie Drill Integration Tips
+- Always have pucks going at net during drills
+- Vary shot types and angles
+- Include goalie in drill explanation
+- Celebrate goalie successes equally
+- Plan water breaks for heavy equipment
 
 ## Creating Positive Culture
 

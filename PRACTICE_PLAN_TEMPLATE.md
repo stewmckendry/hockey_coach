@@ -107,10 +107,11 @@ This template provides a comprehensive structure for creating effective hockey p
 > 
 > **🏒 Stations:** 2-3 stations running simultaneously
 > **👨‍🏫 Coach Assignment:** [Specify which coach runs each station]
+> **🥅 Goalie Work:** [Separate station or integrated]
 
 ### 🥅 Station A: [Focus Area Name]
 
-#### 🏒 [Clear, Age-Appropriate Drill Name]
+#### 🏒 Skater Drill: [Clear, Age-Appropriate Drill Name]
 
 #### 📐 Setup
 - [Station boundaries and equipment placement]
@@ -139,6 +140,16 @@ This template provides a comprehensive structure for creating effective hockey p
 - Movement patterns and flow  
 - Equipment setup details
 ```
+
+#### 🥅 Goalie Station (if separate)
+
+**Goalie Drill:** [Age-appropriate goalie drill name]
+
+**Setup:** [Goalie-specific setup]
+
+**Focus:** [What goalie skill this develops]
+
+**Integration:** [When/how goalies join main drill]
 
 ---
 

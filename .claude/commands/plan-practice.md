@@ -23,25 +23,36 @@ Creates comprehensive, age-appropriate hockey practice plans through intelligent
 
 ## Workflow Implementation
 
-### Phase 1: Parse Arguments and Initialize
+### Phase 1: Parse Arguments and Gather Missing Information
 1. **Extract Parameters:**
    - Duration (in minutes)
    - Age group (U8, U10, U12, U14, U16, U18)
    - Focus areas (comma-separated list)
    - Team name (optional)
 
-2. **Create Todo List:**
+2. **Request Missing Information:**
+   ```
+   If missing critical information, ask coach:
+   - "What date is this practice for?" (if not provided)
+   - "What time does practice start?" (if not provided)
+   - "What rink/location?" (if not provided)
+   - "How many players expected?" (if not provided)
+   - "Any special considerations for this practice?"
+   ```
+
+3. **Create Todo List:**
    ```
    - [ ] Search for team context
-   - [ ] Research drills for focus areas
-   - [ ] Generate practice structure
+   - [ ] Research drills for focus areas with reasoning
+   - [ ] Present drill options for coach selection
+   - [ ] Generate practice structure (max 4 segments)
    - [ ] Create visual content
    - [ ] Build Notion page
    - [ ] Add to Practice Plans database
    ```
 
-3. **Load Guidelines:**
-   - Read PRACTICE_GUIDELINES.md
+4. **Load Guidelines:**
+   - Read PRACTICE_GUIDELINES.md (emphasize 4-segment maximum)
    - Read PRACTICE_PLAN_TEMPLATE.md
    - Apply age-specific considerations
 
@@ -69,37 +80,69 @@ Extract: Focus areas, feedback, effectiveness ratings
 
 ### Phase 3: Hockey Knowledge Research
 
+**Initialize Drill Tracking:**
+```
+# Start tracking all discovered drill names
+all_drills = {
+    'skater_drills': [],
+    'goalie_drills': [],
+    'selected_drills': []
+}
+```
+
 **Multi-Source Research for Each Focus Area:**
 
-1. **Drill Research:**
+1. **Drill Research (Skaters):**
    ```
    mcp__hockey-coaching__search_hockey_drills
    Query: "[age-group] [focus-area] drill"
    Results: 5-10 per focus area
+   
+   # Track drill names as discovered:
+   all_drills['skater_drills'].extend([drill_names_from_results])
    ```
 
-2. **Skill Development Research:**
+2. **Goalie Drill Research:**
+   ```
+   mcp__hockey-coaching__search_hockey_drills
+   Query: "[age-group] goalie [specific-skill] drill"
+   Examples: "U10 goalie movement drill", "U12 goalie rebound control"
+   Results: 2-3 goalie-specific drills per segment
+   
+   # Track goalie drill names:
+   all_drills['goalie_drills'].extend([goalie_drill_names])
+   ```
+
+3. **Skill Development Research:**
    ```
    mcp__hockey-coaching__search_hockey_skills
    Query: "[age-group] [focus-area] progression"
    Results: Age-appropriate progressions
    ```
 
-3. **Tactical Concepts (if applicable):**
+4. **Team Skills from Notion:**
+   ```
+   mcp__notion-remote__search
+   Query: "team skills [team-name] [age-group]"
+   Purpose: Find team's current skill focus areas
+   Extract: Priority skills for the season
+   ```
+
+5. **Tactical Concepts (if applicable):**
    ```
    mcp__hockey-coaching__search_hockey_tactics
    Query: "[focus-area] system [age-group]"
    Results: Team tactics and positioning
    ```
 
-4. **Video Demonstrations:**
+6. **Video Demonstrations:**
    ```
    mcp__hockey-coaching__search_hockey_videos
    Query: "[age-group] [focus-area] demonstration"
    Results: 3-5 quality videos
    ```
 
-5. **External Web Research (Current Best Practices):**
+7. **External Web Research (Current Best Practices):**
    ```
    mcp__exa__web_search_exa
    Query: "hockey [focus-area] drills [age-group] coaching 2024"
@@ -114,29 +157,59 @@ Extract: Focus areas, feedback, effectiveness ratings
 - Cross-training ideas from other sports
 - Age-specific development research
 
-### Phase 4: Practice Structure Generation
+### Phase 4: Collaborative Drill Selection
 
-**Apply Time Allocations:**
-```python
-# Flexible allocation based on coach focus
-if primary_focus_specified:
-    allocations = adjust_for_focus(duration, primary_focus)
-else:
-    allocations = standard_allocations(duration)
+**Present Drill Options with Reasoning:**
+```
+For each focus area, present BOTH skater and goalie options:
 
-# Account for realistic factors
-actual_ice_time = duration - 5  # Getting on ice
-add_transition_time(2 * num_activities)
-add_water_breaks(ceil(duration / 30) * 2)
+🎯 FOCUS AREA: [e.g., Passing]
+
+### SKATER DRILLS:
+**Recommended Drill:** [Clear, age-appropriate name]
+**Why I chose this:** [Reasoning - skill development, engagement, progression]
+**Best for:** [What this drill does well]
+
+**Alternative Options:**
+1. **[Drill Name]** - [Brief description and why it's good]
+2. **[Drill Name]** - [Brief description and why it's good] 
+3. **[Drill Name]** - [Brief description and why it's good]
+
+### GOALIE STATION (while skaters do above):
+**Recommended Goalie Drill:** [Age-appropriate goalie drill]
+**Why I chose this:** [How it develops goalie skills]
+**Pairs well because:** [Why it works during this skater drill]
+
+**Alternative Goalie Options:**
+1. **[Goalie Drill]** - [Brief description]
+2. **[Goalie Drill]** - [Brief description]
+
+**Coach Decision:**
+- Use recommended drills?
+- Try alternatives?
+- Need more options? (I can search for more)
 ```
 
-**Structure Components:**
-1. **Warm-up** - Fun, engaging, movement-based (includes name games for first practice)
-2. **Skill Stations** - Focus area drills with demonstrations
-3. **Team Concepts** - Systems work (if age-appropriate)  
-4. **Game Simulation** - Applied skills
-5. **Cool-down** - Positive ending (team building for first practice)
-6. **Water/Transitions** - Built into time allocations (3-4 minutes per break)
+**Coach Interaction:**
+```
+After presenting all focus areas:
+"Which drills look good to you? Any you'd like to swap or need alternatives for?
+Reply with:
+- 'Looks good' to proceed
+- 'Change [drill name] to [alternative]' to swap
+- 'More options for [focus area]' to see additional choices"
+
+# Track final selected drills:
+all_drills['selected_drills'] = [list of final drill names chosen]
+```
+
+### Phase 5: Practice Structure Generation (Maximum 4 Segments)
+
+**Segment-Based Structure:**
+1. **Segment 1: Warm-up** (8 minutes) - Movement, fun, engagement
+2. **Segment 2: Skill Development** (22 minutes) - 2-3 stations with selected drills
+3. **Segment 3: Game Application** (15 minutes) - Scrimmage/game situations
+4. **Segment 4: Cool-down** (5 minutes) - Fun, positive ending
 
 **Visual Content Requirements:**
 - U8: 80% visual content (diagrams, demos, videos)
@@ -144,15 +217,14 @@ add_water_breaks(ceil(duration / 30) * 2)
 - U12: 60% visual content
 - U14+: 50% visual content
 
-**Drill Selection Criteria:**
-- High repetition rate
-- Age-appropriate complexity
-- Relates to focus areas  
-- Progressive difficulty options
-- Safety considerations
-- Coach assignments specified
+**Drill Presentation Format:**
+- **Clear, age-appropriate titles** (no U9/U11 references)
+- **Setup section** with specific details
+- **Instructions** with step-by-step progression
+- **Key Teaching Points** including why and how
+- **Progressions** for different skill levels
 
-### Phase 5: Visual Content Generation
+### Phase 6: Visual Content Generation
 
 **For Each Key Drill:**
 
@@ -189,7 +261,7 @@ add_water_breaks(ceil(duration / 30) * 2)
    - Traffic flow patterns
    ```
 
-### Phase 6: Practice Plan Assembly
+### Phase 7: Practice Plan Assembly
 
 **Create Structured Content Following Template:**
 ```markdown
@@ -256,7 +328,16 @@ add_water_breaks(ceil(duration / 30) * 2)
 [Embedded YouTube videos with descriptions]
 ```
 
-### Phase 7: Notion Page Creation
+### Phase 8: Notion Page Creation
+
+**Track Drill Names:**
+During research and selection phases, maintain a list of all drill names:
+```
+drills_used = []
+# During drill selection:
+drills_used.append("Drill Name from Research")
+# Format for database: "Drill 1, Drill 2, Drill 3"
+```
 
 **Create Practice Plan Page:**
 ```
@@ -268,7 +349,7 @@ Content: [Assembled practice plan with embedded media]
 
 **Add to Practice Plans Database:**
 ```
-mcp__notion-remote__update-database
+mcp__notion-remote__update-page
 Database: Practice Plans
 Properties:
   - Title: "Practice - [Date] - [Focus]"
@@ -276,11 +357,19 @@ Properties:
   - Duration: [Minutes]
   - Focus Areas: [Multi-select values]
   - Age Group: [Select value]
+  - Drills Used: [Comma-separated list of original drill names]
   - Practice Rating: [Empty - for post-practice]
   - Post-Practice Feedback: [Empty - for post-practice]
+  - Coach Notes: [Link to full practice plan]
 ```
 
-### Phase 8: Delivery and Iteration
+**Example Drills Used Field:**
+```
+"Triangle Passing Drill, Russian Circle Drill, 2v1 Backchecking, 
+ Goalie T-Push Movement, Cross-Ice Scrimmage, Sharks and Minnows"
+```
+
+### Phase 9: Delivery and Iteration
 
 **Present to Coach:**
 ```

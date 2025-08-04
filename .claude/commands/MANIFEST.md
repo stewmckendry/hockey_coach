@@ -265,6 +265,79 @@ The hockey content creation commands follow a structured workflow: **Research â†
 
 ---
 
+### `/worktree-issue` - Git Worktree for GitHub Issue
+**Who**: Any developer starting work on an issue  
+**When**: Before starting implementation on a GitHub issue  
+**What**:
+- Parse and validate GitHub issue URL
+- Fetch issue details (title, number, status)
+- Create descriptive branch name (issue-{number}-{sanitized-title})
+- Create git worktree in organized location
+- Add comment to GitHub issue linking to branch
+- Provide clear transition instructions
+
+**Workflow**:
+1. Creates branch: `issue-{number}-{sanitized-title}`
+2. Creates worktree: `../thunder_playbook_worktrees/issue-{number}`
+3. Comments on GitHub issue with branch reference
+4. Provides navigation instructions for new worktree
+
+**Arguments**: 
+- Required: GitHub issue URL (e.g., "https://github.com/owner/repo/issues/123")
+
+**Impact**: HIGH - Streamlines issue-to-implementation workflow
+
+---
+
+### `/commit-worktree` - Commit Changes and Create PR
+**Who**: Any developer completing implementation  
+**When**: After implementing changes in a worktree  
+**What**:
+- Validate worktree state and run quality checks
+- Commit all changes with descriptive message
+- Push branch to remote repository
+- Create pull request with comprehensive description
+- Update GitHub issue with PR link
+- Keep worktree active for PR feedback
+
+**Quality Checks**:
+- Runs tests if available (pytest, npm test)
+- Executes linting (ESLint, type-check)
+- Verifies build succeeds
+- Stops on any failures
+
+**Arguments**: 
+- Required: GitHub issue URL
+- Optional: Branch name (defaults to issue-{number}-*)
+
+**Impact**: HIGH - Ensures quality and creates trackable PRs
+
+---
+
+### `/merge-worktree` - Complete PR and Close Issue
+**Who**: Any developer after PR approval  
+**When**: After PR is approved and ready to merge  
+**What**:
+- Validate PR state (approved, checks passing)
+- Handle any merge conflicts with guidance
+- Merge PR using appropriate strategy
+- Remove worktree and clean up branches
+- Close GitHub issue with completion summary
+- Update local main branch
+
+**Merge Strategies**:
+- Squash and merge (default)
+- Regular merge (preserves history)
+- Rebase and merge (if enabled)
+
+**Arguments**: 
+- Required: GitHub issue URL
+- Required: Pull request URL
+
+**Impact**: HIGH - Completes full issue lifecycle
+
+---
+
 ## ðŸš€ PHASE 1 COMMANDS (Critical Automation - Implementing Now)
 
 ### `/multi-claude-setup` - Multi-Claude Infrastructure Setup  
