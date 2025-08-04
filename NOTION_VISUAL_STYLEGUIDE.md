@@ -8,12 +8,14 @@ This guide provides best practices and techniques for creating visually appealin
 
 Based on analysis of popular Notion templates (Meal Planning, My Cinema, Recipe Book), the most impactful visual elements are:
 
-1. **Database Gallery Views with Cover Images** - Essential for visual appeal
-2. **Multiple Database Views with Tabs** - Allows filtering and organization
-3. **Strategic Use of Color** - Background colors, colored tags, and callouts
+1. **Database Gallery Views with Cover Images** - Essential for visual appeal ⚠️ **API LIMITATION**
+2. **Multiple Database Views with Tabs** - Allows filtering and organization ⚠️ **API LIMITATION**  
+3. **Strategic Use of Color** - Background colors, colored tags, and callouts ⚠️ **PARTIAL LIMITATION**
 4. **Visual Hierarchy with Cover Images** - Large hero images that set the tone
-5. **Interactive Elements** - Toggle lists, tabs, filters, and buttons
-6. **Emoji Icons as Visual Markers** - Used extensively for categorization
+5. **Interactive Elements** - Toggle lists, tabs, filters, and buttons ✅ **WORKS**
+6. **Emoji Icons as Visual Markers** - Used extensively for categorization ✅ **WORKS**
+
+**Critical Finding**: The Notion API cannot create database views (gallery, board, list) programmatically. These visual templates rely heavily on features not available through the API.
 
 ## Core Design Principles
 
@@ -301,6 +303,114 @@ Video title or description
    - Use descriptive toggle headers
    - Provide alt text for images (via captions)
    - Maintain logical heading hierarchy
+
+## ⚠️ Critical: Background Color Limitations
+
+### The Background Color Reality Check
+
+After extensive testing with the Notion MCP tools, here's what actually works:
+
+**❌ DOESN'T WORK:**
+- Callout background colors via MCP markdown syntax
+- Table cell background colors
+- Text background colors
+
+**✅ DOES WORK:**
+- Database select/multi-select properties with colors (appear as colored tags)
+- Emoji-based visual categorization
+- Strategic layout and typography
+- Rich formatting (bold, italic, etc.)
+
+### Why Background Colors Don't Work
+
+1. **MCP Tool Limitation**: The specific Notion MCP server may not properly convert markdown color syntax to JSON
+2. **API vs Implementation Gap**: While Notion's API supports colors, the MCP tool implementation may not expose this feature
+3. **Version Dependencies**: Different MCP server versions may have different feature support
+
+### ⚠️ Critical: Database View Limitations
+
+**The Notion API does NOT support creating different database views programmatically:**
+
+- ❌ **Cannot create Gallery view** (the key visual element from professional templates)
+- ❌ **Cannot create Board view** (Kanban-style organization)
+- ❌ **Cannot create List view** (minimal layout)
+- ❌ **Cannot create Timeline view** (project milestones)
+- ❌ **Cannot create Calendar view** (date-based visualization)
+- ❌ **Cannot create Chart view** (data visualization)
+
+**What this means**: Even though we can create databases with colored properties, users must manually switch views in the Notion UI to see the visual "gallery card" effect that makes those professional templates so appealing.
+
+**Current API Support (as of 2025)**: Only table view creation is supported. All other views must be created manually by users after database creation.
+
+### ⚠️ Critical: External Application Embed Limitations
+
+**The Notion API supports embed blocks, but the MCP markdown syntax doesn't convert properly:**
+
+**✅ API Supports These 17 Embed Types:**
+- **Design**: Figma, Sketch, Abstract, Excalidraw, Invision
+- **Development**: CodePen, GitHub Gist, Replit, PDFs
+- **Communication**: Loom, Twitter, Typeform, Google Maps
+- **Collaboration**: Miro, Whimsical, Framer, Google Drive
+
+**❌ MCP Tool Reality:**
+- Cannot create embed blocks through markdown syntax
+- `<video source="url">`, `<embed url="url" />`, `<pdf source="url">` don't work
+- Embeds must be created manually in Notion UI after page creation
+
+**Professional Templates**: Use embeds created manually, not programmatically.
+
+### Alternative Visual Approaches That Actually Work
+
+#### Method 1: Database Properties with Colors ✅
+```python
+# Create database with colored select properties
+"Category": {
+    "select": {
+        "options": [
+            {"name": "🟢 Beginner", "color": "green"},
+            {"name": "🟡 Intermediate", "color": "yellow"}, 
+            {"name": "🔴 Advanced", "color": "red"}
+        ]
+    }
+}
+```
+
+#### Method 2: Emoji-Based Visual Categories ✅
+```markdown
+🟢 **Success Items**
+🟡 **Warning Items** 
+🔴 **Critical Items**
+🔵 **Information Items**
+🟣 **Special Items**
+```
+
+#### Method 3: Strategic Layout Design ✅
+```markdown
+<columns>
+<column>
+<callout icon="⚡">
+**High Energy Zone**
+Content with visual impact through layout
+</callout>
+</column>
+<column>
+<callout icon="🎯">
+**Focus Zone**
+Different visual treatment through structure
+</callout>
+</column>
+</columns>
+```
+
+#### Method 4: Rich Typography Combinations ✅
+```markdown
+## 🎯 **Section Title**
+***Bold italic emphasis*** with strategic emoji placement
+
+**Key Point**: Regular bold text
+*Secondary info*: Italic text
+`Code elements`: For technical terms
+```
 
 ## Implementation with MCP Tools
 
