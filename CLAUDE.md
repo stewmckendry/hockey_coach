@@ -152,6 +152,61 @@ Natural Language Input → Stage 1: Entity Extraction → Stage 2: Coordinate Ma
 - **Neutral Zone**: trap, regroup
 - **Offensive Zone**: cycle, overload
 
+### 🤖 AI Agent Integration (Issue #97)
+
+**New Single Agent Architecture**: The Hockey Diagram MCP Server now includes an intelligent AI agent that can research unknown formations, handle iterative feedback, and maintain conversation context.
+
+#### Available Tools
+
+**Core Generation Tools:**
+- `generate_hockey_diagram` - Direct programmatic generation (original method)
+- `parse_hockey_formation` - Parse formations into structured data  
+- `generate_diagram_from_spec` - Generate from parsed specifications
+
+**🚀 NEW: Agent-Enhanced Tools:**
+- `generate_with_agent` - **Intelligent generation with research capabilities**
+- `get_agent_status` - Check agent availability and capabilities
+- `clear_agent_conversation` - Reset conversation context
+
+**Reference Tools:**
+- `list_hockey_formations` - List all available preset formations
+- `get_formation_details` - Get detailed formation specifications
+
+#### Agent Capabilities
+
+**1. Fast Path (Known Formations)**
+```bash
+# Instant generation for standard formations
+generate_with_agent("2-1-2 forecheck")
+# → parse_hockey_formation → generate_diagram_from_spec
+```
+
+**2. Research Path (Unknown Concepts)**
+```bash  
+# Researches unknown formations automatically
+generate_with_agent("Swedish torpedo forecheck")
+# → search_hockey_tactics → synthesize → generate_hockey_diagram
+```
+
+**3. Iterative Refinement**
+```bash
+# Maintains conversation context for adjustments
+generate_with_agent("power play umbrella")
+# Then: "make F1 more aggressive behind the net"
+# → Agent remembers context and adjusts previous diagram
+```
+
+#### Tool Selection Logic
+1. **Direct parsing** (fastest) - for standard formations
+2. **Hockey-specific search** (most accurate) - search_hockey_tactics, search_hockey_drills
+3. **Web search** (broadest coverage) - web_search_exa for international variations  
+4. **Fallback interpretation** (always works) - basic hockey principles
+
+#### Agent Dependencies
+- **OpenAI Agents SDK**: `pip install openai-agents`
+- **OpenAI API Key**: Set `OPENAI_API_KEY` environment variable
+- **Optional**: Exa API key for web research capabilities
+
 ### Integration with /generate-image Command
 The Hockey Diagram MCP Server is automatically used when tactical keywords are detected:
 ```python
