@@ -33,9 +33,29 @@ mcp = FastMCP("Hockey Diagram Generator")
 
 # Initialize components
 diagram_generator = HockeyDiagramGenerator()
-prompt_parser = HockeyPromptParser()
-enhanced_parser = EnhancedHockeyParser()
-two_stage_parser = TwoStageHockeyParser()
+
+# Lazy initialization for parsers to ensure env vars are loaded
+_prompt_parser = None
+_enhanced_parser = None
+_two_stage_parser = None
+
+def get_prompt_parser():
+    global _prompt_parser
+    if _prompt_parser is None:
+        _prompt_parser = HockeyPromptParser()
+    return _prompt_parser
+
+def get_enhanced_parser():
+    global _enhanced_parser
+    if _enhanced_parser is None:
+        _enhanced_parser = EnhancedHockeyParser()
+    return _enhanced_parser
+
+def get_two_stage_parser():
+    global _two_stage_parser
+    if _two_stage_parser is None:
+        _two_stage_parser = TwoStageHockeyParser()
+    return _two_stage_parser
 
 # Storage directory for generated diagrams - use absolute path to avoid nesting
 DIAGRAM_DIR = Path(__file__).parent / "generated_diagrams"
@@ -134,18 +154,18 @@ async def generate_hockey_diagram(
         
         # Try two-stage parser first for best accuracy
         try:
-            diagram_spec = await two_stage_parser.parse_prompt(prompt, context)
+            diagram_spec = await get_two_stage_parser().parse_prompt(prompt, context)
             logger.info("Using two-stage parser for maximum accuracy")
         except Exception as two_stage_error:
             logger.warning(f"Two-stage parser failed: {two_stage_error}, falling back to enhanced parser")
             # Fallback to enhanced parser
             try:
-                diagram_spec = await enhanced_parser.parse_prompt(prompt, context)
+                diagram_spec = await get_enhanced_parser().parse_prompt(prompt, context)
                 logger.info("Using enhanced parser")
             except Exception as enhanced_error:
                 logger.warning(f"Enhanced parser failed: {enhanced_error}, falling back to preset parser")
                 # Final fallback to preset-based parser
-                diagram_spec = await prompt_parser.parse_with_presets(prompt, FORMATIONS)
+                diagram_spec = await get_prompt_parser().parse_with_presets(prompt, FORMATIONS)
         
         # Override view if specified
         if view != "full":
@@ -285,7 +305,7 @@ async def parse_hockey_formation(
     
     try:
         # Use two-stage parser for maximum accuracy
-        diagram_spec = await two_stage_parser.parse_prompt(prompt)
+        diagram_spec = await get_two_stage_parser().parse_prompt(prompt)
         
         if return_structured:
             return {
@@ -492,11 +512,22 @@ async def create_hockey_diagram(
     logger.info(f"🤖 Agent-based generation: {request[:50]}...")
     
     try:
+        # Log environment state
+        logger.info(f"OPENAI_API_KEY set: {'OPENAI_API_KEY' in os.environ}")
+        logger.info(f"EXA_API_KEY set: {'EXA_API_KEY' in os.environ}")
+        
         # Import agent (lazy loading to avoid circular imports)
+        logger.info("Importing hockey_diagram_agent module...")
         from hockey_diagram_agent import get_agent
         
-        # Get or create agent instance
-        agent = await get_agent()
+        # Get or create agent instance with timeout
+        logger.info("Getting agent instance...")
+        try:
+            agent = await asyncio.wait_for(get_agent(), timeout=10.0)
+            logger.info("Agent instance obtained successfully")
+        except asyncio.TimeoutError:
+            logger.error("Timeout getting agent instance")
+            raise Exception("Agent initialization timed out after 10 seconds")
         
         # Prepare context if provided
         agent_context = None
@@ -507,14 +538,15 @@ async def create_hockey_diagram(
             except (json.JSONDecodeError, TypeError):
                 agent_context = {"notes": context}
         
-        # Generate diagram using agent
+        # Generate diagram using agent with timeout
         if conversation_id:
             # Continue existing conversation
             logger.info(f"📞 Continuing conversation {conversation_id}")
-            result = await agent.continue_conversation(request)
+            result = await asyncio.wait_for(agent.continue_conversation(request), timeout=90.0)
         else:
             # Start new generation
-            result = await agent.generate_diagram(request, agent_context)
+            logger.info(f"Generating diagram with agent...")
+            result = await asyncio.wait_for(agent.generate_diagram(request, agent_context), timeout=90.0)
         
         # Add server metadata
         result.update({
@@ -535,7 +567,23 @@ async def create_hockey_diagram(
             "fallback_suggestion": "Use generate_hockey_diagram tool instead"
         }
     except Exception as e:
-        logger.error(f"Agent generation error: {e}")
+        logger.error(f"Agent generation error: {e}, trying simple agent fallback")
+        
+        # Try simple agent as fallback
+        try:
+            from simple_hockey_agent import generate_with_simple_agent
+            logger.info("Using simple agent fallback...")
+            result = await generate_with_simple_agent(request)
+            result.update({
+                "agent_used": True,
+                "fallback_used": True,
+                "server_timestamp": datetime.now().isoformat(),
+                "total_time": (datetime.now() - start_time).total_seconds()
+            })
+            return result
+        except Exception as fallback_error:
+            logger.error(f"Simple agent also failed: {fallback_error}")
+            
         return {
             "success": False,
             "error": f"Agent generation failed: {str(e)}",

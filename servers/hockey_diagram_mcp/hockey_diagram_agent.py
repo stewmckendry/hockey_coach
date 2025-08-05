@@ -47,26 +47,33 @@ class HockeyDiagramExpert:
             logger.info("🚀 Initializing Hockey Diagram Expert Agent...")
             
             # Connect to MCP servers using correct params format with increased timeout
-            self.mcp_servers = [
-                # Hockey diagram generation (local server) - 30s timeout for complex parsing
-                MCPServerStdio(
-                    params={
-                        "command": str(Path(__file__).parent / "start_server.sh"),
-                        "args": [],
-                        "env": {}
-                    },
-                    client_session_timeout_seconds=30.0  # Increased from default 5s
-                ),
-                # Hockey knowledge base (main hockey MCP server - use absolute path for worktree)
-                MCPServerStdio(
-                    params={
-                        "command": "/Users/liammckendry/thunder_playbook/servers/start_hockey_mcp.sh",
-                        "args": [],
-                        "env": {}
-                    },
-                    client_session_timeout_seconds=30.0  # Increased from default 5s
-                )
-            ]
+            # NOTE: Removed self-reference to hockey-diagram server to prevent recursive loop
+            # The agent should not connect to its own MCP server
+            self.mcp_servers = []
+            
+            # Only try to connect to hockey MCP if it's not already being used by the parent
+            if os.environ.get("HOCKEY_DIAGRAM_AGENT_MODE") != "nested":
+                try:
+                    logger.info("Attempting to connect to hockey MCP server...")
+                    from agents.mcp import create_static_tool_filter
+                    
+                    hockey_mcp = MCPServerStdio(
+                        params={
+                            "command": "/Users/liammckendry/thunder_playbook/servers/start_hockey_mcp.sh",
+                            "args": [],
+                            "env": {}
+                        },
+                        client_session_timeout_seconds=30.0,  # Increased from default 5s
+                        # Only allow specific research tools from hockey MCP
+                        tool_filter=create_static_tool_filter(
+                            allowed_tool_names=["search_hockey_tactics", "search_hockey_drills", "search_hockey_videos"]
+                        )
+                    )
+                    self.mcp_servers.append(hockey_mcp)
+                except Exception as e:
+                    logger.warning(f"Could not add hockey MCP server: {e}")
+            else:
+                logger.info("Running in nested mode - skipping hockey MCP connection")
             
             # Connect all MCP servers
             for i, server in enumerate(self.mcp_servers):
@@ -86,7 +93,11 @@ class HockeyDiagramExpert:
                         "args": ["-y", "exa-mcp-server"],
                         "env": {"EXA_API_KEY": os.getenv("EXA_API_KEY")}
                     },
-                    client_session_timeout_seconds=60.0  # Longer timeout for web research
+                    client_session_timeout_seconds=60.0,  # Longer timeout for web research
+                    # Only allow web search tool from Exa
+                    tool_filter=create_static_tool_filter(
+                        allowed_tool_names=["web_search_exa"]
+                    )
                 )
                 try:
                     await exa_server.connect()
@@ -96,6 +107,13 @@ class HockeyDiagramExpert:
                     logger.warning(f"⚠️ Failed to connect Exa server: {e}")
             else:
                 logger.info("ℹ️ Exa web search not available (no API key)")
+            
+            # Import properly decorated function tools
+            from hockey_tools import (
+                parse_hockey_formation,
+                generate_diagram_from_spec,
+                list_hockey_formations
+            )
             
             # Import subagents
             from hockey_subagents import get_synthesis_agent, get_zone_mapping_agent
@@ -121,13 +139,22 @@ class HockeyDiagramExpert:
                 subagent_tools.append(zone_mapping_tool)
                 logger.info("✅ ZoneMappingAgent added as direct tool")
             
-            # Create agent with comprehensive instructions and direct subagent tools
+            # Combine native function tools with subagent tools
+            all_tools = [
+                parse_hockey_formation,
+                generate_diagram_from_spec,
+                list_hockey_formations
+            ] + subagent_tools
+            
+            logger.info(f"📋 Total tools available: {len(all_tools)} (3 native + {len(subagent_tools)} subagents)")
+            
+            # Create agent with comprehensive instructions and all tools
             self.agent = Agent(
                 name="Hockey Diagram Expert",
                 instructions=EXPERT_INSTRUCTIONS,
                 mcp_servers=self.mcp_servers,
-                tools=subagent_tools,  # Add subagents as direct tools
-                model="gpt-4o"  # Use latest model for best performance
+                tools=all_tools,  # Native functions + subagents
+                model="gpt-4o-mini"  # Use cost-effective model
             )
             
             logger.info("✅ Hockey Diagram Expert Agent initialized successfully")

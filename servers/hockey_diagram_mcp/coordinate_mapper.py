@@ -301,6 +301,7 @@ class HockeyCoordinateMapper:
         "low_slot": CoordinateMapping(85, 0, Zone.OFFENSIVE, description="Low slot area"),
         "goal_mouth": CoordinateMapping(89, 0, Zone.OFFENSIVE, description="Goal mouth area"),
         "crease": CoordinateMapping(86, 0, Zone.OFFENSIVE, description="Goal crease"),
+        "goal_crease": CoordinateMapping(86, 0, Zone.OFFENSIVE, description="Goal crease"),  # Alias for crease
         
         # Point positions
         "left_point": CoordinateMapping(25, -30, Zone.OFFENSIVE, description="Left point position"),
