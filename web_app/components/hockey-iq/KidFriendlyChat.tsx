@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Category } from './HockeyIQInterface'
@@ -18,11 +18,16 @@ interface KidFriendlyChatProps {
   embedded?: boolean
 }
 
+export interface KidFriendlyChatRef {
+  setInputValue: (value: string) => void
+}
+
 /**
  * Kid-friendly chat interface for Q&A mode
  * Uses Socratic questioning to help U10 players learn
  */
-export function KidFriendlyChat({ selectedCategory, embedded = false }: KidFriendlyChatProps) {
+export const KidFriendlyChat = forwardRef<KidFriendlyChatRef, KidFriendlyChatProps>(
+  ({ selectedCategory, embedded = false }, ref) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -35,6 +40,11 @@ export function KidFriendlyChat({ selectedCategory, embedded = false }: KidFrien
   const [isLoading, setIsLoading] = useState(false)
   const [previousResponseId, setPreviousResponseId] = useState<string | undefined>(undefined)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Expose setInput method to parent component
+  useImperativeHandle(ref, () => ({
+    setInputValue: (value: string) => setInput(value)
+  }))
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -259,4 +269,6 @@ export function KidFriendlyChat({ selectedCategory, embedded = false }: KidFrien
       </div>
     </div>
   )
-}
+})
+
+KidFriendlyChat.displayName = 'KidFriendlyChat'

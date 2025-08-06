@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ModeSelector } from './ModeSelector'
 import { QuizQuestion } from './QuizQuestion'
-import { KidFriendlyChat } from './KidFriendlyChat'
+import { KidFriendlyChat, KidFriendlyChatRef } from './KidFriendlyChat'
 import questionsData from '@/data/hockey-iq-questions.json'
 
 export type Mode = 'qa' | 'quiz'
@@ -30,6 +30,7 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationMessage, setCelebrationMessage] = useState('')
+  const chatRef = useRef<KidFriendlyChatRef>(null)
 
   // Check for achievements
   useEffect(() => {
@@ -86,7 +87,23 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
     setSelectedCategory(category)
     if (mode === 'quiz') {
       setCurrentQuestion(getRandomQuestion(category))
+    } else if (mode === 'qa') {
+      // In Q&A mode, auto-populate the input with category question
+      const categoryQuestion = getCategoryQuestion(category)
+      chatRef.current?.setInputValue(categoryQuestion)
     }
+  }
+
+  // Category-specific questions for Q&A mode
+  const getCategoryQuestion = (category: Category): string => {
+    const categoryQuestions = {
+      rules: "What are the basic rules of hockey?",
+      positioning: "Where should I position myself on the ice?", 
+      skills: "What hockey skills should I work on?",
+      teamwork: "How can I be a better teammate?",
+      fun_facts: "Tell me some fun facts about hockey!"
+    }
+    return categoryQuestions[category]
   }
 
   return (
@@ -156,6 +173,7 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
       <div className="flex-1 overflow-y-auto p-4">
         {mode === 'qa' ? (
           <KidFriendlyChat 
+            ref={chatRef}
             selectedCategory={selectedCategory}
             embedded={embedded}
           />
