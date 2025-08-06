@@ -177,6 +177,16 @@ export function KidFriendlyChat({ selectedCategory, embedded = false }: KidFrien
                       h1: ({children}) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
                       h2: ({children}) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
                       h3: ({children}) => <h3 className="text-base font-bold mb-1">{children}</h3>,
+                      a: ({href, children}) => (
+                        <a 
+                          href={href} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200"
+                        >
+                          {children}
+                        </a>
+                      ),
                     }}
                   >
                     {message.content}
