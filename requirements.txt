@@ -11,7 +11,7 @@ typing-extensions>=4.0.0
 
 # OpenAI integration
 openai>=1.0.0
-openai-agents>=1.0.0
+openai-agents>=0.2.4
 
 # Redis for agent context management
 redis>=4.5.0
