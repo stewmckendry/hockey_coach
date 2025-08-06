@@ -103,4 +103,56 @@
   .bg-ice-gradient {
     background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
   }
+  
+  /* Hockey IQ Markdown Styles */
+  .hockey-iq-markdown {
+    @apply text-gray-800 leading-relaxed;
+  }
+  
+  .hockey-iq-markdown p {
+    @apply mb-3 last:mb-0;
+  }
+  
+  .hockey-iq-markdown ul,
+  .hockey-iq-markdown ol {
+    @apply my-3 ml-4;
+  }
+  
+  .hockey-iq-markdown li {
+    @apply mb-1;
+  }
+  
+  .hockey-iq-markdown strong {
+    @apply font-bold text-gray-900;
+  }
+  
+  .hockey-iq-markdown em {
+    @apply italic text-gray-700;
+  }
+  
+  .hockey-iq-markdown code {
+    @apply bg-gray-100 text-blue-600 px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+  
+  .hockey-iq-markdown blockquote {
+    @apply border-l-4 border-blue-300 pl-4 my-3 italic text-gray-700 bg-blue-50 py-2 pr-3 rounded-r;
+  }
+  
+  .hockey-iq-markdown h1,
+  .hockey-iq-markdown h2,
+  .hockey-iq-markdown h3 {
+    @apply font-bold text-gray-900 mt-4 mb-2;
+  }
+  
+  .hockey-iq-markdown h1 {
+    @apply text-xl;
+  }
+  
+  .hockey-iq-markdown h2 {
+    @apply text-lg;
+  }
+  
+  .hockey-iq-markdown h3 {
+    @apply text-base;
+  }
 }

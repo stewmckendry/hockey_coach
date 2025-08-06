@@ -110,10 +110,14 @@ export class SecureResponsesAgent {
           server_label: 'hockey_mcp_server',
           server_description: 'Comprehensive hockey coaching knowledge base with drills, tactics, and development plans',
           allowed_tools: [
-            'search_hockey_knowledge',
-            'get_coaching_recommendations', 
-            'create_practice_plan',
-            'analyze_player_development'
+            'search_hockey_tactics',
+            'search_hockey_videos',
+            'search_hockey_drills',
+            'search_hockey_skills',
+            'search_hockey_dryland',
+            'search_hockey_dryland_videos',
+            'search_hockey_nhl_insights',
+            'search_hockey_rules'
           ],
           require_approval: 'never' as const
         }
@@ -498,6 +502,202 @@ Remember: You have access to a comprehensive hockey database through MCP tools. 
    */
   async continueConversation(userMessage: string, previousResponseId: string) {
     return this.processMessage(userMessage, previousResponseId)
+  }
+
+  /**
+   * Process Hockey IQ chatbot messages with Socratic reasoning
+   * Designed for U10 players (8-9 years old)
+   * Uses OpenAI Responses API for native conversation management
+   */
+  async processHockeyIQMessage(
+    userMessage: string,
+    options: {
+      category?: string
+      age_group: 'U10'
+      mode: 'socratic'
+      previousResponseId?: string  // OpenAI Responses API conversation tracking
+    }
+  ): Promise<{ response: string; responseId: string; metadata?: any }> {
+    const startTime = Date.now()
+    
+    try {
+      // Build the Socratic system prompt for U10 players
+      const systemPrompt = `You are the Hockey IQ Coach, a friendly and encouraging assistant for ${options.age_group} hockey players (8-9 years old).
+
+COMMUNICATION STYLE:
+- Use simple, clear language (Grade 3-4 reading level)
+- Be extremely encouraging and positive
+- Use emojis sparingly but effectively (🏒 ⭐ 🎯)
+- Keep sentences short and easy to understand
+- Celebrate effort and curiosity, not just correct answers
+
+SOCRATIC METHOD:
+- Instead of giving direct answers, guide with questions
+- Ask "Why do you think that?" or "What would happen if...?"
+- Break complex ideas into simple steps
+- Relate concepts to their playing experience
+- Use "Let's think about this together..." approach
+
+KNOWLEDGE TOOLS AVAILABLE:
+You have access to comprehensive hockey knowledge through MCP tools:
+- search_hockey_rules: For game rules, penalties, offside, icing
+- search_hockey_skills: For skill development and techniques
+- search_hockey_drills: For practice activities and exercises
+- search_hockey_tactics: For positioning and team strategies
+- search_hockey_videos: For finding video demonstrations
+- search_hockey_dryland: For off-ice training
+- search_hockey_nhl_insights: For professional tips
+- search_hockey_rules: For rules and regulations
+
+USE TOOLS WHEN:
+- Players ask specific questions needing accurate information
+- You need to verify hockey facts or find age-appropriate content
+- Questions involve drills, skills, or rules
+- You want expert knowledge to guide your Socratic questions
+
+IMPORTANT: Use tools to enhance Socratic guidance, not to lecture!
+
+${options.category ? `FOCUS AREA: ${options.category.replace('_', ' ')}` : ''}
+
+TEACHING APPROACH FOR U10:
+- Use concrete examples from games they've played
+- Reference fun NHL players or teams when relevant
+- Compare hockey concepts to things they know (school, other sports)
+- Always end with encouragement or a follow-up question
+- If they're wrong, say "Good thinking! Let's look at it this way..."
+
+EXAMPLE RESPONSES:
+User: "What's offside?"
+You: "Great question! 🏒 Let's think about it... Have you ever noticed the blue lines on the ice? What do you think would happen if you could go anywhere on the ice before the puck? Would that be fair? Let me help you figure this out..."
+
+User: "How do I shoot harder?"
+You: "Awesome that you want to improve your shot! 💪 When you throw a ball really far, do you use just your arms or your whole body? Hockey shots are similar! What part of your body do you think gives the most power? Here's a hint: it starts with your legs..."
+
+Remember: You're talking to 8-9 year olds. Make it FUN, SIMPLE, and ENCOURAGING!`
+
+      // Remove manual tool calling - let the LLM decide through Responses API
+      // The Responses API will handle tool selection based on the conversation context
+
+      // Check if we have the Responses API available
+      const hasResponsesAPI = this.hasResponsesAPI()
+      
+      if (hasResponsesAPI) {
+        // Use OpenAI Responses API for native conversation management
+        console.log('🎯 Using OpenAI Responses API for Hockey IQ')
+        
+        // Build the input for Responses API
+        const systemMessage = {
+          role: 'system' as const,
+          content: [{
+            type: 'input_text' as const,
+            text: systemPrompt
+          }]
+        }
+        
+        const userMessageInput = {
+          role: 'user' as const,
+          content: [{ type: 'input_text' as const, text: userMessage }]
+        }
+        
+        // Build input array based on whether we have a previous response
+        const input = options.previousResponseId 
+          ? [userMessageInput]  // Just the new message, API handles history
+          : [systemMessage, userMessageInput]  // New conversation
+        
+        // Create the response using Responses API with MCP tools
+        const response = await (this.openai as any).responses.create({
+          model: 'gpt-4o-2024-11-20',
+          input,
+          ...(options.previousResponseId && { previous_response_id: options.previousResponseId }),
+          tools: [
+            {
+              type: 'mcp' as const,
+              server_url: 'https://hockeycoach-production.up.railway.app/mcp',
+              server_label: 'hockey_mcp_server',
+              server_description: 'Comprehensive hockey coaching knowledge for U10 players',
+              allowed_tools: [
+                'search_hockey_tactics',
+                'search_hockey_videos',
+                'search_hockey_drills',
+                'search_hockey_skills',
+                'search_hockey_dryland',
+                'search_hockey_dryland_videos',
+                'search_hockey_nhl_insights',
+                'search_hockey_rules'
+              ],
+              require_approval: 'never' as const
+            }
+          ],
+          temperature: 0.8,
+          max_output_tokens: 500,
+          store: true  // Store for 30 days to maintain conversation history
+        })
+        
+        console.log('📥 Hockey IQ Response ID:', response.id)
+        
+        // Extract tool calls from the response
+        const toolCalls = response.output?.filter((item: any) => item.type === 'mcp_call') || []
+        const toolsUsed = toolCalls.map((call: any) => call.name || 'unknown_tool')
+        
+        console.log('🛠️ Hockey IQ Tools used:', toolsUsed)
+        
+        const finalMessage = response.output_text || 'I need to think about that! Can you tell me more? 🏒'
+        
+        return {
+          response: finalMessage,
+          responseId: response.id,  // Return for next conversation turn
+          metadata: {
+            processingTimeMs: Date.now() - startTime,
+            mode: 'hockey_iq_socratic_responses_api',
+            age_group: options.age_group,
+            category: options.category,
+            toolsUsed,
+            conversationId: response.id
+          }
+        }
+      } else {
+        // Fallback to Chat Completions API (without conversation history)
+        console.log('⚠️ Responses API not available, using Chat Completions')
+        
+        const response = await this.openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.8,
+          max_tokens: 500
+        })
+        
+        const content = response.choices[0].message.content
+        if (!content) {
+          throw new Error('No content in response')
+        }
+        
+        return {
+          response: content,
+          responseId: '',  // No ID for chat completions
+          metadata: {
+            processingTimeMs: Date.now() - startTime,
+            mode: 'hockey_iq_socratic_chat_completions',
+            age_group: options.age_group,
+            category: options.category,
+            toolsUsed: []  // Chat completions doesn't have MCP tools
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Hockey IQ processing error:', error)
+      return {
+        response: "That's a great question! 🏒 Let me think about that... Why don't you tell me what you already know about it, and we can figure it out together!",
+        responseId: '',  // No ID on error
+        metadata: {
+          processingTimeMs: Date.now() - startTime,
+          error: true
+        }
+      }
+    }
   }
 }
 
