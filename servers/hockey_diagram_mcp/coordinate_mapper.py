@@ -303,10 +303,10 @@ class HockeyCoordinateMapper:
         "crease": CoordinateMapping(86, 0, Zone.OFFENSIVE, description="Goal crease"),
         "goal_crease": CoordinateMapping(86, 0, Zone.OFFENSIVE, description="Goal crease"),  # Alias for crease
         
-        # Point positions
-        "left_point": CoordinateMapping(25, -30, Zone.OFFENSIVE, description="Left point position"),
-        "right_point": CoordinateMapping(25, 30, Zone.OFFENSIVE, description="Right point position"),
-        "center_point": CoordinateMapping(25, 0, Zone.OFFENSIVE, description="Center point position"),
+        # Point positions (moved from y=25 to y=35 to be clearly inside the zone)
+        "left_point": CoordinateMapping(35, -30, Zone.OFFENSIVE, description="Left point position"),
+        "right_point": CoordinateMapping(35, 30, Zone.OFFENSIVE, description="Right point position"),
+        "center_point": CoordinateMapping(35, 0, Zone.OFFENSIVE, description="Center point position"),
         
         # Board areas
         "left_half_wall": CoordinateMapping(60, -35, Zone.OFFENSIVE, description="Left half-wall"),

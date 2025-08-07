@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from openai import AsyncOpenAI
 import os
 from coordinate_mapper import coordinate_mapper, Zone
+from agents.tracing import custom_span, generation_span
 
 logger = logging.getLogger(__name__)
 
@@ -423,6 +424,29 @@ Example output:
             # Post-process to convert zones to coordinates
             diagram_spec = self._apply_coordinate_mapping(diagram_spec)
             
+            # Add trace information to diagram spec as a custom attribute
+            diagram_spec._traces = {
+                "stage_1": {
+                    "category": structure.diagram_category,
+                    "total_players": structure.total_players,
+                    "teams": structure.teams_involved,
+                    "focus": structure.primary_focus,
+                    "has_steps": bool(structure.steps),
+                    "step_count": len(structure.steps) if structure.steps else 0
+                },
+                "stage_2": {
+                    "title": diagram_spec.title,
+                    "player_count": len(diagram_spec.players),
+                    "movement_count": len(diagram_spec.movements) if diagram_spec.movements else 0,
+                    "zone_count": len(diagram_spec.zones) if diagram_spec.zones else 0,
+                    "view": diagram_spec.view
+                },
+                "coordinate_mapping": {
+                    "players_mapped": len(diagram_spec.players),
+                    "movements_mapped": len(diagram_spec.movements) if diagram_spec.movements else 0
+                }
+            }
+            
             return diagram_spec
             
         except Exception as e:
@@ -431,37 +455,67 @@ Example output:
     
     async def _stage_1_analysis(self, prompt: str, context: Optional[Dict] = None) -> StructureAnalysis:
         """Stage 1: Analyze the structure and requirements."""
-        enhanced_prompt = prompt
-        if context:
-            enhanced_prompt += f"\n\nContext: {context}"
+        with custom_span("stage_1_analysis", data={"prompt_length": len(prompt)}):
+            enhanced_prompt = prompt
+            if context:
+                enhanced_prompt += f"\n\nContext: {context}"
             
-        response = await self.client.chat.completions.create(
-            model="gpt-4",
-            messages=[
+            # Use generation_span for LLM call
+            messages = [
                 {"role": "system", "content": self.STAGE_1_PROMPT},
                 {"role": "user", "content": enhanced_prompt}
-            ],
-            temperature=0.1,
-            max_tokens=1500  # Increased to handle detailed procedural breakdowns
-        )
-        
-        json_text = self._extract_json(response.choices[0].message.content)
-        data = json.loads(json_text)
-        return StructureAnalysis(**data)
+            ]
+            
+            with generation_span(
+                input=messages,
+                model="gpt-4",
+                model_config={"temperature": 0.1, "max_tokens": 1500}
+            ) as gen_span:
+                response = await self.client.chat.completions.create(
+                    model="gpt-4",
+                    messages=messages,
+                    temperature=0.1,
+                    max_tokens=1500  # Increased to handle detailed procedural breakdowns
+                )
+                
+                # Update generation span with usage
+                if response.usage:
+                    gen_span.span_data.usage = {
+                        "prompt_tokens": response.usage.prompt_tokens,
+                        "completion_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
+                    }
+            
+            json_text = self._extract_json(response.choices[0].message.content)
+            data = json.loads(json_text)
+            
+            # Store structured trace data
+            self._stage_1_trace = {
+                "category": data.get("diagram_category"),
+                "total_players": data.get("total_players"),
+                "has_steps": bool(data.get("steps")),
+                "step_count": len(data.get("steps", [])),
+                "teams": data.get("teams_involved", [])
+            }
+            
+            return StructureAnalysis(**data)
     
     async def _stage_2_creation(self, prompt: str, structure: StructureAnalysis, context: Optional[Dict] = None) -> DiagramSpec:
         """Stage 2: Create precise diagram with defined pick lists."""
-        
-        # Determine zone context for location definitions
-        context_zone = "full"
-        if context and "requested_view" in context:
-            context_zone = context["requested_view"]
-        elif "defensive" in prompt.lower() or "penalty kill" in prompt.lower() or "box formation" in prompt.lower():
-            context_zone = "defensive"
-        elif "offensive" in prompt.lower() or "power play" in prompt.lower() or "cycle" in prompt.lower():
-            context_zone = "offensive"
-        elif "neutral" in prompt.lower() or "trap" in prompt.lower():
-            context_zone = "neutral"
+        with custom_span("stage_2_creation", data={
+            "category": structure.diagram_category,
+            "total_players": structure.total_players
+        }):
+            # Determine zone context for location definitions
+            context_zone = "full"
+            if context and "requested_view" in context:
+                context_zone = context["requested_view"]
+            elif "defensive" in prompt.lower() or "penalty kill" in prompt.lower() or "box formation" in prompt.lower():
+                context_zone = "defensive"
+            elif "offensive" in prompt.lower() or "power play" in prompt.lower() or "cycle" in prompt.lower():
+                context_zone = "offensive"
+            elif "neutral" in prompt.lower() or "trap" in prompt.lower():
+                context_zone = "neutral"
         
         # Build enhanced prompt based on diagram category
         enhanced_prompt = f"""
@@ -531,24 +585,48 @@ For drills with multiple steps:
 
 Use zone names from the pick list below, NOT coordinates.
 """
+            
+        # Use generation_span for Stage 2 LLM call
+        messages = [
+            {"role": "system", "content": self.STAGE_2_PROMPT},
+            {"role": "user", "content": enhanced_prompt}
+        ]
         
-        response = await self.client.chat.completions.create(
+        with generation_span(
+            input=messages,
             model="gpt-4",
-            messages=[
-                {"role": "system", "content": self.STAGE_2_PROMPT},
-                {"role": "user", "content": enhanced_prompt}
-            ],
-            temperature=0.1,
-            max_tokens=2000
-        )
-        
-        json_text = self._extract_json(response.choices[0].message.content)
-        data = json.loads(json_text)
-        
-        # Post-process for accuracy
-        data = self._validate_and_correct(data, structure, context_zone)
-        
-        return DiagramSpec(**data)
+            model_config={"temperature": 0.1, "max_tokens": 2000}
+        ) as gen_span:
+            response = await self.client.chat.completions.create(
+                model="gpt-4",
+                messages=messages,
+                temperature=0.1,
+                max_tokens=2000
+            )
+            
+            # Update generation span with usage
+            if response.usage:
+                gen_span.span_data.usage = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens
+                }
+            
+            json_text = self._extract_json(response.choices[0].message.content)
+            data = json.loads(json_text)
+            
+            # Post-process for accuracy
+            data = self._validate_and_correct(data, structure, context_zone)
+            
+            # Store Stage 2 trace data
+            self._stage_2_trace = {
+                "title": data.get("title"),
+                "player_count": len(data.get("players", [])),
+                "movement_count": len(data.get("movements", [])),
+                "view": data.get("view", "full")
+            }
+            
+            return DiagramSpec(**data)
     
     def _apply_coordinate_mapping(self, diagram_spec: DiagramSpec) -> DiagramSpec:
         """Apply coordinate mapping to convert zone names to x,y coordinates."""

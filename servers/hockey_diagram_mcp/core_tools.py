@@ -36,11 +36,15 @@ async def parse_hockey_formation_core(
         # Convert to dict for JSON serialization
         spec_dict = diagram_spec.dict() if hasattr(diagram_spec, 'dict') else diagram_spec
         
+        # Extract traces if available
+        traces = getattr(diagram_spec, '_traces', {})
+        
         return {
             "success": True,
             "parsed_data": spec_dict,
             "parser_used": parser_type,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "traces": traces  # Include parser stage traces
         }
         
     except Exception as e:
@@ -71,8 +75,24 @@ async def generate_diagram_from_spec_core(
         view = diagram_spec.get('view', 'full')
         title = diagram_spec.get('title', 'Hockey Formation')
         
+        # Apply offsets to prevent overlapping players
+        from player_offset_system import apply_player_offsets
+        diagram_spec = apply_player_offsets(diagram_spec)
+        
+        # Re-extract players after offset application
+        players = diagram_spec.get('players', [])
+        
         # Convert player dicts to Player objects if needed
         from generator import Player, Movement, CoverageZone
+        
+        logger.info(f"Players before conversion: {type(players)}, length: {len(players) if players else 0}")
+        if players:
+            logger.info(f"First player type: {type(players[0])}")
+            if isinstance(players[0], str):
+                logger.error(f"ERROR: Players is a list of strings, not dicts! First player: {players[0]}")
+            else:
+                logger.info(f"First player data: {players[0]}")
+        
         if players and isinstance(players[0], dict):
             players = [
                 Player(
@@ -83,6 +103,7 @@ async def generate_diagram_from_spec_core(
                     has_puck=p.get('has_puck', False)
                 ) for p in players
             ]
+            logger.info(f"Converted {len(players)} players to Player objects")
         
         # Convert movement dicts to Movement objects if needed
         if movements and isinstance(movements[0], dict):

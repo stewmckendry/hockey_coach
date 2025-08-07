@@ -206,47 +206,119 @@ class HockeyDiagramExpert:
             # Extract tools used from result with detailed logging
             tools_used = []
             tool_calls_detail = []
+            parser_traces = {}  # To store parser stage traces
             
-            if hasattr(result, 'new_items'):
+            # First check direct attributes of result
+            logger.info(f"📋 Result type: {type(result).__name__}")
+            if hasattr(result, '__dict__'):
+                logger.info(f"📋 Result attributes: {list(result.__dict__.keys())}")
+            
+            # Try the direct tool_calls attribute approach
+            if hasattr(result, 'tool_calls') and result.tool_calls:
+                logger.info(f"📋 Found tool_calls directly on result: {len(result.tool_calls)} calls")
+                for call in result.tool_calls:
+                    if hasattr(call, 'name'):
+                        tools_used.append(call.name)
+                        logger.info(f"    🛠️ Tool: {call.name}")
+            
+            if hasattr(result, 'new_items') and result.new_items:
                 logger.info(f"📋 Inspecting {len(result.new_items)} result items...")
                 
                 for i, item in enumerate(result.new_items):
                     logger.info(f"  📄 Item {i+1}: {type(item).__name__}")
                     
-                    if hasattr(item, 'raw_item'):
-                        raw_item = item.raw_item
-                        logger.info(f"    🔍 Raw item type: {type(raw_item).__name__}")
-                        
-                        # Check for tool calls
-                        if hasattr(raw_item, 'tool_call') and raw_item.tool_call:
-                            tool_call = raw_item.tool_call
-                            logger.info(f"    🛠️ Tool call found: {type(tool_call).__name__}")
+                    # Debug: Log all item attributes
+                    if hasattr(item, '__dict__'):
+                        logger.debug(f"    Item attributes: {list(item.__dict__.keys())}")
+                    if hasattr(item, 'type'):
+                        logger.info(f"    Item type: {item.type}")
+                    
+                    # Check for ToolCallItem
+                    if hasattr(item, 'type') and item.type == "tool_call_item":
+                        # Extract tool call details - check different possible structures
+                        raw_item = getattr(item, 'raw_item', None)
+                        if raw_item:
+                            logger.debug(f"    Raw item type: {type(raw_item).__name__}")
+                            if hasattr(raw_item, '__dict__'):
+                                logger.debug(f"    Raw item attrs: {list(raw_item.__dict__.keys())}")
                             
-                            if hasattr(tool_call, 'function') and tool_call.function:
-                                function_name = tool_call.function.name
-                                function_args = getattr(tool_call.function, 'arguments', 'N/A')
-                                
+                            function_name = None
+                            function_args = None
+                            
+                            # Try different attribute paths for function details
+                            if hasattr(raw_item, 'function'):
+                                # ResponseFunctionToolCall structure
+                                function_name = raw_item.function.name
+                                function_args = raw_item.function.arguments
+                            elif hasattr(raw_item, 'name'):
+                                # Direct attributes
+                                function_name = raw_item.name
+                                function_args = getattr(raw_item, 'arguments', None)
+                            elif isinstance(raw_item, dict):
+                                # Dictionary structure
+                                if 'function' in raw_item:
+                                    function_name = raw_item['function'].get('name')
+                                    function_args = raw_item['function'].get('arguments')
+                                elif 'name' in raw_item:
+                                    function_name = raw_item['name']
+                                    function_args = raw_item.get('arguments')
+                            
+                            if function_name:
                                 tools_used.append(function_name)
-                                tool_calls_detail.append({
+                                tool_call_detail = {
                                     "name": function_name,
                                     "arguments": function_args,
-                                    "order": len(tools_used)
-                                })
+                                    "order": len(tools_used),
+                                    "output": None  # Will be filled by ToolCallOutputItem
+                                }
+                                tool_calls_detail.append(tool_call_detail)
                                 
-                                logger.info(f"      🎯 Function: {function_name}")
-                                logger.info(f"      📝 Args: {str(function_args)[:100]}...")
-                        
-                        # Check for tool results
-                        if hasattr(raw_item, 'tool_result') and raw_item.tool_result:
-                            tool_result = raw_item.tool_result
-                            logger.info(f"    📊 Tool result: {str(tool_result)[:100]}...")
+                                logger.info(f"    🛠️ Tool call: {function_name}")
+                                logger.info(f"    📝 Args: {str(function_args)[:200]}...")
+                            else:
+                                logger.warning(f"    ⚠️ Could not extract function name from raw_item")
                     
-                    # Log item content
-                    if hasattr(item, 'content'):
-                        content_preview = str(item.content)[:150]
-                        logger.info(f"    💬 Content: {content_preview}...")
+                    # Check for ToolCallOutputItem
+                    elif hasattr(item, 'type') and item.type == "tool_call_output_item":
+                        # Get the actual output
+                        output = item.output
+                        logger.info(f"    📊 Tool output type: {type(output).__name__}")
+                        
+                        # Match this output to the corresponding tool call
+                        if tool_calls_detail and len(tool_calls_detail) > 0:
+                            # Find the last tool call without output
+                            for i in range(len(tool_calls_detail) - 1, -1, -1):
+                                if tool_calls_detail[i]["output"] is None:
+                                    tool_calls_detail[i]["output"] = str(output)[:500] + "..." if len(str(output)) > 500 else str(output)
+                                    
+                                    # Try to extract parser traces from parse_hockey_formation output
+                                    if tool_calls_detail[i]["name"] == "parse_hockey_formation":
+                                        try:
+                                            if isinstance(output, str):
+                                                import json
+                                                result_data = json.loads(output)
+                                                if result_data.get('success') and 'parsed_data' in result_data:
+                                                    parser_traces = {
+                                                        "parser_used": result_data.get('parser_used', 'unknown'),
+                                                        "parsed_data": {
+                                                            "title": result_data['parsed_data'].get('title'),
+                                                            "player_count": len(result_data['parsed_data'].get('players', [])),
+                                                            "movement_count": len(result_data['parsed_data'].get('movements', [])),
+                                                            "view": result_data['parsed_data'].get('view')
+                                                        }
+                                                    }
+                                                    logger.info(f"    🔍 Parser traces extracted: {parser_traces}")
+                                        except (json.JSONDecodeError, TypeError) as e:
+                                            logger.error(f"    ❌ Failed to parse tool output: {e}")
+                                    break
+                    
+                    # Check for MessageOutputItem
+                    elif hasattr(item, 'type') and item.type == "message_output_item":
+                        if hasattr(item, 'content'):
+                            content_preview = str(item.content)[:150]
+                            logger.info(f"    💬 Message: {content_preview}...")
             else:
-                logger.warning("⚠️ Result has no new_items attribute")
+                logger.warning("⚠️ Result has no new_items or empty")
             
             # Log final agent response
             response_text = str(result)
@@ -264,11 +336,17 @@ class HockeyDiagramExpert:
             diagram_path = None
             response_text = str(result)
             if "Diagram:" in response_text:
-                # Look for file path pattern
+                # Look for file path pattern, handling both plain paths and Markdown links
                 import re
-                path_match = re.search(r'📁 Diagram: ([^\n]+\.png)', response_text)
+                # Try Markdown link format first: [text](path)
+                path_match = re.search(r'📁 Diagram: \[([^\]]+)\]\(([^\)]+\.png)\)', response_text)
                 if path_match:
-                    diagram_path = path_match.group(1)
+                    diagram_path = path_match.group(2)  # Get the URL part
+                else:
+                    # Try plain path format
+                    path_match = re.search(r'📁 Diagram: ([^\n\[]+\.png)', response_text)
+                    if path_match:
+                        diagram_path = path_match.group(1).strip()
             
             # Store conversation history
             self.conversation_history.append({
@@ -295,7 +373,8 @@ class HockeyDiagramExpert:
                     "total_steps": len(tool_calls_detail),
                     "tools_sequence": " → ".join(tools_used) if tools_used else "No tools used",
                     "execution_time": processing_time
-                }
+                },
+                "parser_traces": parser_traces  # Include detailed parser stage traces
             }
             
         except Exception as e:
