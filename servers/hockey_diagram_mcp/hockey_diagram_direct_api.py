@@ -61,6 +61,72 @@ async def call_mcp_tool(request: ToolRequest):
             detail=f"Failed to call MCP tool: {str(e)}"
         )
 
+@app.post("/generate")
+async def generate_diagram(request: dict):
+    """Generate a hockey diagram using the agent"""
+    try:
+        prompt = request.get("prompt", "")
+        conversation_id = request.get("conversationId")
+        
+        # Import the agent module
+        from hockey_diagram_agent import generate_hockey_diagram_with_agent
+        import os
+        import base64
+        
+        # Generate the diagram using the agent
+        context = {"conversation_id": conversation_id} if conversation_id else None
+        result = await generate_hockey_diagram_with_agent(prompt, context=context)
+        
+        # Parse the result to extract the diagram data
+        if isinstance(result, dict) and result.get("success"):
+            # Read the diagram file and convert to base64
+            diagram_path = result.get("diagram_path")
+            if diagram_path:
+                try:
+                    full_path = os.path.join(os.path.dirname(__file__), diagram_path)
+                    with open(full_path, 'rb') as f:
+                        image_data = f.read()
+                        base64_data = base64.b64encode(image_data).decode('utf-8')
+                    
+                    # Return in the format expected by the web app
+                    return {
+                        "success": True,
+                        "diagram_base64": f"data:image/png;base64,{base64_data}",
+                        "metadata": {
+                            "tools_used": result.get("tools_used", []),
+                            "processing_time_ms": result.get("processing_time", 0) * 1000,  # Convert to ms
+                            "parser_type": "agent",
+                            "traces": result.get("tool_calls_detail", [])
+                        },
+                        "explanation": result.get("response", ""),
+                        "parser_traces": result.get("parser_traces", {}),
+                        "conversation_id": result.get("conversation_id")
+                    }
+                except Exception as e:
+                    print(f"Error reading diagram file: {e}")
+                    return {
+                        "success": False,
+                        "error": f"Failed to read diagram file: {str(e)}"
+                    }
+            else:
+                return {
+                    "success": False,
+                    "error": "No diagram path in result"
+                }
+        else:
+            return {
+                "success": False,
+                "error": result.get("error", "Agent returned failure"),
+                "details": str(result)
+            }
+            
+    except Exception as e:
+        print(f"Error generating diagram: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate diagram: {str(e)}"
+        )
+
 @app.get("/api/mcp")
 async def health_check():
     """Health check endpoint"""

@@ -10,7 +10,6 @@ import json
 import logging
 # Import from parser.py where these models are defined
 from parser import DiagramSpec, PlayerPosition, MovementSpec as Movement, ZoneSpec as CoverageZone
-from coordinate_mapper import coordinate_mapper
 
 logger = logging.getLogger(__name__)
 
@@ -197,20 +196,19 @@ async def parse_with_agent(prompt: str) -> str:
             spec_json = json_match.group(0)
             spec_data = json.loads(spec_json)
             
-            # Apply coordinate mapping
-            spec_with_coords = apply_coordinate_mapping(spec_data)
-            
             # Log if research tools were used
             if hasattr(result, 'tool_calls') and result.tool_calls:
                 tools_used = [call.name for call in result.tool_calls]
                 if any(tool in tools_used for tool in ['search_hockey_tactics', 'search_hockey_drills', 'web_search_exa']):
                     logger.info(f"🔍 Parser agent used research tools: {tools_used}")
             
+            # Return ONLY zone-based specification (NO coordinate conversion)
+            logger.info(f"✅ Parser returning zone-based spec with {len(spec_data.get('players', []))} players")
+            
             return json.dumps({
                 "success": True,
-                "parsed_data": spec_with_coords,
-                "parser": "agent",
-                "raw_spec": spec_data  # Include original zone-based spec
+                "parsed_data": spec_data,  # Pure zone labels only
+                "parser": "agent"
             })
         else:
             return json.dumps({
@@ -228,41 +226,7 @@ async def parse_with_agent(prompt: str) -> str:
         })
 
 
-def apply_coordinate_mapping(spec_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Apply coordinate mapping to convert zone names to x,y coordinates.
-    
-    Args:
-        spec_data: Parsed specification with zone names
-        
-    Returns:
-        Specification with both zones and coordinates
-    """
-    # Map player zones to coordinates
-    for player in spec_data.get("players", []):
-        if "zone" in player and "x" not in player:
-            try:
-                x, y = coordinate_mapper.get_area_coordinate(player["zone"])
-                player["x"] = x
-                player["y"] = y
-                logger.info(f"Mapped {player['zone']} to ({x}, {y})")
-            except KeyError:
-                logger.warning(f"Unknown zone: {player['zone']}")
-                # Fallback to center position
-                player["x"] = 0
-                player["y"] = 0
-    
-    # Map movement endpoints if they use zones
-    for movement in spec_data.get("movements", []):
-        if isinstance(movement.get("to_position"), str) and movement["to_position"] not in ["F1", "F2", "F3", "D1", "D2", "C", "LW", "RW", "LD", "RD", "G"]:
-            # This is a zone name, not a player position
-            try:
-                x, y = coordinate_mapper.get_area_coordinate(movement["to_position"])
-                movement["to_position"] = [x, y]
-            except KeyError:
-                logger.warning(f"Unknown movement zone: {movement['to_position']}")
-    
-    return spec_data
+# Coordinate mapping removed - now handled entirely in generate_diagram_from_spec
 
 
 # Optional: Create a simplified version for testing
@@ -288,12 +252,12 @@ async def parse_simple(prompt: str) -> str:
                 "title": "2-1-2 Forecheck",
                 "view": "full",
                 "players": [
-                    {"position": "F1", "zone": "behind_net", "x": 0, "y": 95, "team": "home", "has_puck": False},
-                    {"position": "F2", "zone": "right_corner", "x": 35, "y": 85, "team": "home", "has_puck": False},
-                    {"position": "F3", "zone": "slot", "x": 0, "y": 75, "team": "home", "has_puck": False},
-                    {"position": "LD", "zone": "neutral_left", "x": -25, "y": 15, "team": "home", "has_puck": False},
-                    {"position": "RD", "zone": "neutral_right", "x": 25, "y": 15, "team": "home", "has_puck": False},
-                    {"position": "D1", "zone": "behind_net", "x": 5, "y": 92, "team": "away", "has_puck": True}
+                    {"position": "F1", "zone": "behind_net", "team": "home", "has_puck": False},
+                    {"position": "F2", "zone": "right_corner", "team": "home", "has_puck": False},
+                    {"position": "F3", "zone": "slot", "team": "home", "has_puck": False},
+                    {"position": "LD", "zone": "neutral_left", "team": "home", "has_puck": False},
+                    {"position": "RD", "zone": "neutral_right", "team": "home", "has_puck": False},
+                    {"position": "D1", "zone": "behind_net", "team": "away", "has_puck": True}
                 ],
                 "movements": []
             },

@@ -421,8 +421,8 @@ Example output:
             diagram_spec = await self._stage_2_creation(prompt, structure, context)
             logger.info(f"Stage 2 creation: {diagram_spec.title}")
             
-            # Post-process to convert zones to coordinates
-            diagram_spec = self._apply_coordinate_mapping(diagram_spec)
+            # Skip coordinate mapping - handled in generate_diagram_from_spec
+            # diagram_spec = self._apply_coordinate_mapping(diagram_spec)
             
             # Add trace information to diagram spec as a custom attribute
             diagram_spec._traces = {
@@ -630,21 +630,8 @@ Use zone names from the pick list below, NOT coordinates.
     
     def _apply_coordinate_mapping(self, diagram_spec: DiagramSpec) -> DiagramSpec:
         """Apply coordinate mapping to convert zone names to x,y coordinates."""
-        # Convert zone names to coordinates for all players
-        for player in diagram_spec.players:
-            if player.zone and not (player.x and player.y):
-                # Try to get area coordinate first
-                try:
-                    x, y = coordinate_mapper.get_area_coordinate(player.zone)
-                    player.x = x
-                    player.y = y
-                    logger.debug(f"Mapped {player.position} zone '{player.zone}' to ({player.x}, {player.y})")
-                except (KeyError, ValueError):
-                    # If area lookup fails, use default position
-                    logger.warning(f"Zone '{player.zone}' not found, using default position")
-                    player.x = 0
-                    player.y = 0
-        
+        # COORDINATE MAPPING REMOVED - Now handled in generate_diagram_from_spec
+        # This method is kept for compatibility but does no coordinate conversion
         return diagram_spec
     
     def _extract_json(self, text: str) -> str:
@@ -743,8 +730,8 @@ Use zone names from the pick list below, NOT coordinates.
         if not data.get("title"):
             data["title"] = f"{structure.diagram_category.title()}: {structure.primary_focus}"
         
-        # Apply coordinate mapping corrections
-        data = self._apply_coordinate_mapping_dict(data, context_zone)
+        # Skip coordinate mapping - handled in generate_diagram_from_spec
+        # data = self._apply_coordinate_mapping_dict(data, context_zone)
         
         return data
     
@@ -952,11 +939,8 @@ Use zone names from the pick list below, NOT coordinates.
             diagram_type="formation"
         )
         
-        # Apply coordinate mapping corrections to ensure accuracy
-        fallback_data = fallback_spec.dict()
-        fallback_data = self._apply_coordinate_mapping(fallback_data, context_zone)
-        
-        return DiagramSpec(**fallback_data)
+        # Coordinate mapping will be handled in generate_diagram_from_spec
+        return fallback_spec
     
     def get_definitions(self) -> Dict[str, Dict[str, str]]:
         """Return all pick list definitions for reference."""

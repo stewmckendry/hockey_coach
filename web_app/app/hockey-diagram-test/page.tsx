@@ -52,6 +52,8 @@ export default function HockeyDiagramTest() {
     setFeedbackCategories([])
 
     try {
+      console.log('🚀 Generating diagram for prompt:', prompt)
+      
       const response = await fetch('/api/hockey-diagram/generate', {
         method: 'POST',
         headers: {
@@ -60,14 +62,33 @@ export default function HockeyDiagramTest() {
         body: JSON.stringify({ prompt })
       })
 
+      console.log('📡 Response status:', response.status)
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorText = await response.text()
+        console.error('❌ HTTP error:', response.status, errorText)
+        throw new Error(`HTTP error! status: ${response.status}: ${errorText}`)
       }
 
       const data = await response.json()
+      console.log('📦 Response data:', {
+        success: data.success,
+        hasImageBase64: !!data.imageBase64,
+        imageBase64Length: data.imageBase64?.length || 0,
+        toolsUsed: data.toolsUsed,
+        parserType: data.parserType,
+        error: data.error,
+        processingTimeMs: data.processingTimeMs
+      })
+      
+      // Log the first 100 chars of base64 if present
+      if (data.imageBase64) {
+        console.log('🖼️ Image base64 preview:', data.imageBase64.substring(0, 100) + '...')
+      }
+      
       setResult(data)
     } catch (error) {
-      console.error('Failed to generate diagram:', error)
+      console.error('❌ Failed to generate diagram:', error)
       setResult({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate diagram',
@@ -195,16 +216,28 @@ export default function HockeyDiagramTest() {
                   {result.success && result.imageBase64 ? (
                     <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden">
                       <img
-                        src={`data:image/png;base64,${result.imageBase64}`}
+                        src={result.imageBase64.startsWith('data:') ? result.imageBase64 : `data:image/png;base64,${result.imageBase64}`}
                         alt="Hockey diagram"
                         className="w-full h-full object-contain"
+                        onError={(e) => {
+                          console.error('❌ Image failed to load:', e)
+                          console.log('Image src:', (e.target as HTMLImageElement).src.substring(0, 100))
+                        }}
+                        onLoad={() => {
+                          console.log('✅ Image loaded successfully')
+                        }}
                       />
                     </div>
                   ) : (
                     <div className="aspect-[4/3] bg-red-50 rounded-lg flex items-center justify-center">
                       <div className="text-center">
                         <p className="text-red-600 font-medium">Generation Failed</p>
-                        <p className="text-sm text-red-500 mt-1">{result.error}</p>
+                        <p className="text-sm text-red-500 mt-1">{result.error || 'No image data received'}</p>
+                        {!result.success && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            Debug: success={String(result.success)}, hasImage={String(!!result.imageBase64)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}

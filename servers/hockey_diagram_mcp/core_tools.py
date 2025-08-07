@@ -82,8 +82,9 @@ async def generate_diagram_from_spec_core(
         # Re-extract players after offset application
         players = diagram_spec.get('players', [])
         
-        # Convert player dicts to Player objects if needed
+        # Convert player dicts to Player objects - HANDLE ALL COORDINATE CONVERSION HERE
         from generator import Player, Movement, CoverageZone
+        from coordinate_mapper import coordinate_mapper
         
         logger.info(f"Players before conversion: {type(players)}, length: {len(players) if players else 0}")
         if players:
@@ -94,16 +95,56 @@ async def generate_diagram_from_spec_core(
                 logger.info(f"First player data: {players[0]}")
         
         if players and isinstance(players[0], dict):
-            players = [
-                Player(
-                    position=p.get('position'),
-                    x=p.get('x'),
-                    y=p.get('y'),
-                    team=p.get('team', 'home'),
-                    has_puck=p.get('has_puck', False)
-                ) for p in players
-            ]
-            logger.info(f"Converted {len(players)} players to Player objects")
+            converted_players = []
+            for i, p in enumerate(players):
+                logger.info(f"Processing player {i}: type={type(p)}, value={p}")
+                
+                # Skip if this became a string somehow
+                if isinstance(p, str):
+                    logger.error(f"Player {i} is a string, skipping: {p}")
+                    continue
+                
+                # ALL COORDINATE CONVERSION HAPPENS HERE (programmatically)
+                x, y = None, None
+                
+                # Check if already has coordinates (from legacy systems)
+                if 'x' in p and 'y' in p:
+                    x, y = p.get('x'), p.get('y')
+                    logger.info(f"Using existing coordinates: ({x}, {y})")
+                
+                # Convert zone-based data to coordinates (this is THE coordinate conversion point)
+                elif 'zone' in p:
+                    zone_name = p.get('zone', '')
+                    try:
+                        x, y = coordinate_mapper.get_area_coordinate(zone_name)
+                        logger.info(f"🎯 CONVERTED zone '{zone_name}' to coordinates ({x}, {y})")
+                    except Exception as e:
+                        logger.warning(f"Failed to convert zone '{zone_name}': {e}")
+                        # Fallback to center
+                        x, y = 0, 0
+                
+                # Final fallback
+                if x is None or y is None:
+                    logger.warning(f"No coordinates found for player {p}, using center (0, 0)")
+                    x, y = 0, 0
+                
+                # Create Player object with converted coordinates
+                try:
+                    player_obj = Player(
+                        position=p.get('position', p.get('role', 'F1')),
+                        x=x,
+                        y=y,
+                        team=p.get('team', 'home'),
+                        has_puck=p.get('has_puck', False)
+                    )
+                    converted_players.append(player_obj)
+                    logger.info(f"✅ Created Player object: {player_obj}")
+                except Exception as e:
+                    logger.error(f"Error creating Player object from {p}: {e}")
+                    continue
+            
+            players = converted_players
+            logger.info(f"✅ Converted {len(players)} players to Player objects")
         
         # Convert movement dicts to Movement objects if needed
         if movements and isinstance(movements[0], dict):
@@ -127,14 +168,23 @@ async def generate_diagram_from_spec_core(
             ]
         
         # Generate the diagram
-        result = generator.generate_diagram(
-            players=players,
-            movements=movements,
-            zones=zones,
-            view=view,
-            title=title,
-            output_format=output_format
-        )
+        try:
+            logger.info(f"About to call generator.generate_diagram with {len(players)} players")
+            for i, player in enumerate(players):
+                logger.info(f"Player {i}: {type(player)} - {player}")
+            
+            result = generator.generate_diagram(
+                players=players,
+                movements=movements,
+                zones=zones,
+                view=view,
+                title=title,
+                output_format=output_format
+            )
+        except Exception as e:
+            logger.error(f"Generator error details: {type(e).__name__}: {e}")
+            logger.error(f"Players passed to generator: {[type(p) for p in players]}")
+            raise
         
         # Save if successful
         if isinstance(result, dict) and result.get('success'):

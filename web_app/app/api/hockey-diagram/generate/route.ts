@@ -32,7 +32,14 @@ async function generateHockeyDiagram(prompt: string, sessionId?: string) {
         }
       }
       
-      return {
+      console.log('🎯 Agent result:', {
+        success: result.success,
+        hasDiagramBase64: !!result.diagram_base64,
+        base64Length: result.diagram_base64?.length || 0,
+        metadata: result.metadata
+      })
+      
+      const finalResult = {
         success: result.success,
         imageBase64: result.diagram_base64,
         processingTimeMs: result.metadata?.processing_time_ms || 0,
@@ -42,6 +49,14 @@ async function generateHockeyDiagram(prompt: string, sessionId?: string) {
         agentTraces: result.metadata?.traces || [],
         error: result.error
       }
+      
+      console.log('📤 Returning to frontend:', {
+        success: finalResult.success,
+        hasImageBase64: !!finalResult.imageBase64,
+        imageBase64Length: finalResult.imageBase64?.length || 0
+      })
+      
+      return finalResult
     } catch (agentError) {
       console.warn('Agent not available, falling back to direct MCP:', agentError)
       
