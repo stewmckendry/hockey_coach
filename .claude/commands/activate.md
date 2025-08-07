@@ -1,17 +1,21 @@
 # /activate
 
 ## Purpose
-Activate the spacy_env virtual environment located at `/Users/liammckendry/spacy_env/` and verify it's working correctly.
+Set up persistent virtual environment activation for all subsequent bash commands in Claude Code session.
 
 ## Arguments
 None
 
 ## Implementation
 
+The challenge: Each bash command in Claude Code runs in a separate shell session, so `source activate` doesn't persist.
+
+**Solution**: Always prefix Python commands with the full virtual environment path, and provide helper instructions.
+
 ```bash
 #!/bin/bash
 
-echo "🐍 Activating spacy_env virtual environment..."
+echo "🐍 Setting up spacy_env virtual environment for Claude Code..."
 
 # Check if virtual environment exists
 if [ ! -f "/Users/liammckendry/spacy_env/bin/activate" ]; then
@@ -20,20 +24,16 @@ if [ ! -f "/Users/liammckendry/spacy_env/bin/activate" ]; then
     exit 1
 fi
 
-# Activate the virtual environment
-source /Users/liammckendry/spacy_env/bin/activate
+# Test virtual environment
+echo "📋 Testing virtual environment..."
+/Users/liammckendry/spacy_env/bin/python --version
+echo "📍 Virtual environment location: /Users/liammckendry/spacy_env/"
+echo "🐍 Python executable: /Users/liammckendry/spacy_env/bin/python"
 
-# Verify activation
-if [ "$VIRTUAL_ENV" = "/Users/liammckendry/spacy_env" ]; then
-    echo "✅ Virtual environment activated successfully!"
-    echo "📍 Active environment: $VIRTUAL_ENV"
-    echo "🐍 Python path: $(which python)"
-    echo "📦 Python version: $(python --version)"
-    
-    # Check for key packages
-    echo ""
-    echo "📋 Checking key dependencies..."
-    python -c "
+# Check for key packages
+echo ""
+echo "📋 Checking key dependencies..."
+/Users/liammckendry/spacy_env/bin/python -c "
 import sys
 packages = ['fastmcp', 'openai', 'chromadb', 'numpy', 'spacy']
 for pkg in packages:
@@ -43,28 +43,50 @@ for pkg in packages:
     except ImportError:
         print(f'❌ {pkg}: Not found')
 "
-else
-    echo "❌ ERROR: Virtual environment activation failed"
-    echo "Current VIRTUAL_ENV: $VIRTUAL_ENV"
-    exit 1
-fi
+
+echo ""
+echo "✅ Virtual environment verified!"
+echo ""
+echo "📝 IMPORTANT: For subsequent bash commands in this Claude Code session:"
+echo "   Use: /Users/liammckendry/spacy_env/bin/python instead of just 'python'"
+echo "   Use: /Users/liammckendry/spacy_env/bin/pip instead of just 'pip'"
+echo ""
+echo "💡 Better solution: Use the compound activation pattern:"
+echo "   source /Users/liammckendry/spacy_env/bin/activate && python your_script.py"
+echo ""
+echo "🔧 Best practice examples:"
+echo "   source /Users/liammckendry/spacy_env/bin/activate && python servers/hockey_mcp.py"
+echo "   source /Users/liammckendry/spacy_env/bin/activate && python -m pytest tests/"
+echo "   source /Users/liammckendry/spacy_env/bin/activate && pip install package_name"
 ```
 
 ## Usage Examples
 
 ```bash
-# Activate virtual environment
+# Check virtual environment and get usage instructions
 /activate
+
+# Then use these patterns for subsequent commands:
+
+# Method 1: Compound activation (recommended)
+source /Users/liammckendry/spacy_env/bin/activate && python servers/hockey_mcp.py
+source /Users/liammckendry/spacy_env/bin/activate && python -m pytest tests/
+source /Users/liammckendry/spacy_env/bin/activate && pip install new_package
+
+# Method 2: Direct path (alternative)
+/Users/liammckendry/spacy_env/bin/python servers/hockey_mcp.py
+/Users/liammckendry/spacy_env/bin/python -m pytest tests/
+/Users/liammckendry/spacy_env/bin/pip install new_package
 ```
 
 ## Expected Output
 
 ```
-🐍 Activating spacy_env virtual environment...
-✅ Virtual environment activated successfully!
-📍 Active environment: /Users/liammckendry/spacy_env
-🐍 Python path: /Users/liammckendry/spacy_env/bin/python
-📦 Python version: Python 3.x.x
+🐍 Setting up spacy_env virtual environment for Claude Code...
+📋 Testing virtual environment...
+Python 3.x.x
+📍 Virtual environment location: /Users/liammckendry/spacy_env/
+🐍 Python executable: /Users/liammekendry/spacy_env/bin/python
 
 📋 Checking key dependencies...
 ✅ fastmcp: Available
@@ -72,15 +94,29 @@ fi
 ✅ chromadb: Available
 ✅ numpy: Available
 ✅ spacy: Available
+
+✅ Virtual environment verified!
+
+📝 IMPORTANT: For subsequent bash commands in this Claude Code session:
+   Use: /Users/liammckendry/spacy_env/bin/python instead of just 'python'
+   Use: /Users/liammckendry/spacy_env/bin/pip instead of just 'pip'
+
+💡 Better solution: Use the compound activation pattern:
+   source /Users/liammckendry/spacy_env/bin/activate && python your_script.py
+
+🔧 Best practice examples:
+   source /Users/liammckendry/spacy_env/bin/activate && python servers/hockey_mcp.py
+   source /Users/liammckendry/spacy_env/bin/activate && python -m pytest tests/
+   source /Users/liammckendry/spacy_env/bin/activate && pip install package_name
 ```
 
 ## Notes
 
-- This command addresses the common issue where Claude Code struggles with Python commands because the virtual environment isn't activated
-- The virtual environment is located at `/Users/liammckendry/spacy_env/` (parent directory of the project)
-- After running this command, all subsequent Python commands in the session will use the activated environment
-- The command includes verification steps to ensure activation was successful
-- Key package availability is checked to confirm the environment is properly set up
+- **Key Insight**: Claude Code bash commands run in separate shell sessions, so `source activate` doesn't persist
+- **Solution**: Use compound commands with `&&` to activate and run in the same shell session
+- **Alternative**: Use full paths to the virtual environment Python/pip executables
+- The compound activation pattern is recommended because it's more readable and handles complex commands better
+- This command now serves as a verification tool and provides the correct usage patterns
 
 ## Related Commands
 
