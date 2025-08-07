@@ -5,6 +5,29 @@ This document provides a complete inventory of all slash commands for the Hockey
 
 ---
 
+## 🔧 DEVELOPMENT & MAINTENANCE COMMANDS
+
+### `/reconnect` - Restart All Hockey Services
+**Who**: Developers  
+**When**: When servers are down or unresponsive  
+**What**:
+- Kill all existing hockey-related processes
+- Restart Hockey Diagram services (worktree)
+- Optionally restart main Thunder Playbook services
+- Verify all services are responding
+- Show service status summary
+
+**Services Managed**:
+- Hockey Diagram MCP Server (stdio)
+- Hockey Diagram Agent API (port 8001)
+- Web App (port 3000)
+- Main Hockey MCP (port 8000) - optional
+- Main Direct API (port 3003) - optional
+
+**Impact**: HIGH - Essential for development workflow
+
+---
+
 ## 🏒 HOCKEY CONTENT CREATION COMMANDS (Issue #81 - Implemented)
 
 ### Content Creation Workflow
