@@ -5,7 +5,7 @@ Set up persistent virtual environment activation and optionally start hockey ser
 
 ## Arguments
 - `[server-type]` (optional) - Specify which servers to activate:
-  - `diagram` or `d` - Start hockey diagram Direct API server (port 8001)
+  - `diagram` or `d` - Start hockey diagram API + web testing console (ports 8001, 3000)
   - `coaching` or `c` - Start hockey coaching/IQ servers (ports 8000, 3003, 3000)
   - `all` or `a` - Start all servers
   - (no argument) - Only verify virtual environment without starting servers
@@ -67,7 +67,17 @@ case "$SERVER_TYPE" in
         # The HTTP API is provided by hockey_diagram_direct_api.py
         source /Users/liammckendry/spacy_env/bin/activate && python servers/hockey_diagram_mcp/hockey_diagram_direct_api.py &
         echo "✅ Hockey Diagram Direct API started on port 8001"
-        echo "📝 Test with: curl http://localhost:8001/health"
+        
+        # Start Next.js Web App for diagram testing console
+        cd "$MAIN_REPO/web_app"
+        npm run dev &
+        echo "✅ Next.js Web App started on port 3000"
+        
+        echo ""
+        echo "📝 Test endpoints:"
+        echo "   - Diagram API: curl http://localhost:8001/health"
+        echo "   - Testing Console: http://localhost:3000/hockey-diagram-test"
+        echo "   - Monitor Dashboard: http://localhost:3000/hockey-diagram-test/monitor"
         ;;
     
     coaching|c)
@@ -162,10 +172,11 @@ echo "   - View port usage: lsof -i :8000"
 # 1. Only verify virtual environment (no servers)
 /activate
 
-# 2. Start Hockey Diagram MCP Server only
+# 2. Start Hockey Diagram API + Testing Console
 /activate diagram
 # or shorthand:
 /activate d
+# Access testing console at: http://localhost:3000/hockey-diagram-test
 
 # 3. Start Hockey Coaching/IQ servers (MCP, API, Web)
 /activate coaching
@@ -234,7 +245,12 @@ Python 3.x.x
 
 🎯 Starting Hockey Diagram Services...
 ✅ Hockey Diagram Direct API started on port 8001
-📝 Test with: curl http://localhost:8001/health
+✅ Next.js Web App started on port 3000
+
+📝 Test endpoints:
+   - Diagram API: curl http://localhost:8001/health
+   - Testing Console: http://localhost:3000/hockey-diagram-test
+   - Monitor Dashboard: http://localhost:3000/hockey-diagram-test/monitor
 
 💡 Process Management Tips...
 ```
