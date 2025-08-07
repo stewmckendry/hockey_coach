@@ -4,10 +4,31 @@ import questionsData from '@/data/hockey-iq-questions.json'
 import { dynamicQuizGenerator } from '@/lib/server/dynamicQuizGenerator'
 import '@/lib/server/initializeQuizCache' // Trigger cache initialization
 import OpenAI from 'openai'
+import { SessionManager } from '@/lib/server/sessionManager'
+import { monitorStorage } from '@/lib/server/monitorStorage'
 
 export async function POST(request: NextRequest) {
+  const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  const startTime = Date.now()
+  
   try {
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error('[Quiz API] JSON parsing error:', parseError)
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      )
+    }
+    
+    // Generate session ID from IP or use provided one
+    const sessionId = body.sessionId || clientIP
+    
+    // Initialize or update session tracking for quiz mode
+    const userAgent = request.headers.get('user-agent') || 'Unknown'
+    SessionManager.createOrUpdateSession(sessionId, clientIP, userAgent, 'quiz')
     
     // Validate input
     if (!body.action || typeof body.action !== 'string') {
@@ -34,12 +55,23 @@ export async function POST(request: NextRequest) {
               useCache: true
             })
             
-            return NextResponse.json({
+            const response = NextResponse.json({
               success: true,
               question: dynamicQuestion,
               source: 'dynamic',
+              sessionId: sessionId,
               timestamp: new Date().toISOString()
             })
+            
+            // Set session cookie
+            response.cookies.set('hockey-iq-session', sessionId, {
+              maxAge: 60 * 60 * 24 * 7, // 7 days
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax'
+            })
+            
+            return response
           }
         } catch (error) {
           console.error('[Quiz API] Dynamic generation failed:', error)
@@ -61,17 +93,35 @@ export async function POST(request: NextRequest) {
         
         const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
         
-        return NextResponse.json({
+        const response = NextResponse.json({
           success: true,
           question: randomQuestion,
           source: 'static',
+          sessionId: sessionId,
           timestamp: new Date().toISOString()
         })
+        
+        // Set session cookie
+        response.cookies.set('hockey-iq-session', sessionId, {
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        })
+        
+        return response
       }
 
       case 'evaluate_answer': {
         // Evaluate user's answer using AI for flexible matching
         const { questionId, userAnswer, questionText, correctAnswer } = body
+        
+        console.log('[Quiz API] Evaluate answer:', {
+          questionId,
+          userAnswer: userAnswer?.substring(0, 50),
+          hasQuestionText: !!questionText,
+          hasCorrectAnswer: !!correctAnswer
+        })
         
         if (!questionId || !userAnswer) {
           return NextResponse.json(
@@ -148,7 +198,29 @@ Respond with a JSON object:
 
         const result = JSON.parse(evaluation.choices[0].message.content || '{}')
         
-        return NextResponse.json({
+        // Add quiz turn to session tracking
+        SessionManager.logQuizTurn({
+          sessionId: sessionId,
+          turnId: `turn_${Date.now()}`,
+          questionId: questionId,
+          question: question.question,
+          questionType: questionId.startsWith('dynamic_') ? 'dynamic' : 'static',
+          category: body.category || question.category || 'general',
+          difficulty: body.difficulty || 'rookie',
+          researchSource: questionId.startsWith('dynamic_') ? 'mcp-hockey-tools' : 'static-data',
+          userAnswer: userAnswer,
+          aiResponse: result.feedback || question.encouragementMessages[result.correct ? 'correct' : 'incorrect'],
+          isCorrect: result.correct,
+          processingTime: Date.now() - startTime,
+          hintsUsed: 0,
+          followUpGenerated: false,
+          timestamp: new Date().toISOString()
+        })
+        
+        // Save to persistent storage
+        monitorStorage.saveSession(SessionManager.getSession(sessionId)!)
+        
+        const response = NextResponse.json({
           success: true,
           correct: result.correct,
           feedback: result.feedback || question.encouragementMessages[result.correct ? 'correct' : 'incorrect'],
@@ -156,8 +228,19 @@ Respond with a JSON object:
           correctAnswer: question.correctAnswer,
           funFact: result.correct ? question.funFact : undefined,
           followUpQuestion: result.correct ? question.followUpQuestions[0] : undefined,
+          sessionId: sessionId,
           timestamp: new Date().toISOString()
         })
+        
+        // Set session cookie
+        response.cookies.set('hockey-iq-session', sessionId, {
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        })
+        
+        return response
       }
 
       case 'get_hint': {
@@ -187,12 +270,26 @@ Respond with a JSON object:
 
         const hint = questionHints[Math.min(hintIndex, questionHints.length - 1)]
         
-        return NextResponse.json({
+        // Track hint usage in session (hints are tracked per quiz turn)
+        // Note: Hint usage tracking is handled within individual quiz turns
+        
+        const response = NextResponse.json({
           success: true,
           hint,
           hasMoreHints: hintIndex < questionHints.length - 1,
+          sessionId: sessionId,
           timestamp: new Date().toISOString()
         })
+        
+        // Set session cookie
+        response.cookies.set('hockey-iq-session', sessionId, {
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        })
+        
+        return response
       }
 
       case 'get_stats': {
@@ -303,12 +400,23 @@ Respond with a JSON object:
           }
         )
 
-        return NextResponse.json({
+        const response = NextResponse.json({
           success: true,
           followUp: followUpResponse.response,
           responseId: followUpResponse.responseId,  // Return for conversation continuity
+          sessionId: sessionId,
           timestamp: new Date().toISOString()
         })
+        
+        // Set session cookie
+        response.cookies.set('hockey-iq-session', sessionId, {
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        })
+        
+        return response
       }
 
       default:

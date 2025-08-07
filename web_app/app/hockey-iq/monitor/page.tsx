@@ -1,649 +1,547 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { HockeyIQLogEntry, HockeyIQStats } from '@/lib/server/hockeyIQLogger'
+import { 
+  SessionLog, 
+  ChatInteraction, 
+  QuizSession, 
+  QuizTurn, 
+  PerformanceMetrics,
+  SessionListResponse,
+  ChatHistoryResponse,
+  QuizHistoryResponse,
+  MonitorStatsResponse
+} from '@/lib/types/monitoring'
 
 /**
- * Hockey IQ Monitoring Dashboard
- * Real-time monitoring of chatbot interactions, tool usage, and performance
+ * Hockey IQ Monitor Dashboard
+ * 
+ * Displays session tracking, chat history, quiz history, and performance metrics
+ * for the Hockey IQ Chatbot monitoring system.
  */
-export default function HockeyIQMonitor() {
-  const [logs, setLogs] = useState<HockeyIQLogEntry[]>([])
-  const [stats, setStats] = useState<HockeyIQStats | null>(null)
-  const [selectedDate, setSelectedDate] = useState<string>('')
-  const [availableDates, setAvailableDates] = useState<string[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedLog, setSelectedLog] = useState<HockeyIQLogEntry | null>(null)
-  const [autoRefresh, setAutoRefresh] = useState(true)
+export default function HockeyIQMonitorPage() {
+  const [sessions, setSessions] = useState<SessionLog[]>([])
+  const [selectedSession, setSelectedSession] = useState<SessionLog | null>(null)
+  const [chatHistory, setChatHistory] = useState<ChatInteraction[]>([])
+  const [quizHistory, setQuizHistory] = useState<{ session: QuizSession | null, turns: QuizTurn[] }>({ session: null, turns: [] })
+  const [stats, setStats] = useState<PerformanceMetrics | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'live' | 'search' | 'stats' | 'quiz'>('live')
-  const [quizStats, setQuizStats] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'chat' | 'quiz' | 'stats'>('overview')
+  const [error, setError] = useState<string | null>(null)
 
-  // Fetch recent logs and stats
-  const fetchData = async () => {
-    try {
-      // Fetch recent logs
-      const logsResponse = await fetch('/api/hockey-iq/monitor?action=recent&limit=30')
-      if (logsResponse.ok) {
-        const logsData = await logsResponse.json()
-        setLogs(logsData.logs)
-      }
-
-      // Fetch stats
-      const statsResponse = await fetch('/api/hockey-iq/monitor?action=stats')
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData.stats)
-      }
-
-      // Fetch available dates
-      const datesResponse = await fetch('/api/hockey-iq/monitor?action=dates')
-      if (datesResponse.ok) {
-        const datesData = await datesResponse.json()
-        setAvailableDates(datesData.dates)
-      }
-
-      // Fetch quiz generation stats
-      const quizStatsResponse = await fetch('/api/hockey-iq/quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_stats' })
-      })
-      if (quizStatsResponse.ok) {
-        const quizData = await quizStatsResponse.json()
-        setQuizStats(quizData)
-      }
-    } catch (error) {
-      console.error('Failed to fetch monitoring data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Search logs
-  const searchLogs = async () => {
-    if (!searchQuery.trim()) return
-
-    setLoading(true)
-    try {
-      const url = selectedDate
-        ? `/api/hockey-iq/monitor?action=search&query=${encodeURIComponent(searchQuery)}&date=${selectedDate}`
-        : `/api/hockey-iq/monitor?action=search&query=${encodeURIComponent(searchQuery)}`
-      
-      const response = await fetch(url)
-      if (response.ok) {
-        const data = await response.json()
-        setLogs(data.logs)
-      }
-    } catch (error) {
-      console.error('Search failed:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Auto-refresh effect
+  // Load sessions on component mount
   useEffect(() => {
-    fetchData()
+    loadSessions()
+    loadStats()
     
-    if (autoRefresh && activeTab === 'live') {
-      const interval = setInterval(fetchData, 5000) // Refresh every 5 seconds
-      return () => clearInterval(interval)
+    // Set up polling for real-time updates
+    const interval = setInterval(() => {
+      loadSessions()
+      loadStats()
+    }, 10000) // Update every 10 seconds
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  const loadSessions = async () => {
+    try {
+      const response = await fetch('/api/hockey-iq/monitor/sessions?limit=100')
+      const data: SessionListResponse = await response.json()
+      
+      if (data.success) {
+        setSessions(data.sessions)
+      } else {
+        setError('Failed to load sessions')
+      }
+    } catch (err) {
+      console.error('Error loading sessions:', err)
+      setError('Failed to load sessions')
     }
-  }, [autoRefresh, activeTab])
-
-  // Format timestamp
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
   }
 
-  // Format date
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  const loadStats = async () => {
+    try {
+      const response = await fetch('/api/hockey-iq/monitor/stats')
+      const data: MonitorStatsResponse = await response.json()
+      
+      if (data.success) {
+        setStats(data.metrics)
+      } else {
+        setError('Failed to load stats')
+      }
+      setLoading(false)
+    } catch (err) {
+      console.error('Error loading stats:', err)
+      setError('Failed to load stats')
+      setLoading(false)
+    }
   }
 
-  if (loading && logs.length === 0) {
+  const loadSessionDetails = async (session: SessionLog) => {
+    try {
+      setSelectedSession(session)
+      
+      // Load chat history
+      const chatResponse = await fetch(`/api/hockey-iq/monitor/chat/${session.sessionId}`)
+      const chatData: ChatHistoryResponse = await chatResponse.json()
+      
+      if (chatData.success) {
+        setChatHistory(chatData.interactions)
+      }
+      
+      // Load quiz history  
+      const quizResponse = await fetch(`/api/hockey-iq/monitor/quiz/${session.sessionId}`)
+      const quizData: QuizHistoryResponse = await quizResponse.json()
+      
+      if (quizData.success) {
+        setQuizHistory({ session: quizData.session, turns: quizData.turns })
+      }
+      
+      setActiveTab('chat')
+    } catch (err) {
+      console.error('Error loading session details:', err)
+      setError('Failed to load session details')
+    }
+  }
+
+  const formatTimestamp = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString()
+  }
+
+  const formatDuration = (startTime: string, endTime: string) => {
+    const start = new Date(startTime).getTime()
+    const end = new Date(endTime).getTime()
+    const durationMs = end - start
+    const minutes = Math.floor(durationMs / 60000)
+    const seconds = Math.floor((durationMs % 60000) / 1000)
+    return `${minutes}m ${seconds}s`
+  }
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading monitoring dashboard...</p>
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading monitor data...</p>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">🏒 Hockey IQ Monitor</h1>
-              <p className="text-sm text-gray-500">Real-time chatbot analytics and monitoring</p>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Hockey IQ Monitor Dashboard</h1>
+          <p className="text-gray-600">Real-time monitoring and analytics for the Hockey IQ Chatbot</p>
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-800">{error}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={autoRefresh}
-                  onChange={(e) => setAutoRefresh(e.target.checked)}
-                  className="rounded text-blue-500"
-                />
-                <span className="text-sm text-gray-700">Auto-refresh</span>
-              </label>
-              <button
-                onClick={fetchData}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Refresh Now
-              </button>
-            </div>
-          </div>
+          )}
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('live')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'live'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Live Feed
-            </button>
-            <button
-              onClick={() => setActiveTab('stats')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'stats'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Statistics
-            </button>
-            <button
-              onClick={() => setActiveTab('search')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'search'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Search Logs
-            </button>
-            <button
-              onClick={() => setActiveTab('quiz')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'quiz'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Quiz Generation
-            </button>
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <nav className="flex space-x-8" aria-label="Tabs">
+            {[
+              { id: 'overview', name: 'Overview' },
+              { id: 'sessions', name: 'Sessions' },
+              { id: 'chat', name: 'Chat History' },
+              { id: 'quiz', name: 'Quiz History' },
+              { id: 'stats', name: 'Statistics' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.name}
+              </button>
+            ))}
           </nav>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        {/* Statistics Tab */}
-        {activeTab === 'stats' && stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-2xl font-bold text-gray-900">{stats.totalInteractions}</div>
-              <div className="text-sm text-gray-500">Total Interactions</div>
-              <div className="mt-2 text-xs text-gray-400">
-                Chat: {stats.chatInteractions} | Quiz: {stats.quizInteractions}
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-2xl font-bold text-gray-900">{stats.averageResponseTime}ms</div>
-              <div className="text-sm text-gray-500">Avg Response Time</div>
-              <div className="mt-2">
-                <div className="text-xs text-gray-400">Performance</div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div 
-                    className={`h-2 rounded-full ${
-                      stats.averageResponseTime < 1000 ? 'bg-green-500' :
-                      stats.averageResponseTime < 3000 ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}
-                    style={{ width: `${Math.min(100, (1000 / stats.averageResponseTime) * 100)}%` }}
-                  ></div>
+        {/* Content */}
+        <div className="bg-white rounded-lg shadow">
+          {activeTab === 'overview' && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">System Overview</h2>
+              
+              {stats && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-blue-800">Total Sessions</h3>
+                    <p className="text-2xl font-bold text-blue-900">{stats.sessionCount}</p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-green-800">Active Users</h3>
+                    <p className="text-2xl font-bold text-green-900">{stats.activeUsers}</p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-purple-800">Total Interactions</h3>
+                    <p className="text-2xl font-bold text-purple-900">{stats.totalInteractions}</p>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-orange-800">Avg Response Time</h3>
+                    <p className="text-2xl font-bold text-orange-900">{stats.avgResponseTime.chat}ms</p>
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-2xl font-bold text-gray-900">{stats.uniqueSessions}</div>
-              <div className="text-sm text-gray-500">Unique Sessions</div>
-              <div className="mt-2 text-xs text-gray-400">
-                Error Rate: {stats.errorRate.toFixed(1)}%
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-2xl font-bold text-gray-900">
-                {Object.keys(stats.toolUsageStats).reduce((sum, key) => sum + stats.toolUsageStats[key], 0)}
-              </div>
-              <div className="text-sm text-gray-500">Tool Calls</div>
-              <div className="mt-2 text-xs text-gray-400">
-                {Object.keys(stats.toolUsageStats).length} different tools
-              </div>
-            </div>
+              )}
 
-            {/* Categories breakdown */}
-            {Object.keys(stats.mostCommonCategories).length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6 col-span-2">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Popular Categories</h3>
-                <div className="space-y-2">
-                  {Object.entries(stats.mostCommonCategories)
-                    .sort(([,a], [,b]) => b - a)
-                    .slice(0, 5)
-                    .map(([category, count]) => (
-                      <div key={category} className="flex justify-between">
-                        <span className="text-sm text-gray-600">{category}</span>
-                        <span className="text-sm font-medium text-gray-900">{count}</span>
-                      </div>
+              <h3 className="text-lg font-medium mb-3">Recent Sessions</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mode</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sessions.slice(0, 10).map((session) => (
+                      <tr key={session.sessionId} className="hover:bg-gray-50 cursor-pointer" onClick={() => loadSessionDetails(session)}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                          {session.sessionId.substring(0, 12)}...
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            session.mode === 'chat' ? 'bg-blue-100 text-blue-800' :
+                            session.mode === 'quiz' ? 'bg-purple-100 text-purple-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {session.mode}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{session.totalInteractions}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatTimestamp(session.lastActivity)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            session.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {session.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
                     ))}
-                </div>
+                  </tbody>
+                </table>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Tool usage breakdown */}
-            {Object.keys(stats.toolUsageStats).length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6 col-span-2">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">MCP Tool Usage</h3>
-                <div className="space-y-2">
-                  {Object.entries(stats.toolUsageStats)
-                    .sort(([,a], [,b]) => b - a)
-                    .map(([tool, count]) => (
-                      <div key={tool} className="flex justify-between">
-                        <span className="text-sm text-gray-600">{tool.replace('search_hockey_', '')}</span>
-                        <span className="text-sm font-medium text-gray-900">{count} calls</span>
-                      </div>
+          {activeTab === 'sessions' && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">All Sessions</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mode</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sessions.map((session) => (
+                      <tr key={session.sessionId} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                          {session.sessionId}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{session.ipAddress}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            session.mode === 'chat' ? 'bg-blue-100 text-blue-800' :
+                            session.mode === 'quiz' ? 'bg-purple-100 text-purple-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {session.mode}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{session.totalInteractions}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDuration(session.startTime, session.lastActivity)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            session.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {session.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => loadSessionDetails(session)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
                     ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Search Tab */}
-        {activeTab === 'search' && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <div className="flex gap-4">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && searchLogs()}
-                placeholder="Search messages, responses, or tools..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-              <select
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">All dates</option>
-                {availableDates.map(date => (
-                  <option key={date} value={date}>{date}</option>
-                ))}
-              </select>
-              <button
-                onClick={searchLogs}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Search
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Quiz Generation Tab */}
-        {activeTab === 'quiz' && (
-          <div className="space-y-6">
-            {/* Quiz Generation Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Questions Generated</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {quizStats?.totalGenerated || 0}
-                    </p>
-                  </div>
-                  <div className="text-3xl">🎯</div>
-                </div>
-                <div className="mt-4 text-xs text-gray-500">
-                  <div className="flex justify-between">
-                    <span>From MCP Research:</span>
-                    <span className="font-medium text-green-600">
-                      {quizStats?.fromMCP || 0} ({quizStats?.totalGenerated > 0 ? 
-                        Math.round((quizStats?.fromMCP / quizStats?.totalGenerated) * 100) : 0}%)
-                    </span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>From Static Bank:</span>
-                    <span className="font-medium text-gray-600">
-                      {quizStats?.fromStatic || 0} ({quizStats?.totalGenerated > 0 ? 
-                        Math.round((quizStats?.fromStatic / quizStats?.totalGenerated) * 100) : 0}%)
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Cache Performance</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {quizStats?.cacheHitRate || '0'}%
-                    </p>
-                  </div>
-                  <div className="text-3xl">⚡</div>
-                </div>
-                <div className="mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full"
-                      style={{ width: `${quizStats?.cacheHitRate || 0}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {quizStats?.cacheHits || 0} cache hits / {quizStats?.cacheMisses || 0} misses
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Avg Generation Time</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {quizStats?.avgGenerationTime || 0}ms
-                    </p>
-                  </div>
-                  <div className="text-3xl">⏱️</div>
-                </div>
-                <div className="mt-4 text-xs text-gray-500">
-                  <div className="flex justify-between">
-                    <span>Cached Response:</span>
-                    <span className="font-medium text-green-600">~5ms</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>New Generation:</span>
-                    <span className="font-medium text-orange-600">~3000ms</span>
-                  </div>
-                </div>
+                  </tbody>
+                </table>
               </div>
             </div>
+          )}
 
-            {/* MCP Tools Usage for Quiz */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">MCP Research Tools Usage</h3>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {['rules', 'tactics', 'skills', 'dryland', 'nhl_insights'].map(tool => (
-                  <div key={tool} className="text-center">
-                    <div className="text-2xl mb-2">
-                      {tool === 'rules' ? '📋' : 
-                       tool === 'tactics' ? '🎯' :
-                       tool === 'skills' ? '⛸️' :
-                       tool === 'dryland' ? '🏃' : '🌟'}
-                    </div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {quizStats?.toolUsage?.[`search_hockey_${tool}`] || 0}
-                    </p>
-                    <p className="text-xs text-gray-500">{tool.replace('_', ' ')}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Category Breakdown */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Questions by Category</h3>
-              <div className="space-y-3">
-                {['rules', 'positioning', 'skills', 'teamwork', 'fun_facts'].map(category => {
-                  const count = quizStats?.categoryBreakdown?.[category] || 0
-                  const total = quizStats?.totalGenerated || 1
-                  const percentage = Math.round((count / total) * 100)
-                  
-                  return (
-                    <div key={category} className="flex items-center">
-                      <span className="w-24 text-sm text-gray-600 capitalize">
-                        {category.replace('_', ' ')}
-                      </span>
-                      <div className="flex-1 mx-4">
-                        <div className="w-full bg-gray-200 rounded-full h-4">
-                          <div 
-                            className={`h-4 rounded-full ${
-                              category === 'rules' ? 'bg-blue-500' :
-                              category === 'positioning' ? 'bg-green-500' :
-                              category === 'skills' ? 'bg-purple-500' :
-                              category === 'teamwork' ? 'bg-orange-500' :
-                              'bg-pink-500'
-                            }`}
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900 w-16 text-right">
-                        {count}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Recent Quiz Generations */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Recent Quiz Questions Generated</h3>
-              </div>
-              <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                {logs
-                  .filter(log => log.mode === 'quiz' || log.toolsCalled.some(t => t.includes('quiz')))
-                  .slice(0, 10)
-                  .map(log => (
-                    <div key={log.id} className="px-6 py-3 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            {log.toolsCalled.some(t => t.includes('search_hockey')) ? (
-                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                                🔍 MCP Research
-                              </span>
-                            ) : (
-                              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                                📚 Static Bank
-                              </span>
-                            )}
-                            <span className="text-xs text-gray-500">{log.category}</span>
-                          </div>
-                          <p className="text-sm text-gray-900 mt-1">
-                            {log.aiResponse.substring(0, 100)}...
-                          </p>
-                        </div>
-                        <div className="text-xs text-gray-500 ml-4">
-                          <p>{formatTime(log.timestamp)}</p>
-                          <p className="text-gray-400">{log.processingTimeMs}ms</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Logs List */}
-        {(activeTab === 'live' || activeTab === 'search') && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">
-                {activeTab === 'live' ? 'Recent Interactions' : 'Search Results'}
+          {activeTab === 'chat' && selectedSession && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">
+                Chat History - {selectedSession.sessionId.substring(0, 12)}...
               </h2>
-              <p className="text-sm text-gray-500">{logs.length} entries</p>
-            </div>
-            
-            <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
-              {logs.map((log) => (
-                <div
-                  key={log.id}
-                  className="px-6 py-4 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => setSelectedLog(log)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          log.mode === 'chat' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                        }`}>
-                          {log.mode}
-                        </span>
-                        {log.category && (
-                          <span className="text-xs text-gray-500">{log.category}</span>
-                        )}
-                        {log.toolsCalled.length > 0 ? (
-                          <span className="text-xs text-green-600">
-                            🔧 {log.toolsCalled.length} tools
+              <div className="space-y-4">
+                {chatHistory.map((interaction) => (
+                  <div key={interaction.messageId} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <span className="text-sm text-gray-500">{formatTimestamp(interaction.timestamp)}</span>
+                        <span className="ml-2 text-sm text-gray-500">({interaction.processingTime}ms)</span>
+                        {interaction.toolsUsed.length > 0 && (
+                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                            Tools: {interaction.toolsUsed.join(', ')}
                           </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">
-                            No tools used
-                          </span>
-                        )}
-                        {!log.success && (
-                          <span className="text-xs text-red-600">⚠️ Error</span>
                         )}
                       </div>
-                      <p className="mt-1 text-sm text-gray-900 font-medium">
-                        {log.userMessage.substring(0, 100)}
-                        {log.userMessage.length > 100 && '...'}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {log.aiResponse.substring(0, 150)}
-                        {log.aiResponse.length > 150 && '...'}
-                      </p>
+                      <span className={`px-2 py-1 text-xs rounded ${
+                        interaction.mode === 'qa' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {interaction.mode}
+                      </span>
                     </div>
-                    <div className="ml-4 text-right">
-                      <p className="text-xs text-gray-500">{formatTime(log.timestamp)}</p>
-                      <p className="text-xs text-gray-400 mt-1">{log.processingTimeMs}ms</p>
+                    <div className="mb-2">
+                      <p className="font-medium text-gray-900">Q: {interaction.question}</p>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Detail Modal */}
-      {selectedLog && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Interaction Details</h3>
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="px-6 py-4 overflow-y-auto max-h-[calc(80vh-8rem)]">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">Metadata</h4>
-                  <dl className="mt-2 text-sm text-gray-600 space-y-1">
-                    <div className="flex justify-between">
-                      <dt>ID:</dt>
-                      <dd className="font-mono text-xs">{selectedLog.id}</dd>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-gray-700">{interaction.response}</p>
                     </div>
-                    <div className="flex justify-between">
-                      <dt>Timestamp:</dt>
-                      <dd>{formatDate(selectedLog.timestamp)}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt>Mode:</dt>
-                      <dd>{selectedLog.mode}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt>Processing Time:</dt>
-                      <dd>{selectedLog.processingTimeMs}ms</dd>
-                    </div>
-                    {selectedLog.responseId && (
-                      <div className="flex justify-between">
-                        <dt>Response ID:</dt>
-                        <dd className="font-mono text-xs">{selectedLog.responseId}</dd>
+                    {interaction.error && (
+                      <div className="mt-2 p-2 bg-red-50 text-red-800 text-sm rounded">
+                        Error: {interaction.error}
                       </div>
                     )}
-                  </dl>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'quiz' && selectedSession && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">
+                Quiz History - {selectedSession.sessionId.substring(0, 12)}...
+              </h2>
+              
+              {quizHistory.session && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium mb-2">Quiz Session Summary</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <span className="text-sm text-gray-500">Score</span>
+                      <p className="font-semibold">{quizHistory.session.userScore.correct}/{quizHistory.session.userScore.total}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Accuracy</span>
+                      <p className="font-semibold">
+                        {quizHistory.session.userScore.total > 0 
+                          ? Math.round((quizHistory.session.userScore.correct / quizHistory.session.userScore.total) * 100)
+                          : 0}%
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Difficulty</span>
+                      <p className="font-semibold capitalize">{quizHistory.session.difficulty}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Questions Bank</span>
+                      <p className="font-semibold">{quizHistory.session.questionBank.length}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {quizHistory.turns.map((turn, index) => (
+                  <div key={turn.turnId} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <span className="text-sm text-gray-500">Turn #{quizHistory.turns.length - index}</span>
+                        <span className="ml-2 text-sm text-gray-500">{formatTimestamp(turn.timestamp)}</span>
+                        <span className="ml-2 text-sm text-gray-500">({turn.processingTime}ms)</span>
+                      </div>
+                      <div className="flex space-x-2">
+                        <span className={`px-2 py-1 text-xs rounded ${
+                          turn.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {turn.isCorrect ? 'Correct' : 'Incorrect'}
+                        </span>
+                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
+                          {turn.category}
+                        </span>
+                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                          {turn.questionType}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mb-2">
+                      <p className="font-medium text-gray-900">Q: {turn.question}</p>
+                    </div>
+                    <div className="mb-2">
+                      <p className="text-gray-700">Student Answer: "{turn.userAnswer}"</p>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-gray-700">{turn.aiResponse}</p>
+                    </div>
+                    {turn.hintsUsed > 0 && (
+                      <div className="mt-2 text-sm text-blue-600">
+                        Hints used: {turn.hintsUsed}
+                      </div>
+                    )}
+                    {turn.error && (
+                      <div className="mt-2 p-2 bg-red-50 text-red-800 text-sm rounded">
+                        Error: {turn.error}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'stats' && stats && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Performance Statistics</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Response Times */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium mb-3">Average Response Times</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Chat:</span>
+                      <span className="font-mono">{stats.avgResponseTime.chat}ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Quiz:</span>
+                      <span className="font-mono">{stats.avgResponseTime.quiz}ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Exa API:</span>
+                      <span className="font-mono">{stats.avgResponseTime.exa}ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>MCP:</span>
+                      <span className="font-mono">{stats.avgResponseTime.mcp}ms</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">User Message</h4>
-                  <p className="mt-2 text-sm text-gray-900 bg-gray-50 p-3 rounded">
-                    {selectedLog.userMessage}
-                  </p>
+                {/* Success Rates */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium mb-3">Success Rates</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Chat:</span>
+                      <span className="font-mono">{(stats.successRates.chat * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Quiz:</span>
+                      <span className="font-mono">{(stats.successRates.quiz * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Exa API:</span>
+                      <span className="font-mono">{(stats.successRates.exa * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>MCP:</span>
+                      <span className="font-mono">{(stats.successRates.mcp * 100).toFixed(1)}%</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">AI Response</h4>
-                  <p className="mt-2 text-sm text-gray-900 bg-blue-50 p-3 rounded whitespace-pre-wrap">
-                    {selectedLog.aiResponse}
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">Tools Called</h4>
-                  {selectedLog.toolsCalled.length > 0 ? (
-                    <ul className="mt-2 text-sm text-gray-600 bg-green-50 p-3 rounded">
-                      {selectedLog.toolsCalled.map((tool, index) => (
-                        <li key={index}>🔧 {tool}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-2 text-sm text-gray-500 bg-gray-50 p-3 rounded">
-                      None - Response generated without external tools
-                    </p>
+                {/* Quiz Statistics */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium mb-3">Quiz Analytics</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Avg Correct Rate:</span>
+                      <span className="font-mono">{(stats.quizStats.avgCorrectRate * 100).toFixed(1)}%</span>
+                    </div>
+                  </div>
+                  {Object.keys(stats.quizStats.popularCategories).length > 0 && (
+                    <div className="mt-3">
+                      <h4 className="text-sm font-medium mb-2">Popular Categories:</h4>
+                      <div className="space-y-1">
+                        {Object.entries(stats.quizStats.popularCategories)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 5)
+                          .map(([category, count]) => (
+                            <div key={category} className="flex justify-between text-sm">
+                              <span className="capitalize">{category}:</span>
+                              <span>{count}</span>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                {selectedLog.error && (
-                  <div>
-                    <h4 className="text-sm font-medium text-red-700">Error</h4>
-                    <p className="mt-2 text-sm text-red-900 bg-red-50 p-3 rounded">
-                      {selectedLog.error}
-                    </p>
+                {/* Cache Statistics */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium mb-3">Cache Performance</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Hit Rate:</span>
+                      <span className="font-mono">{(stats.cacheStats.hitRate * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Hits:</span>
+                      <span className="font-mono">{stats.cacheStats.totalHits}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Misses:</span>
+                      <span className="font-mono">{stats.cacheStats.totalMisses}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Avg Generation:</span>
+                      <span className="font-mono">{stats.cacheStats.avgGenerationTime}ms</span>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>Last updated: {stats?.timestamp ? formatTimestamp(stats.timestamp) : 'Loading...'}</p>
+          <div className="mt-2 space-x-4">
+            <a href="/api/hockey-iq/monitor/export" className="text-blue-600 hover:text-blue-800">Export Data</a>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="text-blue-600 hover:text-blue-800"
+            >
+              Refresh
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
