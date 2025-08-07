@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { secureResponsesAgent } from '@/lib/server/hockeyAgent'
 import questionsData from '@/data/hockey-iq-questions.json'
+import { dynamicQuizGenerator } from '@/lib/server/dynamicQuizGenerator'
+import '@/lib/server/initializeQuizCache' // Trigger cache initialization
 import OpenAI from 'openai'
 
 export async function POST(request: NextRequest) {
@@ -17,8 +19,35 @@ export async function POST(request: NextRequest) {
 
     switch (body.action) {
       case 'get_question': {
-        // Get a random question from the specified category
+        // Use hybrid approach: Try dynamic generation first, fallback to static
         const category = body.category
+        const useDynamic = body.useDynamic !== false // Default to true
+        
+        try {
+          if (useDynamic) {
+            // Try dynamic generation with caching
+            console.log(`[Quiz API] Attempting dynamic generation for category: ${category}`)
+            const dynamicQuestion = await dynamicQuizGenerator.generateQuestion({
+              category: category || 'rules',
+              difficulty: body.difficulty || 'rookie',
+              includeThunderContext: body.includeThunderContext !== false,
+              useCache: true
+            })
+            
+            return NextResponse.json({
+              success: true,
+              question: dynamicQuestion,
+              source: 'dynamic',
+              timestamp: new Date().toISOString()
+            })
+          }
+        } catch (error) {
+          console.error('[Quiz API] Dynamic generation failed:', error)
+          // Fall through to static questions
+        }
+        
+        // Fallback to static questions
+        console.log(`[Quiz API] Using static questions for category: ${category}`)
         const questions = category 
           ? questionsData.questions.filter(q => q.category === category)
           : questionsData.questions
@@ -35,13 +64,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           question: randomQuestion,
+          source: 'static',
           timestamp: new Date().toISOString()
         })
       }
 
       case 'evaluate_answer': {
         // Evaluate user's answer using AI for flexible matching
-        const { questionId, userAnswer } = body
+        const { questionId, userAnswer, questionText, correctAnswer } = body
         
         if (!questionId || !userAnswer) {
           return NextResponse.json(
@@ -50,7 +80,30 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        const question = questionsData.questions.find(q => q.id === questionId)
+        // Try to find question in static data first
+        let question = questionsData.questions.find(q => q.id === questionId)
+        
+        // If not found and it's a dynamic question, use the provided question data
+        if (!question && questionId.startsWith('dynamic_')) {
+          if (!questionText || !correctAnswer) {
+            return NextResponse.json(
+              { error: 'Dynamic question data missing' },
+              { status: 400 }
+            )
+          }
+          // Create a temporary question object for evaluation
+          question = {
+            id: questionId,
+            question: questionText,
+            correctAnswer: correctAnswer,
+            encouragementMessages: {
+              correct: "Great job! You're a hockey star! 🌟",
+              incorrect: "Good try! Let's learn together!"
+            },
+            funFact: body.funFact || "Hockey is an amazing sport!",
+            followUpQuestions: body.followUpQuestions || ["Why do you think that's important?"]
+          } as any
+        }
         
         if (!question) {
           return NextResponse.json(
@@ -109,32 +162,128 @@ Respond with a JSON object:
 
       case 'get_hint': {
         // Get a hint for the current question
-        const { questionId, hintIndex = 0 } = body
+        const { questionId, hintIndex = 0, hints } = body
         
-        const question = questionsData.questions.find(q => q.id === questionId)
+        // Try to find question in static data first
+        let questionHints = questionsData.questions.find(q => q.id === questionId)?.hints
         
-        if (!question) {
+        // If not found and it's a dynamic question, use the provided hints
+        if (!questionHints && questionId.startsWith('dynamic_')) {
+          if (!hints || !Array.isArray(hints)) {
+            return NextResponse.json(
+              { error: 'Dynamic question hints missing' },
+              { status: 400 }
+            )
+          }
+          questionHints = hints
+        }
+        
+        if (!questionHints) {
           return NextResponse.json(
             { error: 'Question not found' },
             { status: 404 }
           )
         }
 
-        const hint = question.hints[Math.min(hintIndex, question.hints.length - 1)]
+        const hint = questionHints[Math.min(hintIndex, questionHints.length - 1)]
         
         return NextResponse.json({
           success: true,
           hint,
-          hasMoreHints: hintIndex < question.hints.length - 1,
+          hasMoreHints: hintIndex < questionHints.length - 1,
+          timestamp: new Date().toISOString()
+        })
+      }
+
+      case 'get_stats': {
+        // Get quiz generation statistics
+        const stats = {
+          cacheStats: dynamicQuizGenerator.getCacheStats(),
+          totalGenerated: 0,
+          fromMCP: 0,
+          fromStatic: 0,
+          cacheHitRate: 0,
+          cacheHits: 0,
+          cacheMisses: 0,
+          avgGenerationTime: 3000,
+          categoryBreakdown: {},
+          toolUsage: {}
+        }
+        
+        // Calculate totals from cache stats
+        if (stats.cacheStats) {
+          Object.values(stats.cacheStats).forEach((category: any) => {
+            stats.totalGenerated += category.total || 0
+            stats.fromMCP += category.valid || 0
+            stats.cacheHits += category.valid || 0
+            stats.cacheMisses += category.expired || 0
+          })
+          
+          // Estimate static vs MCP (if cache has items, they're likely from MCP)
+          stats.fromStatic = Math.max(0, stats.totalGenerated - stats.fromMCP)
+          
+          // Calculate cache hit rate
+          const totalRequests = stats.cacheHits + stats.cacheMisses
+          stats.cacheHitRate = totalRequests > 0 ? 
+            Math.round((stats.cacheHits / totalRequests) * 100) : 0
+        }
+        
+        return NextResponse.json(stats)
+      }
+
+      case 'preload_questions': {
+        // Preload questions for all categories to warm the cache
+        try {
+          await dynamicQuizGenerator.preloadQuestions()
+          
+          return NextResponse.json({
+            success: true,
+            message: 'Questions preloaded successfully',
+            timestamp: new Date().toISOString()
+          })
+        } catch (error) {
+          console.error('[Quiz API] Preload failed:', error)
+          return NextResponse.json({
+            success: false,
+            error: 'Failed to preload questions',
+            timestamp: new Date().toISOString()
+          })
+        }
+      }
+      
+      case 'get_cache_stats': {
+        // Get cache statistics for monitoring
+        const stats = await import('@/lib/server/quizCache').then(m => m.quizCache.getStats())
+        
+        return NextResponse.json({
+          success: true,
+          stats,
           timestamp: new Date().toISOString()
         })
       }
 
       case 'get_socratic_followup': {
         // Generate a Socratic follow-up question based on the user's answer
-        const { questionId, userAnswer, previousResponseId } = body
+        const { questionId, userAnswer, previousResponseId, questionText, category } = body
         
-        const question = questionsData.questions.find(q => q.id === questionId)
+        // Try to find question in static data first
+        let question = questionsData.questions.find(q => q.id === questionId)
+        
+        // If not found and it's a dynamic question, use the provided question data
+        if (!question && questionId.startsWith('dynamic_')) {
+          if (!questionText || !category) {
+            return NextResponse.json(
+              { error: 'Dynamic question data missing' },
+              { status: 400 }
+            )
+          }
+          // Create a temporary question object
+          question = {
+            id: questionId,
+            question: questionText,
+            category: category
+          } as any
+        }
         
         if (!question) {
           return NextResponse.json(

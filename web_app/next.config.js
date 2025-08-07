@@ -2,7 +2,7 @@
 const nextConfig = {
   // Environment variables for MCP server connection
   env: {
-    MCP_SERVER_URL: process.env.MCP_SERVER_URL || 'http://localhost:8000',
+    MCP_SERVER_URL: process.env.MCP_SERVER_URL || 'http://localhost:3003/api',
   },
   // CORS configuration for development
   async headers() {

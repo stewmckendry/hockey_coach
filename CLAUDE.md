@@ -19,6 +19,7 @@ This is a Hockey Coach AI Assistant platform with a **hybrid MCP + Responses API
 ### Core Components
 - **MCP Server** (`servers/hockey_mcp.py`): FastMCP server providing 4 hockey coaching tools
 - **Hockey Diagram MCP Server** (`servers/hockey_diagram_mcp/`): FastMCP server for programmatic hockey tactical diagram generation
+- **Hockey IQ Chatbot** (`web_app/components/hockey-iq/`): Dual-mode Socratic chatbot for U10 players (Issue #95)
 - **Direct API Server** (`servers/hockey_mcp_direct_api.py`): API wrapper for MCP server (port 3003) 
 - **Next.js Web App** (`web_app/`): Frontend with server-side AI integration using OpenAI Responses API
 - **Vector Database**: ChromaDB with 8 hockey knowledge collections (1000+ items)
@@ -210,6 +211,80 @@ curl -X POST http://localhost:8001/mcp \
 - **Fallback**: Automatically falls back to Stability AI if MCP server unavailable
 - **Validation**: Validates diagram specifications before rendering
 - **Logging**: Comprehensive logging for debugging and monitoring
+
+## Hockey IQ Chatbot
+
+**🎯 Issue #95 Implementation**: Interactive dual-mode chatbot for U10 players using Socratic questioning
+
+### Overview
+The Hockey IQ Chatbot provides an engaging learning experience for U10 hockey players (8-9 years old) through two interactive modes: Q&A (players ask questions) and Quiz (bot asks questions). Both modes use Socratic reasoning to guide learning rather than just providing answers.
+
+### Key Features
+- **Dual Modes**: Q&A mode for curiosity, Quiz mode for testing knowledge
+- **Socratic Method**: Guides learning through questions like "Why do you think that?"
+- **Age-Appropriate**: Grade 3-4 reading level with 70% visual, 30% text ratio
+- **MCP Integration**: Leverages existing hockey knowledge base for enriched answers
+- **Notion Embedding**: Can be embedded as iframe in team sites
+- **Achievement System**: Unlockable badges to encourage engagement
+
+### Access Methods
+```bash
+# Direct access
+http://localhost:3000/hockey-iq
+
+# Notion embedding (iframe)
+http://localhost:3000/hockey-iq?embedded=true
+```
+
+### Question Categories (20+ questions)
+- **Rules & Penalties** ⚖️ - Offside, icing, penalties
+- **Positioning & Strategy** 🎯 - Face-offs, power play positions
+- **Skills & Techniques** 🏒 - Shooting, passing, skating
+- **Teamwork & Sportsmanship** 🤝 - Supporting teammates
+- **Hockey History & Fun Facts** ⭐ - Hat tricks, Stanley Cup
+
+### Technical Implementation
+```typescript
+// Component structure
+web_app/
+├── components/hockey-iq/
+│   ├── HockeyIQInterface.tsx    // Main container
+│   ├── ModeSelector.tsx         // Q&A/Quiz toggle
+│   ├── QuizQuestion.tsx         // Quiz display
+│   └── KidFriendlyChat.tsx      // Chat interface
+├── data/hockey-iq-questions.json // Question bank
+└── app/
+    ├── hockey-iq/page.tsx        // Main page
+    └── api/hockey-iq/
+        ├── chat/route.ts         // Q&A API
+        └── quiz/route.ts         // Quiz API
+```
+
+### Socratic Method Examples
+```
+Player: "What's offside?"
+Bot: "Great question! 🏒 Have you noticed the blue lines on the ice? 
+     What do you think would happen if players could go anywhere 
+     before the puck? Would that be fair? Let's figure this out together..."
+
+Player: "How do I shoot harder?"
+Bot: "Awesome that you want to improve! 💪 When you throw a ball far, 
+     do you use just your arms or your whole body? Hockey shots are 
+     similar! What part gives the most power? Hint: it starts with legs..."
+```
+
+### API Integration
+The chatbot uses the `processHockeyIQMessage` method in `hockeyAgent.ts`:
+- Socratic system prompts for U10 players
+- Integration with MCP tools for knowledge enrichment
+- Grade-appropriate language generation
+- Encouraging feedback regardless of accuracy
+
+### Usage in Notion
+1. Create an embed block in Notion
+2. Use URL: `https://your-domain.com/hockey-iq?embedded=true`
+3. Set height to 600px minimum
+4. Mobile-responsive design works on all devices
 
 ## Practice Planning Workflow
 

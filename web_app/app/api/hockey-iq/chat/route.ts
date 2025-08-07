@@ -6,9 +6,12 @@ import { hockeyIQLogger } from '@/lib/server/hockeyIQLogger'
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
 
 export async function POST(request: NextRequest) {
+  const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  const startTime = Date.now()
+  let body: any = {}  // Declare body outside try block for error handling
+  
   try {
     // Rate limiting by IP (kid-friendly: 30 requests per hour)
-    const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
     const now = Date.now()
     const limit = rateLimitMap.get(clientIP)
     
@@ -24,8 +27,7 @@ export async function POST(request: NextRequest) {
       rateLimitMap.set(clientIP, { count: 1, resetTime: now + 3600000 }) // 1 hour
     }
 
-    const startTime = Date.now()
-    const body = await request.json()
+    body = await request.json()
     
     // Generate session ID from IP or use provided one
     const sessionId = body.sessionId || clientIP

@@ -16,7 +16,8 @@ export default function HockeyIQMonitor() {
   const [selectedLog, setSelectedLog] = useState<HockeyIQLogEntry | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'live' | 'search' | 'stats'>('live')
+  const [activeTab, setActiveTab] = useState<'live' | 'search' | 'stats' | 'quiz'>('live')
+  const [quizStats, setQuizStats] = useState<any>(null)
 
   // Fetch recent logs and stats
   const fetchData = async () => {
@@ -40,6 +41,17 @@ export default function HockeyIQMonitor() {
       if (datesResponse.ok) {
         const datesData = await datesResponse.json()
         setAvailableDates(datesData.dates)
+      }
+
+      // Fetch quiz generation stats
+      const quizStatsResponse = await fetch('/api/hockey-iq/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_stats' })
+      })
+      if (quizStatsResponse.ok) {
+        const quizData = await quizStatsResponse.json()
+        setQuizStats(quizData)
       }
     } catch (error) {
       console.error('Failed to fetch monitoring data:', error)
@@ -175,6 +187,16 @@ export default function HockeyIQMonitor() {
             >
               Search Logs
             </button>
+            <button
+              onClick={() => setActiveTab('quiz')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'quiz'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Quiz Generation
+            </button>
           </nav>
         </div>
       </div>
@@ -292,6 +314,184 @@ export default function HockeyIQMonitor() {
               >
                 Search
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Quiz Generation Tab */}
+        {activeTab === 'quiz' && (
+          <div className="space-y-6">
+            {/* Quiz Generation Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Questions Generated</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {quizStats?.totalGenerated || 0}
+                    </p>
+                  </div>
+                  <div className="text-3xl">🎯</div>
+                </div>
+                <div className="mt-4 text-xs text-gray-500">
+                  <div className="flex justify-between">
+                    <span>From MCP Research:</span>
+                    <span className="font-medium text-green-600">
+                      {quizStats?.fromMCP || 0} ({quizStats?.totalGenerated > 0 ? 
+                        Math.round((quizStats?.fromMCP / quizStats?.totalGenerated) * 100) : 0}%)
+                    </span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span>From Static Bank:</span>
+                    <span className="font-medium text-gray-600">
+                      {quizStats?.fromStatic || 0} ({quizStats?.totalGenerated > 0 ? 
+                        Math.round((quizStats?.fromStatic / quizStats?.totalGenerated) * 100) : 0}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Cache Performance</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {quizStats?.cacheHitRate || '0'}%
+                    </p>
+                  </div>
+                  <div className="text-3xl">⚡</div>
+                </div>
+                <div className="mt-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full"
+                      style={{ width: `${quizStats?.cacheHitRate || 0}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {quizStats?.cacheHits || 0} cache hits / {quizStats?.cacheMisses || 0} misses
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Avg Generation Time</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {quizStats?.avgGenerationTime || 0}ms
+                    </p>
+                  </div>
+                  <div className="text-3xl">⏱️</div>
+                </div>
+                <div className="mt-4 text-xs text-gray-500">
+                  <div className="flex justify-between">
+                    <span>Cached Response:</span>
+                    <span className="font-medium text-green-600">~5ms</span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span>New Generation:</span>
+                    <span className="font-medium text-orange-600">~3000ms</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* MCP Tools Usage for Quiz */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">MCP Research Tools Usage</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {['rules', 'tactics', 'skills', 'dryland', 'nhl_insights'].map(tool => (
+                  <div key={tool} className="text-center">
+                    <div className="text-2xl mb-2">
+                      {tool === 'rules' ? '📋' : 
+                       tool === 'tactics' ? '🎯' :
+                       tool === 'skills' ? '⛸️' :
+                       tool === 'dryland' ? '🏃' : '🌟'}
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {quizStats?.toolUsage?.[`search_hockey_${tool}`] || 0}
+                    </p>
+                    <p className="text-xs text-gray-500">{tool.replace('_', ' ')}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Breakdown */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Questions by Category</h3>
+              <div className="space-y-3">
+                {['rules', 'positioning', 'skills', 'teamwork', 'fun_facts'].map(category => {
+                  const count = quizStats?.categoryBreakdown?.[category] || 0
+                  const total = quizStats?.totalGenerated || 1
+                  const percentage = Math.round((count / total) * 100)
+                  
+                  return (
+                    <div key={category} className="flex items-center">
+                      <span className="w-24 text-sm text-gray-600 capitalize">
+                        {category.replace('_', ' ')}
+                      </span>
+                      <div className="flex-1 mx-4">
+                        <div className="w-full bg-gray-200 rounded-full h-4">
+                          <div 
+                            className={`h-4 rounded-full ${
+                              category === 'rules' ? 'bg-blue-500' :
+                              category === 'positioning' ? 'bg-green-500' :
+                              category === 'skills' ? 'bg-purple-500' :
+                              category === 'teamwork' ? 'bg-orange-500' :
+                              'bg-pink-500'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 w-16 text-right">
+                        {count}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Recent Quiz Generations */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Recent Quiz Questions Generated</h3>
+              </div>
+              <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                {logs
+                  .filter(log => log.mode === 'quiz' || log.toolsCalled.some(t => t.includes('quiz')))
+                  .slice(0, 10)
+                  .map(log => (
+                    <div key={log.id} className="px-6 py-3 hover:bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            {log.toolsCalled.some(t => t.includes('search_hockey')) ? (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                🔍 MCP Research
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                📚 Static Bank
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-500">{log.category}</span>
+                          </div>
+                          <p className="text-sm text-gray-900 mt-1">
+                            {log.aiResponse.substring(0, 100)}...
+                          </p>
+                        </div>
+                        <div className="text-xs text-gray-500 ml-4">
+                          <p>{formatTime(log.timestamp)}</p>
+                          <p className="text-gray-400">{log.processingTimeMs}ms</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         )}

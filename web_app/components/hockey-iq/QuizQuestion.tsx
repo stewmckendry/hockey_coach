@@ -31,29 +31,73 @@ export function QuizQuestion({ question, onAnswer, questionsAnswered }: QuizQues
     setIsCorrect(null)
   }, [question.id])
 
-  const handleSubmit = () => {
-    const correct = userAnswer.toLowerCase().includes(question.correctAnswer.toLowerCase()) ||
-                   question.correctAnswer.toLowerCase().includes(userAnswer.toLowerCase())
-    
-    setIsCorrect(correct)
-    setAttempts(attempts + 1)
+  const handleSubmit = async () => {
+    // Use LLM to check answer instead of simple string matching
+    try {
+      const response = await fetch('/api/hockey-iq/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'evaluate_answer',
+          questionId: question.id,
+          userAnswer: userAnswer,
+          // Include question data for dynamic questions
+          questionText: question.question,
+          correctAnswer: question.correctAnswer,
+          funFact: question.funFact,
+          followUpQuestions: question.followUpQuestions
+        })
+      })
 
-    if (correct) {
-      setShowFollowUp(true)
-      setTimeout(() => {
-        onAnswer(true)
-      }, 3000)
-    } else if (attempts < 2) {
-      // Show hint after wrong answer
-      setShowHint(true)
-      if (hintIndex < question.hints.length - 1) {
-        setHintIndex(hintIndex + 1)
+      const result = await response.json()
+      
+      // Use LLM evaluation result
+      const correct = result.correct || false
+      
+      setIsCorrect(correct)
+      setAttempts(attempts + 1)
+
+      if (correct) {
+        setShowFollowUp(true)
+        setTimeout(() => {
+          onAnswer(true)
+        }, 3000)
+      } else if (attempts < 2) {
+        // Show hint after wrong answer
+        setShowHint(true)
+        if (hintIndex < question.hints.length - 1) {
+          setHintIndex(hintIndex + 1)
+        }
+      } else {
+        // After 3 attempts, show the answer and move on
+        setTimeout(() => {
+          onAnswer(false)
+        }, 3000)
       }
-    } else {
-      // After 3 attempts, show the answer and move on
-      setTimeout(() => {
-        onAnswer(false)
-      }, 3000)
+    } catch (error) {
+      console.error('Error checking answer:', error)
+      // Fallback to simple string matching if API fails
+      const correct = userAnswer.toLowerCase().includes(question.correctAnswer.toLowerCase()) ||
+                     question.correctAnswer.toLowerCase().includes(userAnswer.toLowerCase())
+      
+      setIsCorrect(correct)
+      setAttempts(attempts + 1)
+
+      if (correct) {
+        setShowFollowUp(true)
+        setTimeout(() => {
+          onAnswer(true)
+        }, 3000)
+      } else if (attempts < 2) {
+        setShowHint(true)
+        if (hintIndex < question.hints.length - 1) {
+          setHintIndex(hintIndex + 1)
+        }
+      } else {
+        setTimeout(() => {
+          onAnswer(false)
+        }, 3000)
+      }
     }
   }
 
@@ -79,6 +123,19 @@ export function QuizQuestion({ question, onAnswer, questionsAnswered }: QuizQues
             <div className="flex items-center gap-2 mb-2">
               {getLevelBadge()}
               <span className="text-sm text-gray-500">Question #{questionsAnswered + 1}</span>
+              {/* Research Source Indicator */}
+              {question.researchSource && question.researchSource !== 'static' && question.researchSource !== 'default' && (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 flex items-center gap-1">
+                  <span>🔍</span>
+                  <span>AI Generated from {question.researchSource.replace('search_hockey_', '').replace('_', ' ')}</span>
+                </span>
+              )}
+              {question.thunderContext && (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
+                  <span>⚡</span>
+                  <span>Thunder Team</span>
+                </span>
+              )}
             </div>
             <h2 className="text-2xl font-bold text-gray-800 leading-relaxed">
               {question.question}

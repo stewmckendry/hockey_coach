@@ -1,13 +1,17 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { ModeSelector } from './ModeSelector'
 import { QuizQuestion } from './QuizQuestion'
-import { KidFriendlyChat, KidFriendlyChatRef } from './KidFriendlyChat'
+import { KidFriendlyChat } from './KidFriendlyChat'
 import questionsData from '@/data/hockey-iq-questions.json'
 
 export type Mode = 'qa' | 'quiz'
-export type Question = typeof questionsData.questions[0]
+export type Question = typeof questionsData.questions[0] & {
+  // Dynamic generation fields
+  researchSource?: string
+  thunderContext?: string
+}
 export type Category = keyof typeof questionsData.categories
 export type Achievement = keyof typeof questionsData.achievements
 
@@ -30,7 +34,6 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationMessage, setCelebrationMessage] = useState('')
-  const chatRef = useRef<KidFriendlyChatRef>(null)
 
   // Check for achievements
   useEffect(() => {
@@ -85,25 +88,10 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
 
   const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category)
+    // Categories are now only used in quiz mode
     if (mode === 'quiz') {
       setCurrentQuestion(getRandomQuestion(category))
-    } else if (mode === 'qa') {
-      // In Q&A mode, auto-populate the input with category question
-      const categoryQuestion = getCategoryQuestion(category)
-      chatRef.current?.setInputValue(categoryQuestion)
     }
-  }
-
-  // Category-specific questions for Q&A mode
-  const getCategoryQuestion = (category: Category): string => {
-    const categoryQuestions = {
-      rules: "What are the basic rules of hockey?",
-      positioning: "Where should I position myself on the ice?", 
-      skills: "What hockey skills should I work on?",
-      teamwork: "How can I be a better teammate?",
-      fun_facts: "Tell me some fun facts about hockey!"
-    }
-    return categoryQuestions[category]
   }
 
   return (
@@ -135,30 +123,32 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
         />
       </div>
 
-      {/* Category Selector */}
-      <div className="p-4 bg-gray-50 border-b">
-        <div className="flex flex-wrap gap-2 justify-center">
-          {Object.entries(questionsData.categories).map(([key, category]) => (
-            <button
-              key={key}
-              onClick={() => handleCategorySelect(key as Category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
-                selectedCategory === key
-                  ? 'bg-blue-500 text-white shadow-lg'
-                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300'
-              }`}
-            >
-              <span className="mr-1">{category.emoji}</span>
-              {category.name}
-            </button>
-          ))}
+      {/* Category Selector - Only show in Quiz mode */}
+      {mode === 'quiz' && (
+        <div className="p-4 bg-gray-50 border-b">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {Object.entries(questionsData.categories).map(([key, category]) => (
+              <button
+                key={key}
+                onClick={() => handleCategorySelect(key as Category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
+                  selectedCategory === key
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                <span className="mr-1">{category.emoji}</span>
+                {category.name}
+              </button>
+            ))}
+          </div>
+          {selectedCategory && (
+            <p className="text-center text-xs text-gray-600 mt-2">
+              {questionsData.categories[selectedCategory].description}
+            </p>
+          )}
         </div>
-        {selectedCategory && (
-          <p className="text-center text-xs text-gray-600 mt-2">
-            {questionsData.categories[selectedCategory].description}
-          </p>
-        )}
-      </div>
+      )}
 
       {/* Celebration Message */}
       {showCelebration && (
@@ -173,7 +163,6 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
       <div className="flex-1 overflow-y-auto p-4">
         {mode === 'qa' ? (
           <KidFriendlyChat 
-            ref={chatRef}
             selectedCategory={selectedCategory}
             embedded={embedded}
           />
