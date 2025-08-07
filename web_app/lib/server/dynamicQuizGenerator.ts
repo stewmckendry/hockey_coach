@@ -145,13 +145,17 @@ class DynamicQuizGenerator {
    */
   private async searchHockeyKnowledge(category: string): Promise<MCPSearchResult> {
     try {
+      // Special handling for fun_facts - use Exa web search
+      if (category === 'fun_facts') {
+        return await this.searchWithExa(category)
+      }
+
       // Map category to appropriate MCP tool - using ACTUAL tools from hockey_mcp.py
       const toolMapping: Record<string, string> = {
         'rules': 'search_hockey_rules',        // Searches rule collections
         'positioning': 'search_hockey_tactics', // Searches tactics collection
         'skills': 'search_hockey_skills',      // Searches skills collection
         'teamwork': 'search_hockey_tactics',   // Teamwork is part of tactics
-        'fun_facts': 'search_hockey_nhl_insights' // NHL insights for fun facts
       }
 
       const tool = toolMapping[category] || 'search_hockey_skills' // Default to skills
@@ -219,6 +223,177 @@ class DynamicQuizGenerator {
     } catch (error) {
       console.error('[Quiz] MCP search failed:', error)
       // Return default knowledge as fallback
+      return {
+        content: this.getDefaultKnowledge(category),
+        source: 'default',
+        relevance: 0.3
+      }
+    }
+  }
+
+  /**
+   * Search using Exa web search for fun facts
+   */
+  private async searchWithExa(category: string): Promise<MCPSearchResult> {
+    try {
+      // Check if Exa API key is configured
+      const exaApiKey = process.env.EXA_API_KEY
+      
+      if (!exaApiKey) {
+        console.log('[Quiz] Exa API key not configured, falling back to NHL insights')
+        return await this.searchHockeyKnowledgeFallback('fun_facts')
+      }
+      
+      const query = this.getCategorySearchQuery(category)
+      
+      console.log('[Quiz] Exa API Request:', { query, numResults: 5 })
+      
+      // Call Exa API directly (server-side only, API key is safe)
+      const response = await fetch('https://api.exa.ai/search', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${exaApiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          query: query,
+          numResults: 5,
+          useAutoprompt: true,  // Improves search quality
+          type: 'neural',       // Use neural search for better results
+          contents: {
+            text: true          // Include text content in results
+          },
+          highlights: {
+            numSentences: 3,    // Get 3 sentence highlights
+            highlightsPerUrl: 1 // One highlight per URL
+          }
+        })
+      })
+      
+      console.log('[Quiz] Exa API Response:', response.status, response.statusText)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[Quiz] Exa API error:', errorText)
+        throw new Error(`Exa API failed: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      // Parse Exa API response
+      if (data && data.results && Array.isArray(data.results)) {
+        // Combine the top results into research content
+        const topResults = data.results.slice(0, 3)
+        const combinedContent = topResults.map((result: any) => {
+          const parts = []
+          
+          // Use the title and highlight/text for context
+          if (result.title) parts.push(result.title)
+          
+          // Prefer highlights over full text (more concise)
+          if (result.highlights && result.highlights.length > 0) {
+            parts.push(result.highlights.join(' '))
+          } else if (result.text) {
+            // Truncate text if too long
+            const text = result.text.substring(0, 500)
+            parts.push(text)
+          } else if (result.snippet) {
+            parts.push(result.snippet)
+          }
+          
+          // Add URL for reference (though we won't show it to kids)
+          if (result.url) {
+            console.log(`[Quiz] Exa source: ${result.url}`)
+          }
+          
+          return parts.join('. ')
+        }).join('\n\n')
+        
+        console.log(`[Quiz] Exa returned ${data.results.length} results, using top 3`)
+        
+        return {
+          content: combinedContent || this.getDefaultKnowledge(category),
+          source: 'exa_web_search',
+          relevance: 0.95  // Exa provides highly relevant current content
+        }
+      }
+      
+      // Fallback if unexpected response format
+      console.log('[Quiz] Exa API returned unexpected format, falling back')
+      return {
+        content: this.getDefaultKnowledge(category),
+        source: 'exa_web_search',
+        relevance: 0.5
+      }
+    } catch (error) {
+      console.error('[Quiz] Exa API call failed, falling back to NHL insights:', error)
+      console.error('[Quiz] Exa API error details:', error instanceof Error ? error.message : error)
+      // Fall back to NHL insights tool when Exa fails
+      return await this.searchHockeyKnowledgeFallback('fun_facts')
+    }
+  }
+
+  /**
+   * Fallback search using local hockey MCP tools
+   */
+  private async searchHockeyKnowledgeFallback(category: string): Promise<MCPSearchResult> {
+    try {
+      const tool = 'search_hockey_nhl_insights' // Use NHL insights for fun facts
+      
+      const endpoint = this.mcpBaseUrl.includes('localhost') 
+        ? `${this.mcpBaseUrl}/mcp`
+        : `${this.mcpBaseUrl}/mcp/execute`
+        
+      const requestBody = {
+        tool: tool,
+        parameters: {
+          query: 'hockey history NHL players Stanley Cup records'
+        }
+      }
+      
+      console.log('[Quiz] Fallback MCP Request:', { endpoint, tool })
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Fallback search failed: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      if (data && data.success && data.data && data.data.content && Array.isArray(data.data.content)) {
+        const topResults = data.data.content.slice(0, 3)
+        const combinedContent = topResults.map((item: any) => {
+          const result = JSON.parse(item.text)
+          const parts = []
+          if (result.title) parts.push(result.title)
+          if (result.summary) parts.push(result.summary)
+          if (result.teaching_points) parts.push(`Teaching points: ${result.teaching_points}`)
+          return parts.join('. ')
+        }).join('\n\n')
+        
+        return {
+          content: combinedContent || this.getDefaultKnowledge(category),
+          source: 'search_hockey_nhl_insights',
+          relevance: 0.9
+        }
+      }
+      
+      return {
+        content: this.getDefaultKnowledge(category),
+        source: 'search_hockey_nhl_insights',
+        relevance: 0.5
+      }
+    } catch (error) {
+      console.error('[Quiz] Fallback search also failed:', error)
       return {
         content: this.getDefaultKnowledge(category),
         source: 'default',
@@ -311,7 +486,7 @@ Return a JSON object with:
       'positioning': 'hockey positions defensive offensive zone coverage',
       'skills': 'hockey skating passing shooting stickhandling techniques',
       'teamwork': 'hockey teamwork communication support systems',
-      'fun_facts': 'hockey history NHL players Stanley Cup records'
+      'fun_facts': 'interesting hockey facts NHL records amazing hockey statistics fun hockey trivia for kids 2024'
     }
     
     return queries[category] || 'hockey basics for kids'

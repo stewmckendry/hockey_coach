@@ -127,7 +127,13 @@ export function QuizQuestion({ question, onAnswer, questionsAnswered }: QuizQues
               {question.researchSource && question.researchSource !== 'static' && question.researchSource !== 'default' && (
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 flex items-center gap-1">
                   <span>🔍</span>
-                  <span>AI Generated from {question.researchSource.replace('search_hockey_', '').replace('_', ' ')}</span>
+                  <span>
+                    AI Generated from {
+                      question.researchSource === 'exa_web_search' 
+                        ? 'Web Search' 
+                        : question.researchSource.replace('search_hockey_', '').replace('_', ' ')
+                    }
+                  </span>
                 </span>
               )}
               {question.thunderContext && (

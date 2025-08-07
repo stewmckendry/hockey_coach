@@ -39,19 +39,30 @@ class ToolRequest(BaseModel):
 async def call_mcp_tool(request: ToolRequest):
     """Call a tool directly on the imported hockey MCP server"""
     try:
-        # Use the FastMCP Client with in-memory transport (recommended for testing)
-        from fastmcp import Client
-        
-        client = Client(mcp)  # Direct in-memory connection!
-        
-        async with client:
-            result = await client.call_tool(request.tool, request.parameters)
-            
+        # Check if this is an external MCP tool call
+        if request.tool.startswith('mcp__'):
+            # For external MCP tools like Exa, return a fallback response
+            # The frontend should handle these separately or we need a different architecture
             return {
-                "success": True,
-                "data": result,
+                "success": False,
+                "error": f"External MCP tool '{request.tool}' not supported via Direct API. Use fallback to local knowledge.",
+                "fallback": True,
                 "timestamp": "2025-07-23T20:30:00Z"
             }
+        else:
+            # Use the FastMCP Client with in-memory transport for local hockey MCP
+            from fastmcp import Client
+            
+            client = Client(mcp)  # Direct in-memory connection!
+            
+            async with client:
+                result = await client.call_tool(request.tool, request.parameters)
+                
+                return {
+                    "success": True,
+                    "data": result,
+                    "timestamp": "2025-07-23T20:30:00Z"
+                }
             
     except Exception as e:
         print(f"Error calling tool '{request.tool}': {e}")
