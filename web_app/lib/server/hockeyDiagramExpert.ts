@@ -226,24 +226,81 @@ export async function generateDiagramDirectMCP(prompt: string): Promise<DiagramR
 
     const result = await response.json()
     
+    console.log('MCP Response:', JSON.stringify(result, null, 2))
+    
     if (result.error) {
       throw new Error(result.error.message || 'MCP error')
     }
 
     const processingTime = Date.now() - startTime
     
-    // Parse the MCP result
-    const diagramResult = result.result
+    // Parse the MCP result - handle both direct result and nested content structure
+    let diagramResult = result.result
+    
+    // MCP tools often return content array with text items
+    if (diagramResult?.content && Array.isArray(diagramResult.content)) {
+      // Extract the text content and parse it
+      const textContent = diagramResult.content.find((item: any) => item.type === 'text')
+      if (textContent?.text) {
+        try {
+          diagramResult = JSON.parse(textContent.text)
+        } catch (e) {
+          console.error('Failed to parse MCP content:', e)
+          diagramResult = { error: 'Failed to parse MCP response' }
+        }
+      }
+    }
+    
+    // Check if we got a valid result - log the structure for debugging
+    console.log('Parsed diagram result:', JSON.stringify(diagramResult, null, 2))
+    
+    if (!diagramResult || (!diagramResult.diagram_base64 && !diagramResult.diagram_path)) {
+      console.error('Invalid MCP result structure:', diagramResult)
+      console.error('Full MCP response was:', JSON.stringify(result, null, 2))
+      return {
+        success: false,
+        error: 'No diagram path in result',
+        metadata: {
+          tools_used: ['create_hockey_diagram'],
+          processing_time_ms: processingTime
+        }
+      }
+    }
+    
+    // Handle both diagram_path (file) and diagram_base64 (direct base64) formats
+    let base64Image = diagramResult.diagram_base64
+    
+    if (!base64Image && diagramResult.diagram_path) {
+      // If we got a file path instead of base64, read the file
+      try {
+        const fs = await import('fs/promises')
+        
+        // Read the file from the path
+        const imageBuffer = await fs.readFile(diagramResult.diagram_path)
+        base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`
+        console.log('Successfully read diagram from file path:', diagramResult.diagram_path)
+      } catch (fileError) {
+        console.error('Failed to read diagram file:', fileError)
+        return {
+          success: false,
+          error: `Failed to read diagram file: ${fileError}`,
+          metadata: {
+            tools_used: ['create_hockey_diagram'],
+            processing_time_ms: processingTime
+          }
+        }
+      }
+    }
     
     return {
-      success: true,
-      diagram_base64: diagramResult.diagram_base64,
-      explanation: diagramResult.explanation,
+      success: diagramResult.success !== false,
+      diagram_base64: base64Image,
+      explanation: diagramResult.explanation || diagramResult.diagram_spec || diagramResult.spec || diagramResult.response,
       metadata: {
-        tools_used: ['create_hockey_diagram'],
-        parser_type: 'direct_mcp',
+        tools_used: diagramResult.tools_used || ['create_hockey_diagram'],
+        parser_type: diagramResult.parser_type || 'agent',
         processing_time_ms: processingTime,
-        traces: []
+        traces: diagramResult.traces || diagramResult.tool_calls_detail || []
       }
     }
   } catch (error) {

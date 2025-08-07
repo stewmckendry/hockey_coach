@@ -23,6 +23,7 @@ from parser import HockeyPromptParser, DiagramSpec
 from enhanced_parser import EnhancedHockeyParser
 from two_stage_parser import TwoStageHockeyParser
 from elements import FORMATIONS, get_formation, list_available_elements
+from diagram_cache import DiagramCacheManager
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +34,7 @@ mcp = FastMCP("Hockey Diagram Generator")
 
 # Initialize components
 diagram_generator = HockeyDiagramGenerator()
+cache_manager = DiagramCacheManager()
 
 # Lazy initialization for parsers to ensure env vars are loaded
 _prompt_parser = None
@@ -653,6 +655,284 @@ async def clear_agent_conversation() -> Dict[str, Any]:
             "success": False,
             "error": str(e),
             "message": "Failed to clear agent conversation"
+        }
+
+# Cache Management Tools
+
+@mcp.tool()
+async def save_diagram_to_cache(
+    prompt: str,
+    spec: Dict[str, Any],
+    parser_type: str = "unknown",
+    tags: Optional[List[str]] = None,
+    author: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Save a diagram specification to the cache for reuse.
+    
+    Args:
+        prompt: Original user prompt used to generate the diagram
+        spec: The parsed diagram specification (from parse_hockey_formation)
+        parser_type: Type of parser used (two_stage, enhanced, basic)
+        tags: Optional list of tags for categorization
+        author: Optional author name
+    
+    Returns:
+        Dictionary with cache ID and success status
+    """
+    try:
+        metadata = {}
+        if tags:
+            metadata['tags'] = tags
+        if author:
+            metadata['author'] = author
+            
+        diagram_id = cache_manager.save_diagram(
+            prompt=prompt,
+            spec=spec,
+            parser_type=parser_type,
+            metadata=metadata
+        )
+        
+        return {
+            "success": True,
+            "diagram_id": diagram_id,
+            "message": f"Diagram saved to cache with ID: {diagram_id}"
+        }
+    except Exception as e:
+        logger.error(f"Error saving diagram to cache: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@mcp.tool()
+async def search_cached_diagrams(
+    query: str,
+    limit: int = 10,
+    min_similarity: float = 0.7
+) -> Dict[str, Any]:
+    """
+    Search for similar cached diagrams using semantic similarity.
+    
+    Args:
+        query: Search query (typically a prompt or description)
+        limit: Maximum number of results to return
+        min_similarity: Minimum similarity score (0-1) for results
+    
+    Returns:
+        Dictionary with matching diagrams and their similarity scores
+    """
+    try:
+        diagrams = cache_manager.search_diagrams(
+            query=query,
+            limit=limit,
+            min_similarity=min_similarity
+        )
+        
+        return {
+            "success": True,
+            "count": len(diagrams),
+            "diagrams": diagrams,
+            "query": query
+        }
+    except Exception as e:
+        logger.error(f"Error searching cached diagrams: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "diagrams": []
+        }
+
+@mcp.tool()
+async def get_cached_diagram(
+    diagram_id: str,
+    regenerate: bool = False
+) -> Dict[str, Any]:
+    """
+    Retrieve a specific cached diagram by ID.
+    
+    Args:
+        diagram_id: Unique identifier of the cached diagram
+        regenerate: If True, regenerates the diagram image from the spec
+    
+    Returns:
+        Dictionary with diagram spec and optionally the regenerated image
+    """
+    try:
+        diagram = cache_manager.get_diagram(diagram_id)
+        
+        if not diagram:
+            return {
+                "success": False,
+                "error": f"Diagram {diagram_id} not found"
+            }
+        
+        result = {
+            "success": True,
+            "diagram": diagram
+        }
+        
+        # Regenerate image if requested
+        if regenerate and diagram.get('spec'):
+            spec = diagram['spec']
+            # Convert spec dict to DiagramSpec object
+            diagram_spec = DiagramSpec(**spec)
+            
+            # Generate diagram using existing logic
+            players = []
+            if diagram_spec.players:
+                for p in diagram_spec.players:
+                    players.append(
+                        Player(
+                            position=p.position,
+                            coordinates=tuple(p.coordinates) if p.coordinates else None,
+                            label=p.label,
+                            team=p.team,
+                            number=p.number
+                        )
+                    )
+            
+            movements = []
+            if diagram_spec.movements:
+                for m in diagram_spec.movements:
+                    movements.append(
+                        Movement(
+                            from_position=tuple(m.from_position),
+                            to_position=tuple(m.to_position),
+                            movement_type=m.movement_type
+                        )
+                    )
+            
+            zones = []
+            if diagram_spec.zones:
+                for z in diagram_spec.zones:
+                    area = z.area
+                    if isinstance(area, list):
+                        area = tuple(area)
+                    zones.append(
+                        Zone(
+                            zone_type=z.zone_type,
+                            area=area,
+                            team=z.team,
+                            opacity=getattr(z, 'opacity', 0.2)
+                        )
+                    )
+            
+            # Generate the diagram
+            base64_image = diagram_generator.generate_diagram(
+                players=players,
+                movements=movements,
+                zones=zones,
+                view=diagram_spec.view,
+                title=diagram_spec.title,
+                output_format='png'
+            )
+            
+            result['image_base64'] = base64_image
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error retrieving cached diagram: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@mcp.tool()
+async def update_cached_diagram(
+    diagram_id: str,
+    spec: Optional[Dict[str, Any]] = None,
+    validated: Optional[bool] = None,
+    tags: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """
+    Update a cached diagram's specification or metadata.
+    
+    Args:
+        diagram_id: Unique identifier of the cached diagram
+        spec: Updated diagram specification (optional)
+        validated: Mark diagram as validated/reviewed (optional)
+        tags: Updated tags for categorization (optional)
+    
+    Returns:
+        Dictionary with update status
+    """
+    try:
+        metadata = {}
+        if validated is not None:
+            metadata['validated'] = validated
+        if tags is not None:
+            metadata['tags'] = tags
+            
+        success = cache_manager.update_diagram(
+            diagram_id=diagram_id,
+            spec=spec,
+            metadata=metadata if metadata else None
+        )
+        
+        return {
+            "success": success,
+            "message": f"Diagram {diagram_id} updated" if success else f"Failed to update diagram {diagram_id}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error updating cached diagram: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@mcp.tool()
+async def delete_cached_diagram(
+    diagram_id: str
+) -> Dict[str, Any]:
+    """
+    Delete a cached diagram from the cache.
+    
+    Args:
+        diagram_id: Unique identifier of the cached diagram
+    
+    Returns:
+        Dictionary with deletion status
+    """
+    try:
+        success = cache_manager.delete_diagram(diagram_id)
+        
+        return {
+            "success": success,
+            "message": f"Diagram {diagram_id} deleted" if success else f"Failed to delete diagram {diagram_id}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error deleting cached diagram: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@mcp.tool()
+async def get_cache_statistics() -> Dict[str, Any]:
+    """
+    Get statistics about the diagram cache.
+    
+    Returns:
+        Dictionary with cache statistics including counts, popular diagrams, etc.
+    """
+    try:
+        stats = cache_manager.get_statistics()
+        
+        return {
+            "success": True,
+            "statistics": stats
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting cache statistics: {e}")
+        return {
+            "success": False,
+            "error": str(e)
         }
 
 

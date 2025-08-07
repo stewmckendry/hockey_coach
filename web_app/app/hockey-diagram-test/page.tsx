@@ -28,6 +28,14 @@ export default function HockeyDiagramTest() {
   const [feedbackComment, setFeedbackComment] = useState('')
   const [feedbackCategories, setFeedbackCategories] = useState<string[]>([])
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+  
+  // Cache state
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [savedDiagramId, setSavedDiagramId] = useState<string | null>(null)
+  const [showLibrary, setShowLibrary] = useState(false)
+  const [libraryDiagrams, setLibraryDiagrams] = useState<any[]>([])
+  const [loadingLibrary, setLoadingLibrary] = useState(false)
 
   // Example prompts
   const examplePrompts = [
@@ -133,6 +141,93 @@ export default function HockeyDiagramTest() {
     )
   }
 
+  // Save diagram to cache
+  const saveDiagram = async () => {
+    if (!result?.parserSpec || !prompt) return
+
+    setSaving(true)
+    try {
+      const response = await fetch('/api/hockey-diagram/cache', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'save',
+          data: {
+            prompt,
+            spec: result.parserSpec,
+            parserType: result.parserType || 'unknown',
+            tags: ['test', 'web-ui'],
+            author: 'web-user'
+          }
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setSaved(true)
+        setSavedDiagramId(data.diagram_id)
+        setTimeout(() => setSaved(false), 3000) // Reset after 3 seconds
+      }
+    } catch (error) {
+      console.error('Failed to save diagram:', error)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Load library of cached diagrams
+  const loadLibrary = async () => {
+    setLoadingLibrary(true)
+    try {
+      const response = await fetch('/api/hockey-diagram/cache?action=search&query=&limit=20')
+      const data = await response.json()
+      
+      if (data.success && data.diagrams) {
+        setLibraryDiagrams(data.diagrams)
+      }
+    } catch (error) {
+      console.error('Failed to load library:', error)
+    } finally {
+      setLoadingLibrary(false)
+    }
+  }
+
+  // Load a cached diagram
+  const loadCachedDiagram = async (diagramId: string, diagramPrompt: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/hockey-diagram/cache?action=get&id=${diagramId}&regenerate=true`)
+      const data = await response.json()
+      
+      if (data.success && data.diagram) {
+        setPrompt(diagramPrompt)
+        setResult({
+          success: true,
+          imageBase64: data.image_base64,
+          processingTimeMs: 0,
+          toolsUsed: ['cached'],
+          parserType: data.diagram.parser_type,
+          parserSpec: data.diagram.spec
+        })
+        setShowLibrary(false)
+      }
+    } catch (error) {
+      console.error('Failed to load cached diagram:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Toggle library view
+  const toggleLibrary = () => {
+    setShowLibrary(!showLibrary)
+    if (!showLibrary && libraryDiagrams.length === 0) {
+      loadLibrary()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -166,20 +261,29 @@ export default function HockeyDiagramTest() {
                   />
                 </div>
 
-                <button
-                  onClick={generateDiagram}
-                  disabled={loading || !prompt.trim()}
-                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Generating...
-                    </>
-                  ) : (
-                    'Generate Diagram'
-                  )}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={generateDiagram}
+                    disabled={loading || !prompt.trim()}
+                    className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Generating...
+                      </>
+                    ) : (
+                      'Generate Diagram'
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={toggleLibrary}
+                    className="px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    📚 Library
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -208,8 +312,25 @@ export default function HockeyDiagramTest() {
                 <div className="bg-white rounded-lg shadow p-6">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-medium text-gray-900">Generated Diagram</h2>
-                    <div className="text-sm text-gray-500">
-                      {result.processingTimeMs}ms
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-500">
+                        {result.processingTimeMs}ms
+                      </div>
+                      {result.success && result.parserSpec && (
+                        <button
+                          onClick={saveDiagram}
+                          disabled={saving || saved}
+                          className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                            saved 
+                              ? 'bg-green-100 text-green-700' 
+                              : saving
+                              ? 'bg-gray-100 text-gray-500'
+                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                          }`}
+                        >
+                          {saved ? '✓ Saved' : saving ? 'Saving...' : '💾 Save'}
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -341,6 +462,88 @@ export default function HockeyDiagramTest() {
           </div>
         </div>
       </div>
+      
+      {/* Library Modal */}
+      {showLibrary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Diagram Library</h2>
+              <button
+                onClick={() => setShowLibrary(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto max-h-[calc(80vh-120px)] p-6">
+              {loadingLibrary ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-500">Loading diagrams...</p>
+                </div>
+              ) : libraryDiagrams.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No saved diagrams yet. Generate and save a diagram to start your library!
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {libraryDiagrams.map((diagram) => (
+                    <div
+                      key={diagram.id}
+                      className="border rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => loadCachedDiagram(diagram.id, diagram.prompt)}
+                    >
+                      <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">
+                        {diagram.prompt}
+                      </h3>
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>Parser: {diagram.parser_type}</span>
+                        <span>Uses: {diagram.usage_count}</span>
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        {diagram.validated && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ✓ Validated
+                          </span>
+                        )}
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Similarity: {(diagram.similarity * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      {diagram.tags && diagram.tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {diagram.tags.map((tag: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="border-t px-6 py-3 flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                {libraryDiagrams.length} diagrams in library
+              </div>
+              <button
+                onClick={loadLibrary}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

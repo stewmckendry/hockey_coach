@@ -299,13 +299,36 @@ export default function HockeyIQMonitorPage() {
             </div>
           )}
 
-          {activeTab === 'chat' && selectedSession && (
+          {activeTab === 'chat' && (
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">
-                Chat History - {selectedSession.sessionId.substring(0, 12)}...
-              </h2>
-              <div className="space-y-4">
-                {chatHistory.map((interaction) => (
+              {!selectedSession ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No session selected</h3>
+                  <p className="mt-1 text-sm text-gray-500">Select a session from the Overview or Sessions tab to view chat history</p>
+                  <div className="mt-6">
+                    <button
+                      onClick={() => setActiveTab('sessions')}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      View Sessions
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-xl font-semibold mb-4">
+                    Chat History - {selectedSession.sessionId.substring(0, 12)}...
+                  </h2>
+                  {chatHistory.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No chat interactions found for this session</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {chatHistory.map((interaction) => (
                   <div key={interaction.messageId} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -336,17 +359,38 @@ export default function HockeyIQMonitorPage() {
                     )}
                   </div>
                 ))}
-              </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
 
-          {activeTab === 'quiz' && selectedSession && (
+          {activeTab === 'quiz' && (
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">
-                Quiz History - {selectedSession.sessionId.substring(0, 12)}...
-              </h2>
-              
-              {quizHistory.session && (
+              {!selectedSession ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No session selected</h3>
+                  <p className="mt-1 text-sm text-gray-500">Select a session from the Overview or Sessions tab to view quiz history</p>
+                  <div className="mt-6">
+                    <button
+                      onClick={() => setActiveTab('sessions')}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      View Sessions
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-xl font-semibold mb-4">
+                    Quiz History - {selectedSession.sessionId.substring(0, 12)}...
+                  </h2>
+                  
+                  {quizHistory.session && (
                 <div className="mb-6 bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-medium mb-2">Quiz Session Summary</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -419,6 +463,8 @@ export default function HockeyIQMonitorPage() {
                   </div>
                 ))}
               </div>
+                </>
+              )}
             </div>
           )}
 
