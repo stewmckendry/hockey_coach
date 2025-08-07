@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from openai import AsyncOpenAI
 import os
 from coordinate_mapper import coordinate_mapper, Zone
+from agents.tracing import custom_span, generation_span
 
 logger = logging.getLogger(__name__)
 
@@ -48,21 +49,44 @@ ViewType = Literal["full", "offensive", "defensive", "neutral"]
 
 DiagramCategory = Literal["formation", "drill", "faceoff", "play", "system"]
 
+class PlayerAction(BaseModel):
+    """A player's action in a specific step."""
+    player_role: str = Field(..., description="Role identifier (e.g., 'defender', 'forward', 'center')")
+    location: str = Field(..., description="Named location (e.g., 'left_circle', 'high_slot')")
+    action: str = Field(..., description="What the player does (e.g., 'pass', 'receive', 'skate')")
+    has_puck: bool = Field(False, description="Whether player has puck at this moment")
+
+class StepBreakdown(BaseModel):
+    """Detailed breakdown of a single step in a drill or play."""
+    step_number: int = Field(..., description="Sequential step number")
+    description: str = Field(..., description="Brief description of what happens")
+    player_actions: List[PlayerAction] = Field(..., description="What each player does")
+    movements: List[str] = Field(default_factory=list, description="Movement descriptions")
+
 class StructureAnalysis(BaseModel):
-    """Stage 1: General structure analysis."""
+    """Stage 1: Enhanced structure analysis with procedural breakdown."""
     diagram_category: DiagramCategory = Field(..., description="Primary category of this diagram")
     primary_focus: str = Field(..., description="Main focus or objective")
-    number_of_players: int = Field(..., description="Total players involved")
-    has_movements: bool = Field(..., description="Whether diagram includes player movements")
-    has_zones: bool = Field(..., description="Whether diagram includes zone coverage")
-    sequence_steps: int = Field(1, description="Number of sequential steps (for drills)")
-    key_elements: List[str] = Field(..., description="Key tactical elements identified")
+    
+    # For static formations
+    formation_positions: Optional[Dict[str, str]] = Field(None, description="Static positions by role")
+    
+    # For drills and plays - procedural breakdown
+    steps: Optional[List[StepBreakdown]] = Field(None, description="Sequential steps for drills/plays")
+    
+    # For coverage systems
+    coverage_zones: Optional[Union[List[Dict[str, str]], Dict[str, str]]] = Field(None, description="Zone assignments")
+    
+    # General info
+    total_players: int = Field(..., description="Total unique players involved")
+    teams_involved: List[str] = Field(..., description="Teams: ['practicing'], ['home', 'away'], etc.")
 
 class PlayerPosition(BaseModel):
     """Structured player position with role definitions."""
     position: PlayerRole = Field(..., description="Player position/role")
-    x: float = Field(..., description="X coordinate on rink (-100 to 100)")
-    y: float = Field(..., description="Y coordinate on rink (-42.5 to 42.5)")
+    zone: Optional[str] = Field(None, description="Named zone location (e.g., 'slot', 'left_circle')")
+    x: Optional[float] = Field(None, description="X coordinate on rink (-100 to 100)")
+    y: Optional[float] = Field(None, description="Y coordinate on rink (-42.5 to 42.5)")
     team: TeamDesignation = Field(..., description="Team designation")
     has_puck: bool = Field(False, description="Whether this player has the puck")
     step: Optional[int] = Field(None, description="Sequence step for drills (1, 2, 3, etc.)")
@@ -239,116 +263,135 @@ class TwoStageHockeyParser:
         }
     }
     
-    STAGE_1_PROMPT = """You are analyzing a hockey coaching instruction to understand its structure.
+    STAGE_1_PROMPT = """You are analyzing a hockey coaching instruction to create a structured breakdown.
 
-Analyze this instruction and identify:
-1. What type of diagram this represents
-2. How many players are involved
-3. Whether it includes movements or zone coverage
-4. Key tactical elements
+Your job is to extract the PROCEDURAL CONTENT, not just metadata. Break down the instruction into:
+- WHO is involved (players/roles)
+- WHAT they do (actions)
+- WHERE they are positioned (using hockey location names)
+- WHEN it happens (sequence/steps for drills)
 
-DIAGRAM CATEGORIES (choose one):
-- "formation": Static positioning showing tactical setup
-- "drill": Practice exercise with step-by-step progression  
-- "faceoff": Specific faceoff positioning and responsibilities
-- "play": Tactical sequence from start to finish
-- "system": Overall team system or strategy
+DIAGRAM CATEGORIES:
+- "formation": Static positioning (use formation_positions)
+- "drill": Practice with steps (use steps array)
+- "play": Tactical sequence (use steps array)
+- "system": Coverage system (use coverage_zones)
+- "faceoff": Faceoff setup (use formation_positions)
 
-Output JSON with this structure:
+LOCATION NAMES (use these exact terms):
+- Zones: slot, high_slot, low_slot, left_point, right_point
+- Circles: left_circle, right_circle, center_ice
+- Boards: left_boards, right_boards, left_corner, right_corner
+- Special: behind_net, goal_crease, neutral_zone
+- Hash marks: left_hash, right_hash
+
+For DRILLS, create detailed steps:
 {
-    "diagram_category": "formation|drill|faceoff|play|system",
-    "primary_focus": "brief description of main objective",
-    "number_of_players": 6,
-    "has_movements": true,
-    "has_zones": false,
-    "sequence_steps": 1,
-    "key_elements": ["element1", "element2"]
-}"""
+    "diagram_category": "drill",
+    "primary_focus": "1v1 defensive technique",
+    "steps": [
+        {
+            "step_number": 1,
+            "description": "Initial pass",
+            "player_actions": [
+                {"player_role": "defender", "location": "left_circle", "action": "pass", "has_puck": true},
+                {"player_role": "forward", "location": "left_hash", "action": "receive", "has_puck": false}
+            ],
+            "movements": ["Pass from defender to forward"]
+        }
+    ],
+    "total_players": 2,
+    "teams_involved": ["practicing"]
+}
 
-    STAGE_2_PROMPT = """You are creating a precise hockey diagram based on the structure analysis.
-
-Use these EXACT definitions when making choices:
-
-MOVEMENT TYPES:
-- "pass": When the puck is sent from one player to another (dashed arrow)
-- "skating": When a player moves to a new position without the puck (solid arrow)
-- "skating_with_puck": When a player carries the puck to a new position (solid arrow with puck indicator)
-- "shot": When a player shoots at the goal (thick arrow)
-- "check": When a player moves to body-check an opponent (curved arrow)
-- "support": When a player moves to provide passing option (dotted arrow)
-- "forechecking": Aggressive pressure in opponent's defensive zone
-- "backchecking": Defensive tracking back towards own zone
-- "clearing": Moving puck out of dangerous area
-- "screening": Positioning to block goalie's view
-
-PLAYER ROLES:
-- "C": Center - primary playmaker, takes faceoffs
-- "RW": Right Wing - right side forward
-- "LW": Left Wing - left side forward
-- "LD": Left Defense - left side defenseman  
-- "RD": Right Defense - right side defenseman
-- "G": Goaltender - goalie in net
-- "F1": First Forward - first forechecker, applies pressure
-- "F2": Second Forward - support forechecker, covers pass lanes
-- "F3": Third Forward - high forward, covers middle
-- "D1": First Defense - usually left side defenseman
-- "D2": Second Defense - usually right side defenseman
-- "X1": Opposing Player 1 - first opponent
-- "X2": Opposing Player 2 - second opponent
-- "X3": Opposing Player 3 - third opponent
-- "X4": Opposing Player 4 - fourth opponent
-- "X5": Opposing Player 5 - fifth opponent
-- "XG": Opposing Goaltender - opponent's goalie
-
-LOCATIONS:
-- "slot": High-danger scoring area directly in front of net (60-89, -15 to 15)
-- "high_slot": Area between faceoff circles at top of circles (40-60, -20 to 20)
-- "low_slot": Area between goal line and bottom of circles (75-89, -15 to 15)
-- "left_point": Blue line position on left side for defenseman (25, -30)
-- "right_point": Blue line position on right side for defenseman (25, 30)
-- "left_half_wall": Halfway between goal line and blue line on left boards (60, -35)
-- "right_half_wall": Halfway between goal line and blue line on right boards (60, 35)
-- "left_corner": Corner area behind goal line on left side (85, -35)
-- "right_corner": Corner area behind goal line on right side (85, 35)
-- "behind_net": Area directly behind the goal (95, 0)
-- "goal_crease": Protected area in front of goal (89, 0)
-- "left_circle": Faceoff circle on left side (-69 or 69, -22.5)
-- "right_circle": Faceoff circle on right side (-69 or 69, 22.5)
-- "neutral_zone": Area between the two blue lines (-25 to 25)
-- "center_ice": Center of rink where game starts (0, 0)
-- "left_boards": Along the left side boards (-42.5 Y coordinate)
-- "right_boards": Along the right side boards (42.5 Y coordinate)
-
-ZONE PURPOSES:
-- "pressure": Aggressive pressure to force turnovers or poor decisions
-- "coverage": Defensive positioning to cover dangerous areas
-- "support": Positioning to provide passing or shooting options
-- "screening": Blocking opponent's view or movement
-- "neutral_trap": Defensive system to force turnovers in neutral zone
-- "power_play_setup": Formation to create scoring chances with man advantage
-- "penalty_kill_box": Defensive formation when short-handed
-- "faceoff_alignment": Positioning for faceoff situations
-
-TEAM DESIGNATIONS:
-- "home": Main team being coached (usually in colored jerseys)
-- "away": Opposing team (usually marked with X's)
-- "practicing": Team in practice/drill situation (all same team)
-
-NHL RINK COORDINATES:
-- X axis: -100 (defensive end) to 100 (offensive end)
-- Y axis: -42.5 (left boards) to 42.5 (right boards)
-- Goal lines: X = ±89
-- Blue lines: X = ±25
-- Faceoff dots: Defensive (-69, ±22.5), Offensive (69, ±22.5)
-
-Create a precise diagram using ONLY the defined values above. Output valid JSON:
+For FORMATIONS, use positions:
 {
-    "players": [{"position": "C", "x": 0, "y": 0, "team": "home", "has_puck": false}],
-    "movements": [{"from_position": "C", "to_position": [20, 10], "movement_type": "skating", "sequence": 1}],
-    "zones": [{"zone_type": "coverage", "area": "slot", "team": "home"}],
-    "view": "full",
-    "title": "Diagram Title",
-    "diagram_type": "formation"
+    "diagram_category": "formation",
+    "primary_focus": "2-1-2 forecheck pressure",
+    "formation_positions": {
+        "F1": "behind_net",
+        "F2": "left_boards",
+        "F3": "right_boards",
+        "D1": "left_point",
+        "D2": "right_point"
+    },
+    "total_players": 5,
+    "teams_involved": ["home"]
+}
+
+Output complete JSON with the appropriate structure for the diagram type."""
+
+    STAGE_2_PROMPT = """You are translating a structured hockey analysis into diagram specifications.
+
+Your ONLY job is to:
+1. Map player roles to position codes
+2. Assign movement types from the pick list
+3. Specify zones using standard names
+4. Maintain step sequences for drills
+
+PLAYER POSITION MAPPING:
+- "defender/defense" → D1, D2
+- "forward/attacker" → F1, F2, F3
+- "center" → C
+- "right wing" → RW
+- "left wing" → LW
+- "left defense" → LD
+- "right defense" → RD
+- "goalie/goaltender" → G
+- "opponent/opposing" → X1, X2, X3, X4, X5, XG
+
+MOVEMENT TYPE MAPPING:
+- "pass/passes/passing" → "pass"
+- "skate/skates/skating" → "skating" (without puck) or "skating_with_puck" (with puck)
+- "shoot/shot/shooting" → "shot"
+- "check/hit/body contact" → "check"
+- "support/help" → "support"
+- "pressure/forecheck" → "forechecking"
+- "backcheck/track back" → "backchecking"
+
+ZONE NAMES (use exactly):
+slot, high_slot, low_slot, left_point, right_point, left_half_wall, right_half_wall,
+left_corner, right_corner, behind_net, goal_crease, left_circle, right_circle,
+neutral_zone, center_ice, left_boards, right_boards, left_hash, right_hash
+
+TEAM ASSIGNMENTS:
+- For drills: everyone is "practicing"
+- For formations: use "home" for main team
+- For systems: use "home" and "away" as needed
+
+ZONE PURPOSES (for coverage systems):
+- "pressure", "coverage", "support", "screening"
+- "neutral_trap", "power_play_setup", "penalty_kill_box", "faceoff_alignment"
+
+OUTPUT FORMAT:
+For each player, specify:
+- "position": mapped position code (D1, F1, etc.)
+- "zone": named zone location (slot, left_circle, etc.)
+- "team": appropriate team designation
+- "has_puck": true/false
+- "step": step number for drills
+
+For movements:
+- "from_position": starting player code (D1, F1, etc.)
+- "to_position": ending player code (D1, F1, etc.) - NOT zone names
+- "movement_type": from pick list
+- "sequence": step number
+
+IMPORTANT: Movement arrows go between PLAYERS, not to zones.
+If a player moves to a zone, show their starting and ending POSITIONS.
+
+Example output:
+{
+    "players": [
+        {"position": "D1", "zone": "left_circle", "team": "practicing", "has_puck": true, "step": 1},
+        {"position": "F1", "zone": "left_hash", "team": "practicing", "has_puck": false, "step": 1}
+    ],
+    "movements": [
+        {"from_position": "D1", "to_position": "F1", "movement_type": "pass", "sequence": 1}
+    ],
+    "view": "defensive",
+    "title": "1v1 Defensive Drill",
+    "diagram_type": "drill"
 }"""
 
     def __init__(self, api_key: Optional[str] = None):
@@ -372,11 +415,37 @@ Create a precise diagram using ONLY the defined values above. Output valid JSON:
         try:
             # Stage 1: Analyze structure
             structure = await self._stage_1_analysis(prompt, context)
-            logger.info(f"Stage 1 analysis: {structure.diagram_category}, {structure.number_of_players} players")
+            logger.info(f"Stage 1 analysis: {structure.diagram_category}, {structure.total_players} players")
             
             # Stage 2: Create precise diagram with definitions
             diagram_spec = await self._stage_2_creation(prompt, structure, context)
             logger.info(f"Stage 2 creation: {diagram_spec.title}")
+            
+            # Skip coordinate mapping - handled in generate_diagram_from_spec
+            # diagram_spec = self._apply_coordinate_mapping(diagram_spec)
+            
+            # Add trace information to diagram spec as a custom attribute
+            diagram_spec._traces = {
+                "stage_1": {
+                    "category": structure.diagram_category,
+                    "total_players": structure.total_players,
+                    "teams": structure.teams_involved,
+                    "focus": structure.primary_focus,
+                    "has_steps": bool(structure.steps),
+                    "step_count": len(structure.steps) if structure.steps else 0
+                },
+                "stage_2": {
+                    "title": diagram_spec.title,
+                    "player_count": len(diagram_spec.players),
+                    "movement_count": len(diagram_spec.movements) if diagram_spec.movements else 0,
+                    "zone_count": len(diagram_spec.zones) if diagram_spec.zones else 0,
+                    "view": diagram_spec.view
+                },
+                "coordinate_mapping": {
+                    "players_mapped": len(diagram_spec.players),
+                    "movements_mapped": len(diagram_spec.movements) if diagram_spec.movements else 0
+                }
+            }
             
             return diagram_spec
             
@@ -386,90 +455,184 @@ Create a precise diagram using ONLY the defined values above. Output valid JSON:
     
     async def _stage_1_analysis(self, prompt: str, context: Optional[Dict] = None) -> StructureAnalysis:
         """Stage 1: Analyze the structure and requirements."""
-        enhanced_prompt = prompt
-        if context:
-            enhanced_prompt += f"\n\nContext: {context}"
+        with custom_span("stage_1_analysis", data={"prompt_length": len(prompt)}):
+            enhanced_prompt = prompt
+            if context:
+                enhanced_prompt += f"\n\nContext: {context}"
             
-        response = await self.client.chat.completions.create(
-            model="gpt-4",
-            messages=[
+            # Use generation_span for LLM call
+            messages = [
                 {"role": "system", "content": self.STAGE_1_PROMPT},
                 {"role": "user", "content": enhanced_prompt}
-            ],
-            temperature=0.1,
-            max_tokens=500
-        )
-        
-        json_text = self._extract_json(response.choices[0].message.content)
-        data = json.loads(json_text)
-        return StructureAnalysis(**data)
+            ]
+            
+            with generation_span(
+                input=messages,
+                model="gpt-4",
+                model_config={"temperature": 0.1, "max_tokens": 1500}
+            ) as gen_span:
+                response = await self.client.chat.completions.create(
+                    model="gpt-4",
+                    messages=messages,
+                    temperature=0.1,
+                    max_tokens=1500  # Increased to handle detailed procedural breakdowns
+                )
+                
+                # Update generation span with usage
+                if response.usage:
+                    gen_span.span_data.usage = {
+                        "prompt_tokens": response.usage.prompt_tokens,
+                        "completion_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
+                    }
+            
+            json_text = self._extract_json(response.choices[0].message.content)
+            data = json.loads(json_text)
+            
+            # Store structured trace data
+            self._stage_1_trace = {
+                "category": data.get("diagram_category"),
+                "total_players": data.get("total_players"),
+                "has_steps": bool(data.get("steps")),
+                "step_count": len(data.get("steps", [])),
+                "teams": data.get("teams_involved", [])
+            }
+            
+            return StructureAnalysis(**data)
     
     async def _stage_2_creation(self, prompt: str, structure: StructureAnalysis, context: Optional[Dict] = None) -> DiagramSpec:
         """Stage 2: Create precise diagram with defined pick lists."""
+        with custom_span("stage_2_creation", data={
+            "category": structure.diagram_category,
+            "total_players": structure.total_players
+        }):
+            # Determine zone context for location definitions
+            context_zone = "full"
+            if context and "requested_view" in context:
+                context_zone = context["requested_view"]
+            elif "defensive" in prompt.lower() or "penalty kill" in prompt.lower() or "box formation" in prompt.lower():
+                context_zone = "defensive"
+            elif "offensive" in prompt.lower() or "power play" in prompt.lower() or "cycle" in prompt.lower():
+                context_zone = "offensive"
+            elif "neutral" in prompt.lower() or "trap" in prompt.lower():
+                context_zone = "neutral"
         
-        # Determine zone context for location definitions
-        context_zone = "full"
-        if context and "requested_view" in context:
-            context_zone = context["requested_view"]
-        elif "defensive" in prompt.lower() or "penalty kill" in prompt.lower() or "box formation" in prompt.lower():
-            context_zone = "defensive"
-        elif "offensive" in prompt.lower() or "power play" in prompt.lower() or "cycle" in prompt.lower():
-            context_zone = "offensive"
-        elif "neutral" in prompt.lower() or "trap" in prompt.lower():
-            context_zone = "neutral"
-        
-        # Get zone-aware location definitions
-        zone_locations = self._get_zone_aware_locations(context_zone)
-        
+        # Build enhanced prompt based on diagram category
         enhanced_prompt = f"""
 Original instruction: {prompt}
 
 Structure analysis:
 - Category: {structure.diagram_category}
 - Focus: {structure.primary_focus}
-- Players: {structure.number_of_players}
-- Has movements: {structure.has_movements}
-- Has zones: {structure.has_zones}
-- Steps: {structure.sequence_steps}
-- Key elements: {', '.join(structure.key_elements)}
-- Zone context: {context_zone}
+- Total players: {structure.total_players}
+- Teams: {', '.join(structure.teams_involved)}
 """
+        
+        # Add specific content based on diagram type
+        if structure.diagram_category == "drill" and structure.steps:
+            # Handle drill with procedural steps
+            enhanced_prompt += f"\n\nDrill Steps ({len(structure.steps)} total):\n"
+            for step in structure.steps:
+                enhanced_prompt += f"\nStep {step.step_number}: {step.description}\n"
+                enhanced_prompt += "  Player Actions:\n"
+                for action in step.player_actions:
+                    enhanced_prompt += f"    - {action.player_role} at {action.location}: {action.action}"
+                    if action.has_puck:
+                        enhanced_prompt += " (has puck)"
+                    enhanced_prompt += "\n"
+                if step.movements:
+                    enhanced_prompt += f"  Movements: {', '.join(step.movements)}\n"
+        
+        elif structure.diagram_category == "formation" and structure.formation_positions:
+            # Handle static formation
+            enhanced_prompt += f"\n\nFormation Positions:\n"
+            for role, position in structure.formation_positions.items():
+                enhanced_prompt += f"  - {role}: {position}\n"
+        
+        elif structure.diagram_category == "system" and structure.coverage_zones:
+            # Handle coverage system
+            enhanced_prompt += f"\n\nCoverage Zones:\n"
+            if isinstance(structure.coverage_zones, dict):
+                # Handle dict format
+                for role, zone in structure.coverage_zones.items():
+                    enhanced_prompt += f"  - {role}: {zone}\n"
+            else:
+                # Handle list format
+                for zone_info in structure.coverage_zones:
+                    enhanced_prompt += f"  - {zone_info}\n"
+        
+        elif structure.diagram_category == "play":
+            # Handle play/system
+            if structure.steps:
+                enhanced_prompt += f"\n\nPlay Sequence ({len(structure.steps)} steps):\n"
+                for step in structure.steps:
+                    enhanced_prompt += f"\nStep {step.step_number}: {step.description}\n"
+            else:
+                enhanced_prompt += f"\n\nPlay/System Description:\n"
+                enhanced_prompt += f"  Primary focus: {structure.primary_focus}\n"
         
         if context:
-            enhanced_prompt += f"\nAdditional context: {context}"
+            enhanced_prompt += f"\n\nAdditional context: {context}"
             
         enhanced_prompt += f"""
 
-ZONE-AWARE LOCATIONS (use these exact coordinates for {context_zone} context):
-"""
-        for location, definition in zone_locations.items():
-            enhanced_prompt += f"- \"{location}\": {definition}\n"
-            
-        enhanced_prompt += f"""
+Based on the structured analysis above, create a diagram specification.
 
-Create a {structure.diagram_category} diagram using the defined pick lists above.
-Focus on: {structure.primary_focus}
-Include {structure.number_of_players} players.
-IMPORTANT: Use the zone-aware coordinates above for accurate positioning.
+For drills with multiple steps:
+- Show the MOST IMPORTANT step (usually the final competitive phase)
+- Use movements to show key transitions
+- Focus on the main learning objective
+
+Use zone names from the pick list below, NOT coordinates.
 """
+            
+        # Use generation_span for Stage 2 LLM call
+        messages = [
+            {"role": "system", "content": self.STAGE_2_PROMPT},
+            {"role": "user", "content": enhanced_prompt}
+        ]
         
-        response = await self.client.chat.completions.create(
+        with generation_span(
+            input=messages,
             model="gpt-4",
-            messages=[
-                {"role": "system", "content": self.STAGE_2_PROMPT},
-                {"role": "user", "content": enhanced_prompt}
-            ],
-            temperature=0.1,
-            max_tokens=2000
-        )
-        
-        json_text = self._extract_json(response.choices[0].message.content)
-        data = json.loads(json_text)
-        
-        # Post-process for accuracy
-        data = self._validate_and_correct(data, structure, context_zone)
-        
-        return DiagramSpec(**data)
+            model_config={"temperature": 0.1, "max_tokens": 2000}
+        ) as gen_span:
+            response = await self.client.chat.completions.create(
+                model="gpt-4",
+                messages=messages,
+                temperature=0.1,
+                max_tokens=2000
+            )
+            
+            # Update generation span with usage
+            if response.usage:
+                gen_span.span_data.usage = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens
+                }
+            
+            json_text = self._extract_json(response.choices[0].message.content)
+            data = json.loads(json_text)
+            
+            # Post-process for accuracy
+            data = self._validate_and_correct(data, structure, context_zone)
+            
+            # Store Stage 2 trace data
+            self._stage_2_trace = {
+                "title": data.get("title"),
+                "player_count": len(data.get("players", [])),
+                "movement_count": len(data.get("movements", [])),
+                "view": data.get("view", "full")
+            }
+            
+            return DiagramSpec(**data)
+    
+    def _apply_coordinate_mapping(self, diagram_spec: DiagramSpec) -> DiagramSpec:
+        """Apply coordinate mapping to convert zone names to x,y coordinates."""
+        # COORDINATE MAPPING REMOVED - Now handled in generate_diagram_from_spec
+        # This method is kept for compatibility but does no coordinate conversion
+        return diagram_spec
     
     def _extract_json(self, text: str) -> str:
         """Extract JSON from response text."""
@@ -534,6 +697,14 @@ IMPORTANT: Use the zone-aware coordinates above for accurate positioning.
                         logger.warning(f"Invalid movement type: {movement.get('movement_type')}, defaulting to skating")
                         movement["movement_type"] = "skating"
                 
+                # Handle zone names in to_position
+                to_pos = movement.get("to_position")
+                if to_pos and isinstance(to_pos, str) and to_pos not in self.DEFINITIONS["player_roles"]:
+                    # It's a zone name, not a player position
+                    # For now, remove these movements as they need different handling
+                    logger.info(f"Removing zone-based movement: {movement.get('from_position')} → {to_pos}")
+                    continue
+                
                 # Validate movement shows actual position change
                 if self._is_valid_movement(movement, player_positions):
                     valid_movements.append(movement)
@@ -559,12 +730,12 @@ IMPORTANT: Use the zone-aware coordinates above for accurate positioning.
         if not data.get("title"):
             data["title"] = f"{structure.diagram_category.title()}: {structure.primary_focus}"
         
-        # Apply coordinate mapping corrections
-        data = self._apply_coordinate_mapping(data, context_zone)
+        # Skip coordinate mapping - handled in generate_diagram_from_spec
+        # data = self._apply_coordinate_mapping_dict(data, context_zone)
         
         return data
     
-    def _apply_coordinate_mapping(self, data: Dict, context_zone: str) -> Dict:
+    def _apply_coordinate_mapping_dict(self, data: Dict, context_zone: str) -> Dict:
         """
         Apply coordinate mapper corrections for zone-aware positioning.
         
@@ -768,11 +939,8 @@ IMPORTANT: Use the zone-aware coordinates above for accurate positioning.
             diagram_type="formation"
         )
         
-        # Apply coordinate mapping corrections to ensure accuracy
-        fallback_data = fallback_spec.dict()
-        fallback_data = self._apply_coordinate_mapping(fallback_data, context_zone)
-        
-        return DiagramSpec(**fallback_data)
+        # Coordinate mapping will be handled in generate_diagram_from_spec
+        return fallback_spec
     
     def get_definitions(self) -> Dict[str, Dict[str, str]]:
         """Return all pick list definitions for reference."""

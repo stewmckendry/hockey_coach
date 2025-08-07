@@ -9,47 +9,75 @@ from dataclasses import dataclass
 # Standard formations and their player positions
 FORMATIONS = {
     "2-1-2_forecheck": {
-        "description": "Standard 2-1-2 forecheck formation",
+        "description": "2-1-2 forecheck - 2 forwards deep (F1 on puck, F2 supporting), 1 forward high slot, 2 D inside blue line",
         "players": [
-            {"position": "LW", "x": 60, "y": -20, "team": "home"},
-            {"position": "RW", "x": 60, "y": 20, "team": "home"},
-            {"position": "C", "x": 40, "y": 0, "team": "home"},
-            {"position": "LD", "x": 10, "y": -15, "team": "home"},
-            {"position": "RD", "x": 10, "y": 15, "team": "home"},
+            # F1 (First forward) - Deep on puck carrier
+            {"position": "LW", "x": 82, "y": -10, "team": "home", "has_puck": False},
+            # F2 (Second forward) - Deep support with offset
+            {"position": "RW", "x": 75, "y": 15, "team": "home"},
+            # F3 (Third forward/Center) - Mid/high slot coverage
+            {"position": "C", "x": 45, "y": 0, "team": "home"},
+            # D1 (Left Defense) - Inside blue line in offensive zone
+            {"position": "LD", "x": 30, "y": -20, "team": "home"},
+            # D2 (Right Defense) - Inside blue line in offensive zone
+            {"position": "RD", "x": 30, "y": 20, "team": "home"},
+            # Goaltender
             {"position": "G", "x": -89, "y": 0, "team": "home"},
+            # Opposition puck carrier
+            {"position": "C", "x": 85, "y": -8, "team": "away", "has_puck": True},
         ],
         "movements": [
-            {"from_position": "LW", "to_position": [80, -15], "movement_type": "forecheck"},
-            {"from_position": "RW", "to_position": [80, 15], "movement_type": "forecheck"},
+            # F1 pressure movement towards puck
+            {"from_position": "LW", "to_position": [85, -8], "movement_type": "forecheck"},
+            # F2 supporting movement with angle
+            {"from_position": "RW", "to_position": [80, 10], "movement_type": "skating"},
+            # F3 reads and reacts from high position
+            {"from_position": "C", "to_position": [50, -5], "movement_type": "skating"},
         ],
         "zones": [
-            {"zone_type": "pressure", "area": [50, -42.5, 50, 85], "team": "home"}
+            {"zone_type": "pressure", "area": [65, -42.5, 35, 85], "team": "home", "opacity": 0.15}
         ]
     },
     
     "1-2-2_forecheck": {
-        "description": "1-2-2 aggressive forecheck",
+        "description": "1-2-2 forecheck - 1 forward deep on puck, 2 forwards mid/high slot flanking, 2 D inside blue line",
         "players": [
-            {"position": "C", "x": 70, "y": 0, "team": "home"},
-            {"position": "LW", "x": 50, "y": -20, "team": "home"},
-            {"position": "RW", "x": 50, "y": 20, "team": "home"},
-            {"position": "LD", "x": 20, "y": -15, "team": "home"},
-            {"position": "RD", "x": 20, "y": 15, "team": "home"},
+            # F1 (Center) - Deep on puck
+            {"position": "C", "x": 80, "y": 0, "team": "home"},
+            # F2 (Left Wing) - Mid/high slot left side
+            {"position": "LW", "x": 45, "y": -20, "team": "home"},
+            # F3 (Right Wing) - Mid/high slot right side
+            {"position": "RW", "x": 45, "y": 20, "team": "home"},
+            # D1 (Left Defense) - Inside blue line
+            {"position": "LD", "x": 30, "y": -15, "team": "home"},
+            # D2 (Right Defense) - Inside blue line
+            {"position": "RD", "x": 30, "y": 15, "team": "home"},
+            # Goaltender
             {"position": "G", "x": -89, "y": 0, "team": "home"},
+            # Opposition puck carrier
+            {"position": "D", "x": 85, "y": 0, "team": "away", "has_puck": True},
         ],
         "movements": [
             {"from_position": "C", "to_position": [85, 0], "movement_type": "forecheck"},
+            {"from_position": "LW", "to_position": [50, -25], "movement_type": "skating"},
+            {"from_position": "RW", "to_position": [50, 25], "movement_type": "skating"},
         ]
     },
     
     "1-3-1_powerplay": {
-        "description": "1-3-1 power play umbrella formation",
+        "description": "1-3-1 power play - 1 D at blue line, 3 players spread at mid-slot, 1 F at net front/crease",
         "players": [
-            {"position": "C", "x": 60, "y": 0, "team": "home"},
-            {"position": "LW", "x": 40, "y": -30, "team": "home"},
-            {"position": "RW", "x": 40, "y": 30, "team": "home"},
-            {"position": "LD", "x": 30, "y": -20, "team": "home"},
-            {"position": "RD", "x": 30, "y": 20, "team": "home"},
+            # Net front presence
+            {"position": "C", "x": 75, "y": 0, "team": "home"},
+            # Left half-wall
+            {"position": "LW", "x": 45, "y": -30, "team": "home"},
+            # Right half-wall
+            {"position": "RW", "x": 45, "y": 30, "team": "home"},
+            # Point man (quarterback) - centered at blue line
+            {"position": "LD", "x": 30, "y": 0, "team": "home"},
+            # Bumper/high slot
+            {"position": "RD", "x": 50, "y": 0, "team": "home"},
+            # Goaltender
             {"position": "G", "x": -89, "y": 0, "team": "home"},
         ],
         "zones": [
@@ -58,27 +86,38 @@ FORMATIONS = {
     },
     
     "box_penalty_kill": {
-        "description": "Box formation for penalty kill",
+        "description": "Box penalty kill - 2 F covering point in high slot, 2 D covering low slot",
         "players": [
-            {"position": "C", "x": -50, "y": -10, "team": "home"},
-            {"position": "RW", "x": -50, "y": 10, "team": "home"},
-            {"position": "LD", "x": -70, "y": -10, "team": "home"},
-            {"position": "RD", "x": -70, "y": 10, "team": "home"},
+            # F1 - High slot left (covering left point)
+            {"position": "LW", "x": -45, "y": -15, "team": "home"},
+            # F2 - High slot right (covering right point)
+            {"position": "RW", "x": -45, "y": 15, "team": "home"},
+            # D1 - Low slot left (net front coverage)
+            {"position": "LD", "x": -65, "y": -12, "team": "home"},
+            # D2 - Low slot right (net front coverage)
+            {"position": "RD", "x": -65, "y": 12, "team": "home"},
+            # Goaltender
             {"position": "G", "x": -89, "y": 0, "team": "home"},
         ],
         "zones": [
-            {"zone_type": "coverage", "area": [-80, -20, 40, 40], "team": "home"}
+            {"zone_type": "coverage", "area": [-75, -25, 40, 50], "team": "home"}
         ]
     },
     
     "neutral_zone_trap": {
-        "description": "1-3-1 neutral zone trap",
+        "description": "Neutral zone trap - 1 F pressuring at offensive blue line, 2 F at red line flanking, 2 D at defensive blue line",
         "players": [
-            {"position": "C", "x": 15, "y": 0, "team": "home"},
-            {"position": "LW", "x": 0, "y": -25, "team": "home"},
-            {"position": "RW", "x": 0, "y": 25, "team": "home"},
-            {"position": "LD", "x": -15, "y": -15, "team": "home"},
-            {"position": "RD", "x": -15, "y": 15, "team": "home"},
+            # F1 - Pressuring at offensive blue line
+            {"position": "C", "x": 23, "y": 0, "team": "home"},
+            # F2 - Left side near red line
+            {"position": "LW", "x": -2, "y": -25, "team": "home"},
+            # F3 - Right side near red line
+            {"position": "RW", "x": -2, "y": 25, "team": "home"},
+            # D1 - At defensive blue line left
+            {"position": "LD", "x": -23, "y": -15, "team": "home"},
+            # D2 - At defensive blue line right
+            {"position": "RD", "x": -23, "y": 15, "team": "home"},
+            # Goaltender
             {"position": "G", "x": -89, "y": 0, "team": "home"},
         ],
         "zones": [
@@ -87,36 +126,94 @@ FORMATIONS = {
     },
     
     "breakout_strong_side": {
-        "description": "Strong side breakout from defensive zone",
+        "description": "Strong side (UP) breakout - Winger on boards at hashmark, other winger near blue line wide, D in corner, C supporting",
         "players": [
-            {"position": "C", "x": -40, "y": 0, "team": "home"},
-            {"position": "LW", "x": -20, "y": -35, "team": "home"},
-            {"position": "RW", "x": -60, "y": 35, "team": "home"},
-            {"position": "LD", "x": -85, "y": -20, "team": "home", "has_puck": True},
-            {"position": "RD", "x": -70, "y": 10, "team": "home"},
+            # Center - Supporting in middle for pass option
+            {"position": "C", "x": -55, "y": -10, "team": "home"},
+            # Strong side winger - On boards at hashmark
+            {"position": "LW", "x": -69, "y": -38, "team": "home"},
+            # Weak side winger - Near blue line wide
+            {"position": "RW", "x": -30, "y": 38, "team": "home"},
+            # Strong side D - In corner with puck
+            {"position": "LD", "x": -85, "y": -38, "team": "home", "has_puck": True},
+            # Weak side D - In front of net
+            {"position": "RD", "x": -85, "y": 5, "team": "home"},
+            # Goaltender
             {"position": "G", "x": -89, "y": 0, "team": "home"},
         ],
         "movements": [
-            {"from_position": "LD", "to_position": "RD", "movement_type": "pass"},
-            {"from_position": "RW", "to_position": [-40, 35], "movement_type": "skating"},
-            {"from_position": "LW", "to_position": [0, -35], "movement_type": "skating"},
+            # UP pass to winger on boards
+            {"from_position": "LD", "to_position": "LW", "movement_type": "pass"},
+            # Center swings for support
+            {"from_position": "C", "to_position": [-40, -15], "movement_type": "skating"},
+            # Weak side winger moves up ice
+            {"from_position": "RW", "to_position": [-10, 38], "movement_type": "skating"},
         ]
     },
     
     "cycle_offensive_zone": {
-        "description": "Offensive zone cycle play",
+        "description": "Offensive zone cycle - C and winger cycling on one side, other winger in slot looking to get open",
         "players": [
-            {"position": "C", "x": 65, "y": 0, "team": "home"},
-            {"position": "LW", "x": 85, "y": -30, "team": "home", "has_puck": True},
-            {"position": "RW", "x": 70, "y": 25, "team": "home"},
-            {"position": "LD", "x": 30, "y": -20, "team": "home"},
+            # Center - Part of cycle on strong side
+            {"position": "C", "x": 75, "y": -20, "team": "home"},
+            # Strong side winger - Deep in corner with puck
+            {"position": "LW", "x": 85, "y": -35, "team": "home", "has_puck": True},
+            # Weak side winger - In slot looking to get open
+            {"position": "RW", "x": 65, "y": 5, "team": "home"},
+            # Strong side D - Supporting from point
+            {"position": "LD", "x": 30, "y": -25, "team": "home"},
+            # Weak side D - Holding blue line
             {"position": "RD", "x": 30, "y": 20, "team": "home"},
+            # Goaltender
             {"position": "G", "x": -89, "y": 0, "team": "home"},
         ],
         "movements": [
-            {"from_position": "LW", "to_position": [85, -15], "movement_type": "skating"},
-            {"from_position": "RW", "to_position": [85, -30], "movement_type": "skating"},
-            {"from_position": "LW", "to_position": "RW", "movement_type": "pass"},
+            # Cycle movement - winger to center
+            {"from_position": "LW", "to_position": "C", "movement_type": "pass"},
+            # Center continues cycle
+            {"from_position": "C", "to_position": [85, -25], "movement_type": "skating"},
+            # Winger replaces center position
+            {"from_position": "LW", "to_position": [75, -20], "movement_type": "skating"},
+        ]
+    },
+    
+    "diamond_penalty_kill": {
+        "description": "Diamond penalty kill - 1 F at defensive blue line, 1 D at crease, 1 F + 1 D mid-slot flanking",
+        "players": [
+            # F1 - At defensive blue line (top of diamond)
+            {"position": "C", "x": -27, "y": 0, "team": "home"},
+            # F2 - Mid slot left side
+            {"position": "LW", "x": -50, "y": -15, "team": "home"},
+            # D1 - In front of net/crease (bottom of diamond)
+            {"position": "LD", "x": -80, "y": 0, "team": "home"},
+            # D2 - Mid slot right side
+            {"position": "RD", "x": -50, "y": 15, "team": "home"},
+            # Goaltender
+            {"position": "G", "x": -89, "y": 0, "team": "home"},
+        ],
+        "zones": [
+            {"zone_type": "coverage", "area": [-85, -30, 60, 60], "team": "home"}
+        ]
+    },
+    
+    "defensive_zone_coverage": {
+        "description": "Defensive zone coverage - Wingers cover point from hashmarks to blue line, D cover low, C supports all",
+        "players": [
+            # Center - Supporting all positions (high slot)
+            {"position": "C", "x": -55, "y": 0, "team": "home"},
+            # Left winger - Covering left point (hashmark to blue line)
+            {"position": "LW", "x": -40, "y": -30, "team": "home"},
+            # Right winger - Covering right point (hashmark to blue line)
+            {"position": "RW", "x": -40, "y": 30, "team": "home"},
+            # Left D - Low coverage (hashmark to behind net)
+            {"position": "LD", "x": -75, "y": -20, "team": "home"},
+            # Right D - Low coverage (hashmark to behind net)
+            {"position": "RD", "x": -75, "y": 20, "team": "home"},
+            # Goaltender
+            {"position": "G", "x": -89, "y": 0, "team": "home"},
+        ],
+        "zones": [
+            {"zone_type": "coverage", "area": [-100, -42.5, 75, 85], "team": "home", "opacity": 0.1}
         ]
     },
     

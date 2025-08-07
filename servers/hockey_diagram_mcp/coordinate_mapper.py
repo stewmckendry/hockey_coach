@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 import math
 from zone_grid import zone_grid, ZoneArea
+from offset_system import parse_offset, get_offset_description
 
 
 class Zone(Enum):
@@ -300,11 +301,12 @@ class HockeyCoordinateMapper:
         "low_slot": CoordinateMapping(85, 0, Zone.OFFENSIVE, description="Low slot area"),
         "goal_mouth": CoordinateMapping(89, 0, Zone.OFFENSIVE, description="Goal mouth area"),
         "crease": CoordinateMapping(86, 0, Zone.OFFENSIVE, description="Goal crease"),
+        "goal_crease": CoordinateMapping(86, 0, Zone.OFFENSIVE, description="Goal crease"),  # Alias for crease
         
-        # Point positions
-        "left_point": CoordinateMapping(25, -30, Zone.OFFENSIVE, description="Left point position"),
-        "right_point": CoordinateMapping(25, 30, Zone.OFFENSIVE, description="Right point position"),
-        "center_point": CoordinateMapping(25, 0, Zone.OFFENSIVE, description="Center point position"),
+        # Point positions (moved from y=25 to y=35 to be clearly inside the zone)
+        "left_point": CoordinateMapping(35, -30, Zone.OFFENSIVE, description="Left point position"),
+        "right_point": CoordinateMapping(35, 30, Zone.OFFENSIVE, description="Right point position"),
+        "center_point": CoordinateMapping(35, 0, Zone.OFFENSIVE, description="Center point position"),
         
         # Board areas
         "left_half_wall": CoordinateMapping(60, -35, Zone.OFFENSIVE, description="Left half-wall"),
@@ -997,6 +999,40 @@ class HockeyCoordinateMapper:
         }
         
         return role_offsets.get(role, (0, 0))
+    
+    def get_position_with_descriptive_offset(
+        self, 
+        zone_name: str, 
+        offset_description: Union[str, Dict[str, Union[float, str]]], 
+        zone_type: Optional[str] = None
+    ) -> Tuple[float, float]:
+        """
+        Get position coordinates using descriptive offset within a zone.
+        
+        Args:
+            zone_name: Name of the zone
+            offset_description: String description or dict with x, y, description
+            zone_type: Zone context ("defensive", "offensive", "neutral")
+            
+        Returns:
+            Tuple of (x, y) coordinates with offset applied
+        """
+        # Get base zone position
+        base_x, base_y = zone_grid.get_zone_position(zone_name)
+        
+        # Parse offset description
+        if isinstance(offset_description, dict):
+            # Handle dict format: {"x": 5, "y": -3, "description": "deep near boards"}
+            if "description" in offset_description:
+                offset_x, offset_y = parse_offset(offset_description["description"], zone_type)
+            else:
+                offset_x = offset_description.get("x", 0)
+                offset_y = offset_description.get("y", 0)
+        else:
+            # Handle string description
+            offset_x, offset_y = parse_offset(offset_description, zone_type)
+        
+        return (base_x + offset_x, base_y + offset_y)
     
     def get_formation_coordinates(self, formation_name: str) -> Dict[str, Tuple[float, float]]:
         """

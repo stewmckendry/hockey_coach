@@ -148,6 +148,12 @@ class HockeyDiagramGenerator:
     def _draw_players(self, ax, players: List[Player]):
         """Draw players on the rink."""
         for player in players:
+            # Skip players with invalid coordinates
+            if player.x is None or player.y is None:
+                import logging
+                logging.warning(f"Skipping player {player.position} with None coordinates")
+                continue
+                
             # Determine color and label
             if player.team == "home":
                 color = self.HOME_COLOR
@@ -188,8 +194,8 @@ class HockeyDiagramGenerator:
                 
     def _draw_movements(self, ax, players: List[Player], movements: List[Movement]):
         """Draw movement arrows and passes."""
-        # Create player position map for lookups
-        player_map = {p.position: (p.x, p.y) for p in players}
+        # Create player position map for lookups (skip players with None coordinates)
+        player_map = {p.position: (p.x, p.y) for p in players if p.x is not None and p.y is not None}
         
         for movement in movements:
             # Get start position

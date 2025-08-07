@@ -34,6 +34,18 @@ export function Header() {
               <Home size={18} />
               <span>Chat</span>
             </a>
+            <a 
+              href="/hockey-diagram-test" 
+              className="text-white hover:text-hockey-ice transition-colors duration-200"
+            >
+              Diagram Test
+            </a>
+            <a 
+              href="/hockey-iq" 
+              className="text-white hover:text-hockey-ice transition-colors duration-200"
+            >
+              Hockey IQ
+            </a>
             {/* TODO: Add more navigation links */}
             {/* <a href="/plans" className="text-white hover:text-hockey-ice transition-colors">Practice Plans</a> */}
             {/* <a href="/development" className="text-white hover:text-hockey-ice transition-colors">Player Development</a> */}
@@ -77,6 +89,20 @@ export function Header() {
               >
                 <Home size={18} />
                 <span>Chat Assistant</span>
+              </a>
+              <a 
+                href="/hockey-diagram-test" 
+                className="text-white hover:text-hockey-ice transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Diagram Test
+              </a>
+              <a 
+                href="/hockey-iq" 
+                className="text-white hover:text-hockey-ice transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Hockey IQ
               </a>
               {/* TODO: Add more mobile navigation links */}
               <div className="pt-3 border-t border-hockey-blue-light">

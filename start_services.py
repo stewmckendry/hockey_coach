@@ -59,9 +59,21 @@ def main():
         print("   ⏳ Waiting for Direct API to initialize...")
         time.sleep(3)
     
+    # Start the hockey diagram agent server
+    diagram_agent = start_service(
+        "Hockey Diagram Agent", 
+        "servers/hockey_diagram_agent_server.py", 
+        8002
+    )
+    
+    if diagram_agent:
+        print("   ⏳ Waiting for Diagram Agent to initialize...")
+        time.sleep(3)
+    
     print("\n✅ Services Started Successfully!")
     print(f"🏒 Hockey MCP Server: http://localhost:8000")
     print(f"🔗 Direct API: http://localhost:3003")
+    print(f"🎨 Diagram Agent: http://localhost:8002")
     print(f"🌐 Web App: cd web_app && npm run dev")
     print("\n💡 Press Ctrl+C to stop all services")
     
@@ -75,6 +87,8 @@ def main():
             hockey_mcp.terminate()
         if direct_api:
             direct_api.terminate()
+        if diagram_agent:
+            diagram_agent.terminate()
         print("✅ All services stopped")
 
 if __name__ == "__main__":

@@ -15,14 +15,14 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 from mcp.types import TextContent
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+# Add current directory to path for local imports
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from servers.hockey_diagram_mcp.generator import HockeyDiagramGenerator, Player, Movement, Zone
-from servers.hockey_diagram_mcp.parser import HockeyPromptParser, DiagramSpec
-from servers.hockey_diagram_mcp.enhanced_parser import EnhancedHockeyParser
-from servers.hockey_diagram_mcp.two_stage_parser import TwoStageHockeyParser
-from servers.hockey_diagram_mcp.elements import FORMATIONS, get_formation, list_available_elements
+from generator import HockeyDiagramGenerator, Player, Movement, CoverageZone as Zone
+from parser import HockeyPromptParser, DiagramSpec
+from enhanced_parser import EnhancedHockeyParser
+from two_stage_parser import TwoStageHockeyParser
+from elements import FORMATIONS, get_formation, list_available_elements
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -33,12 +33,32 @@ mcp = FastMCP("Hockey Diagram Generator")
 
 # Initialize components
 diagram_generator = HockeyDiagramGenerator()
-prompt_parser = HockeyPromptParser()
-enhanced_parser = EnhancedHockeyParser()
-two_stage_parser = TwoStageHockeyParser()
 
-# Storage directory for generated diagrams
-DIAGRAM_DIR = Path("servers/hockey_diagram_mcp/generated_diagrams")
+# Lazy initialization for parsers to ensure env vars are loaded
+_prompt_parser = None
+_enhanced_parser = None
+_two_stage_parser = None
+
+def get_prompt_parser():
+    global _prompt_parser
+    if _prompt_parser is None:
+        _prompt_parser = HockeyPromptParser()
+    return _prompt_parser
+
+def get_enhanced_parser():
+    global _enhanced_parser
+    if _enhanced_parser is None:
+        _enhanced_parser = EnhancedHockeyParser()
+    return _enhanced_parser
+
+def get_two_stage_parser():
+    global _two_stage_parser
+    if _two_stage_parser is None:
+        _two_stage_parser = TwoStageHockeyParser()
+    return _two_stage_parser
+
+# Storage directory for generated diagrams - use absolute path to avoid nesting
+DIAGRAM_DIR = Path(__file__).parent / "generated_diagrams"
 DIAGRAM_DIR.mkdir(parents=True, exist_ok=True)
 
 def _filter_players_by_view(diagram_spec, view: str):
@@ -100,7 +120,6 @@ def _filter_players_by_view(diagram_spec, view: str):
     
     return diagram_spec
 
-@mcp.tool()
 async def generate_hockey_diagram(
     prompt: str,
     diagram_type: Optional[str] = "tactical",
@@ -135,18 +154,18 @@ async def generate_hockey_diagram(
         
         # Try two-stage parser first for best accuracy
         try:
-            diagram_spec = await two_stage_parser.parse_prompt(prompt, context)
+            diagram_spec = await get_two_stage_parser().parse_prompt(prompt, context)
             logger.info("Using two-stage parser for maximum accuracy")
         except Exception as two_stage_error:
             logger.warning(f"Two-stage parser failed: {two_stage_error}, falling back to enhanced parser")
             # Fallback to enhanced parser
             try:
-                diagram_spec = await enhanced_parser.parse_prompt(prompt, context)
+                diagram_spec = await get_enhanced_parser().parse_prompt(prompt, context)
                 logger.info("Using enhanced parser")
             except Exception as enhanced_error:
                 logger.warning(f"Enhanced parser failed: {enhanced_error}, falling back to preset parser")
                 # Final fallback to preset-based parser
-                diagram_spec = await prompt_parser.parse_with_presets(prompt, FORMATIONS)
+                diagram_spec = await get_prompt_parser().parse_with_presets(prompt, FORMATIONS)
         
         # Override view if specified
         if view != "full":
@@ -266,7 +285,166 @@ async def list_hockey_formations() -> Dict[str, List[str]]:
     """
     return list_available_elements()
 
-@mcp.tool()
+async def parse_hockey_formation(
+    prompt: str,
+    return_structured: bool = True
+) -> Dict[str, Any]:
+    """
+    Parse a hockey formation using the two-stage parser.
+    Returns structured data ready for diagram generation.
+    
+    Args:
+        prompt: Natural language description of the hockey formation/play
+        return_structured: Whether to return structured format (default: True)
+    
+    Returns:
+        Dictionary containing parsed formation data or error information
+    """
+    start_time = datetime.now()
+    logger.info(f"Parsing hockey formation: {prompt[:50]}...")
+    
+    try:
+        # Use two-stage parser for maximum accuracy
+        diagram_spec = await get_two_stage_parser().parse_prompt(prompt)
+        
+        if return_structured:
+            return {
+                "success": True,
+                "formation": diagram_spec.diagram_type,
+                "players": [p.dict() for p in diagram_spec.players],
+                "movements": [m.dict() for m in diagram_spec.movements] if diagram_spec.movements else [],
+                "zones": [z.dict() for z in diagram_spec.zones] if diagram_spec.zones else [],
+                "view": diagram_spec.view,
+                "title": diagram_spec.title,
+                "parsing_time": (datetime.now() - start_time).total_seconds()
+            }
+        else:
+            return {
+                "success": True,
+                "raw_spec": diagram_spec.dict(),
+                "parsing_time": (datetime.now() - start_time).total_seconds()
+            }
+    except Exception as e:
+        logger.error(f"Error parsing formation: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "parsing_time": (datetime.now() - start_time).total_seconds()
+        }
+
+async def generate_diagram_from_spec(
+    diagram_spec: Dict[str, Any],
+    output_format: str = "png"
+) -> Dict[str, Any]:
+    """
+    Generate a diagram from a parsed specification.
+    Separates parsing from generation for agent flexibility.
+    
+    Args:
+        diagram_spec: Parsed diagram specification (from parse_hockey_formation)
+        output_format: Output format - 'png' or 'svg' (default: png)
+    
+    Returns:
+        Dictionary containing diagram path and generation details
+    """
+    start_time = datetime.now()
+    logger.info("Generating diagram from pre-parsed specification...")
+    
+    # Log input specification details
+    logger.info(f"DIAGRAM GENERATION INPUT - Players: {len(diagram_spec.get('players', []))}")
+    logger.info(f"DIAGRAM GENERATION INPUT - Movements: {len(diagram_spec.get('movements', []))}")
+    logger.info(f"DIAGRAM GENERATION INPUT - Zones: {len(diagram_spec.get('zones', []))}")
+    logger.info(f"DIAGRAM GENERATION INPUT - Output format: {output_format}")
+    
+    try:
+        # Reconstruct DiagramSpec from dict
+        from parser import DiagramSpec
+        
+        # Convert dictionary back to proper objects
+        spec_dict = diagram_spec.copy()
+        
+        # Convert players
+        players = []
+        for p_dict in spec_dict.get('players', []):
+            players.append(Player(
+                position=p_dict['position'],
+                x=p_dict['x'],
+                y=p_dict['y'],
+                team=p_dict['team'],
+                has_puck=p_dict.get('has_puck', False)
+            ))
+        
+        # Convert movements if present
+        movements = None
+        if spec_dict.get('movements'):
+            movements = []
+            for m_dict in spec_dict['movements']:
+                to_pos = m_dict['to_position']
+                if isinstance(to_pos, list):
+                    to_pos = tuple(to_pos)
+                movements.append(Movement(
+                    from_position=m_dict['from_position'],
+                    to_position=to_pos,
+                    movement_type=m_dict['movement_type']
+                ))
+        
+        # Convert zones if present
+        zones = None
+        if spec_dict.get('zones'):
+            zones = []
+            for z_dict in spec_dict['zones']:
+                area = z_dict['area']
+                if isinstance(area, list):
+                    area = tuple(area)
+                zones.append(Zone(
+                    zone_type=z_dict['zone_type'],
+                    area=area,
+                    team=z_dict['team'],
+                    opacity=z_dict.get('opacity', 0.2)
+                ))
+        
+        # Generate the diagram
+        base64_image = diagram_generator.generate_diagram(
+            players=players,
+            movements=movements,
+            zones=zones,
+            view=spec_dict.get('view', 'full'),
+            title=spec_dict.get('title'),
+            output_format=output_format
+        )
+        
+        # Save to file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"hockey_diagram_from_spec_{timestamp}.{output_format}"
+        filepath = DIAGRAM_DIR / filename
+        
+        diagram_generator.save_to_file(base64_image, str(filepath), output_format)
+        
+        generation_time = (datetime.now() - start_time).total_seconds()
+        
+        # Log generation output details
+        logger.info(f"DIAGRAM GENERATION OUTPUT - File saved: {filepath}")
+        logger.info(f"DIAGRAM GENERATION OUTPUT - File size: {filepath.stat().st_size if filepath.exists() else 0} bytes")
+        logger.info(f"DIAGRAM GENERATION PERFORMANCE - Total time: {generation_time:.3f}s")
+        logger.info(f"Successfully generated diagram from spec: {filepath}")
+        
+        return {
+            "success": True,
+            "diagram_path": str(filepath),
+            "message": f"Diagram generated from specification: {filepath}",
+            "generation_time": generation_time
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating diagram from spec: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "generation_time": (datetime.now() - start_time).total_seconds()
+        }
+
 async def get_formation_details(formation_name: str) -> Dict[str, Any]:
     """
     Get detailed specification for a specific formation.
@@ -306,6 +484,177 @@ async def get_formation_details(formation_name: str) -> Dict[str, Any]:
             "error": f"Failed to retrieve formation: {str(e)}",
             "success": False
         }
+
+@mcp.tool()
+async def create_hockey_diagram(
+    request: str,
+    context: Optional[str] = None,
+    conversation_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Create intelligent hockey diagrams from natural language descriptions.
+    
+    This tool provides enhanced capabilities including:
+    - Automatic research of unknown formations and systems
+    - Iterative refinement based on feedback
+    - Conversation memory within sessions
+    - Natural language understanding of hockey concepts
+    
+    Args:
+        request: Natural language description of the formation/play/drill
+        context: Optional context or previous conversation reference
+        conversation_id: Optional conversation ID for maintaining context
+    
+    Returns:
+        Dictionary containing diagram path, tactical explanation, and metadata
+    """
+    start_time = datetime.now()
+    logger.info(f"🤖 Agent-based generation: {request[:50]}...")
+    
+    try:
+        # Log environment state
+        logger.info(f"OPENAI_API_KEY set: {'OPENAI_API_KEY' in os.environ}")
+        logger.info(f"EXA_API_KEY set: {'EXA_API_KEY' in os.environ}")
+        
+        # Import agent (lazy loading to avoid circular imports)
+        logger.info("Importing hockey_diagram_agent module...")
+        from hockey_diagram_agent import get_agent
+        
+        # Get or create agent instance with timeout
+        logger.info("Getting agent instance...")
+        try:
+            agent = await asyncio.wait_for(get_agent(), timeout=10.0)
+            logger.info("Agent instance obtained successfully")
+        except asyncio.TimeoutError:
+            logger.error("Timeout getting agent instance")
+            raise Exception("Agent initialization timed out after 10 seconds")
+        
+        # Prepare context if provided
+        agent_context = None
+        if context:
+            try:
+                import json
+                agent_context = json.loads(context) if isinstance(context, str) else context
+            except (json.JSONDecodeError, TypeError):
+                agent_context = {"notes": context}
+        
+        # Generate diagram using agent with timeout
+        if conversation_id:
+            # Continue existing conversation
+            logger.info(f"📞 Continuing conversation {conversation_id}")
+            result = await asyncio.wait_for(agent.continue_conversation(request), timeout=90.0)
+        else:
+            # Start new generation
+            logger.info(f"Generating diagram with agent...")
+            result = await asyncio.wait_for(agent.generate_diagram(request, agent_context), timeout=90.0)
+        
+        # Add server metadata
+        result.update({
+            "agent_used": True,
+            "server_timestamp": datetime.now().isoformat(),
+            "total_time": (datetime.now() - start_time).total_seconds()
+        })
+        
+        logger.info(f"✅ Agent generation completed: {result.get('success', False)}")
+        return result
+        
+    except ImportError as e:
+        logger.error(f"Agent not available: {e}")
+        return {
+            "success": False,
+            "error": "Agent system not available - falling back to direct generation",
+            "error_type": "agent_unavailable",
+            "fallback_suggestion": "Use generate_hockey_diagram tool instead"
+        }
+    except Exception as e:
+        logger.error(f"Agent generation error: {e}, trying simple agent fallback")
+        
+        # Try simple agent as fallback
+        try:
+            from simple_hockey_agent import generate_with_simple_agent
+            logger.info("Using simple agent fallback...")
+            result = await generate_with_simple_agent(request)
+            result.update({
+                "agent_used": True,
+                "fallback_used": True,
+                "server_timestamp": datetime.now().isoformat(),
+                "total_time": (datetime.now() - start_time).total_seconds()
+            })
+            return result
+        except Exception as fallback_error:
+            logger.error(f"Simple agent also failed: {fallback_error}")
+            
+        return {
+            "success": False,
+            "error": f"Agent generation failed: {str(e)}",
+            "error_type": type(e).__name__,
+            "generation_time": (datetime.now() - start_time).total_seconds(),
+            "fallback_suggestion": "Try using generate_hockey_diagram for direct generation"
+        }
+
+@mcp.tool()
+async def get_agent_status() -> Dict[str, Any]:
+    """
+    Get status and capabilities of the hockey diagram agent.
+    
+    Returns:
+        Dictionary containing agent availability, capabilities, and server status
+    """
+    try:
+        from hockey_diagram_agent import get_agent
+        
+        agent = await get_agent()
+        capabilities = await agent.get_agent_capabilities()
+        
+        return {
+            "agent_available": True,
+            "agent_initialized": True,
+            "capabilities": capabilities,
+            "status": "operational"
+        }
+        
+    except ImportError:
+        return {
+            "agent_available": False,
+            "agent_initialized": False,
+            "status": "not_available",
+            "message": "Agent system dependencies not installed"
+        }
+    except Exception as e:
+        return {
+            "agent_available": False,
+            "agent_initialized": False,
+            "status": "error",
+            "error": str(e),
+            "message": "Agent system encountered an error"
+        }
+
+async def clear_agent_conversation() -> Dict[str, Any]:
+    """
+    Clear the agent's conversation history and reset context.
+    
+    Returns:
+        Dictionary confirming the conversation reset
+    """
+    try:
+        from hockey_diagram_agent import get_agent
+        
+        agent = await get_agent()
+        agent.clear_conversation()
+        
+        return {
+            "success": True,
+            "message": "Agent conversation history cleared",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Failed to clear agent conversation"
+        }
+
 
 @mcp.resource("hockey://diagram_examples")
 async def get_diagram_examples() -> str:
