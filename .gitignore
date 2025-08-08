@@ -22,3 +22,13 @@ logs/*
 logs/claude_telemetry/
 telemetry/logs/
 *.jsonl
+
+# Hockey Diagram Cache (ChromaDB)
+servers/hockey_diagram_mcp/chroma_diagram_cache/
+servers/hockey_diagram_mcp/api_server.log
+servers/hockey_diagram_mcp/server.log
+
+# Web app logs
+web_app/dev.log
+web_app/web_app.log
+web_app/web_server.log
