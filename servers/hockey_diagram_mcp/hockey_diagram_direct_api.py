@@ -88,6 +88,91 @@ async def call_mcp_tool(request: ToolRequest):
             detail=f"Failed to call MCP tool: {str(e)}"
         )
 
+# MCP-style endpoint for cache operations
+@app.post("/mcp")
+async def mcp_endpoint(request: dict):
+    """MCP-style endpoint for tools/call method"""
+    try:
+        method = request.get("method", "")
+        
+        if method == "tools/call":
+            # Extract tool name and arguments
+            params = request.get("params", {})
+            tool_name = params.get("name", "")
+            tool_args = params.get("arguments", {})
+            
+            # Use the FastMCP Client
+            from fastmcp import Client
+            client = Client(mcp)
+            
+            async with client:
+                result = await client.call_tool(tool_name, tool_args)
+                
+                # Format response in MCP style
+                if hasattr(result, 'content') and isinstance(result.content, list):
+                    for item in result.content:
+                        if hasattr(item, 'type') and item.type == 'text':
+                            try:
+                                data = json.loads(item.text)
+                                return {
+                                    "jsonrpc": "2.0",
+                                    "id": request.get("id", 1),
+                                    "result": {
+                                        "content": [{"type": "text", "text": json.dumps(data)}]
+                                    }
+                                }
+                            except json.JSONDecodeError:
+                                return {
+                                    "jsonrpc": "2.0",
+                                    "id": request.get("id", 1),
+                                    "result": {
+                                        "content": [{"type": "text", "text": item.text}]
+                                    }
+                                }
+                
+                # Fallback
+                return {
+                    "jsonrpc": "2.0",
+                    "id": request.get("id", 1),
+                    "result": {"content": [{"type": "text", "text": str(result)}]}
+                }
+                
+        elif method == "tools/list":
+            # List available tools
+            from fastmcp import Client
+            client = Client(mcp)
+            
+            async with client:
+                tools = await client.list_tools()
+                tool_list = []
+                for tool in tools:
+                    tool_list.append({
+                        "name": tool.name,
+                        "description": getattr(tool, 'description', ''),
+                        "inputSchema": getattr(tool, 'inputSchema', {})
+                    })
+                
+                return {
+                    "jsonrpc": "2.0",
+                    "id": request.get("id", 1),
+                    "result": {"tools": tool_list}
+                }
+        
+        else:
+            return {
+                "jsonrpc": "2.0",
+                "id": request.get("id", 1),
+                "error": {"code": -32601, "message": f"Method not found: {method}"}
+            }
+            
+    except Exception as e:
+        print(f"Error in MCP endpoint: {e}")
+        return {
+            "jsonrpc": "2.0",
+            "id": request.get("id", 1),
+            "error": {"code": -32603, "message": str(e)}
+        }
+
 @app.post("/generate")
 async def generate_diagram(request: dict):
     """Generate a hockey diagram using the agent"""

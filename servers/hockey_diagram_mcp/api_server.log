@@ -1,0 +1,595 @@
+INFO:__main__:Starting Hockey Diagram MCP Direct API on port 8001
+INFO:__main__:This provides HTTP access to the hockey diagram MCP tools
+INFO:     Started server process [11274]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+WARNING:diagram_cache:HTTP client failed: Chroma server host provided in settings[https://chroma-copy-copy-production.up.railway.app] is different to the one provided in HttpClient: [localhost], using PersistentClient
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:diagram_cache:Using local PersistentClient for diagram cache
+INFO:diagram_cache:Collection 'hockey_diagram_specs' ready
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: Direct api_key configuration will not be persisted. Please use environment variables via api_key_env_var for persistent storage.
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: legacy embedding function config: The CHROMA_OPENAI_API_KEY environment variable is not set.
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53153 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+WARNING:diagram_cache:HTTP client failed: Chroma server host provided in settings[https://chroma-copy-copy-production.up.railway.app] is different to the one provided in HttpClient: [localhost], using PersistentClient
+INFO:diagram_cache:Using local PersistentClient for diagram cache
+INFO:diagram_cache:Collection 'hockey_diagram_specs' ready
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: Direct api_key configuration will not be persisted. Please use environment variables via api_key_env_var for persistent storage.
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: legacy embedding function config: The CHROMA_OPENAI_API_KEY environment variable is not set.
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53402 - "POST /mcp HTTP/1.1" 200 OK
+INFO:backoff:Backing off send_request(...) for 0.3s (requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))
+INFO:     127.0.0.1:53645 - "GET /health HTTP/1.1" 200 OK
+INFO:hockey_diagram_agent:🚀 Initializing Hockey Diagram Expert Agent...
+INFO:hockey_diagram_agent:Attempting to connect to hockey MCP server...
+INFO:__main__:🚀 Starting Hockey MCP Server...
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/auth/identity "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/heartbeat "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
+INFO:__main__:✅ ChromaDB connected - 8 collections available
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/253ddfe3-7b12-45c5-b46e-9a182ad3d6fa/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/416b96b2-dc4c-4e89-adb6-2497cbc56e92/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/41ea6112-cab7-46b8-bf6d-86eabd3ace04/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/569d9c2a-831f-4f67-a382-788c08186477/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/689a1fad-d612-40de-b077-4cddc4b59524/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/69f9dd10-0cce-4971-9d33-a5185c71e1cb/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/69fe5bfd-2a73-47c2-bb47-2d8c074ed2d7/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/80ad645b-5cd0-49a5-b602-0d569e869d16/count "HTTP/1.1 200 OK"
+INFO:__main__:✅ OpenAI client initialized
+INFO:__main__:🏒 Hockey MCP Server ready for coaching!
+INFO:__main__:🔧 FastMCP Configuration: stateless_http=True
+INFO:__main__:🎯 This should prevent OpenAI session termination issues
+INFO:__main__:🚀 Transport mode: stdio
+INFO:__main__:   → Starting STDIO transport (development)
+INFO:hockey_diagram_agent:✅ Connected MCP server 1
+INFO:hockey_diagram_agent:ℹ️ Exa web search not available (no API key)
+INFO:hockey_diagram_agent:✅ FormationSynthesisAgent added as direct tool
+INFO:hockey_diagram_agent:✅ ZoneMappingAgent added as direct tool
+INFO:hockey_diagram_agent:📋 Total tools available: 5 (3 native + 2 subagents)
+INFO:hockey_diagram_agent:✅ Hockey Diagram Expert Agent initialized successfully
+INFO:hockey_diagram_agent:📋 Connected MCP servers: 1 servers connected
+INFO:hockey_diagram_agent:🎯 Processing diagram request: Penalty kill diamond formation...
+INFO:hockey_diagram_agent:🔧 Sending request to agent: Penalty kill diamond formation...
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53660 - "GET /health HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:hockey_tools:🎯 parse_hockey_formation called with: Diamond formation for penalty kill in hockey, where two forwards and one defenseman form the top of the diamond, while one defenseman takes the front position, all maintaining an organized structure to effectively cover passing lanes and block shots.
+INFO:parser_agent:Initializing parser agent with MCP tools...
+INFO:parser_agent:Hockey MCP tools added to parser agent
+INFO:__main__:🚀 Starting Hockey MCP Server...
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/auth/identity "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/heartbeat "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
+INFO:__main__:✅ ChromaDB connected - 8 collections available
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/253ddfe3-7b12-45c5-b46e-9a182ad3d6fa/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/416b96b2-dc4c-4e89-adb6-2497cbc56e92/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/41ea6112-cab7-46b8-bf6d-86eabd3ace04/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/569d9c2a-831f-4f67-a382-788c08186477/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/689a1fad-d612-40de-b077-4cddc4b59524/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/69f9dd10-0cce-4971-9d33-a5185c71e1cb/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/69fe5bfd-2a73-47c2-bb47-2d8c074ed2d7/count "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/80ad645b-5cd0-49a5-b602-0d569e869d16/count "HTTP/1.1 200 OK"
+INFO:__main__:✅ OpenAI client initialized
+INFO:__main__:🏒 Hockey MCP Server ready for coaching!
+INFO:__main__:🔧 FastMCP Configuration: stateless_http=True
+INFO:__main__:🎯 This should prevent OpenAI session termination issues
+INFO:__main__:🚀 Transport mode: stdio
+INFO:__main__:   → Starting STDIO transport (development)
+INFO:parser_agent:Connected MCP server for parser agent
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+INFO:__main__:🎯 [TOOL CALL] search_hockey_tactics: query='diamond formation penalty kill', types=None, positions=None, n_results=10
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/auth/identity "HTTP/1.1 200 OK"
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/heartbeat "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: GET https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/hockey_tactics "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://chroma-copy-copy-production.up.railway.app/api/v2/tenants/default_tenant/databases/default_database/collections/416b96b2-dc4c-4e89-adb6-2497cbc56e92/query "HTTP/1.1 200 OK"
+INFO:__main__:✅ [TOOL COMPLETE] search_hockey_tactics: returned 10 tactics in 0.74s
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:parser_agent:✅ Parser returning zone-based spec with 4 players
+INFO:hockey_tools:✅ Parser returned: success=True
+INFO:hockey_tools:📦 Returning JSON of length: 683
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:hockey_tools:🎨 generate_diagram_from_spec called
+INFO:hockey_tools:📊 Parsed spec with 4 players
+INFO:core_tools:🎨 Generating diagram from specification...
+INFO:core_tools:Players before conversion: <class 'list'>, length: 4
+INFO:core_tools:First player type: <class 'dict'>
+INFO:core_tools:First player data: {'position': 'F1', 'zone': 'defensive_high_slot', 'team': 'home', 'has_puck': False}
+INFO:core_tools:Processing player 0: type=<class 'dict'>, value={'position': 'F1', 'zone': 'defensive_high_slot', 'team': 'home', 'has_puck': False}
+INFO:core_tools:🎯 CONVERTED zone 'defensive_high_slot' to coordinates (-50, 0)
+INFO:core_tools:✅ Created Player object: Player(position='F1', x=-50, y=0, team='home', has_puck=False)
+INFO:core_tools:Processing player 1: type=<class 'dict'>, value={'position': 'F2', 'zone': 'defensive_high_slot', 'team': 'home', 'has_puck': False}
+INFO:core_tools:🎯 CONVERTED zone 'defensive_high_slot' to coordinates (-50, 0)
+INFO:core_tools:✅ Created Player object: Player(position='F2', x=-50, y=0, team='home', has_puck=False)
+INFO:core_tools:Processing player 2: type=<class 'dict'>, value={'position': 'D1', 'zone': 'defensive_slot', 'team': 'home', 'has_puck': False}
+INFO:core_tools:🎯 CONVERTED zone 'defensive_slot' to coordinates (-75, 0)
+INFO:core_tools:✅ Created Player object: Player(position='D1', x=-75, y=0, team='home', has_puck=False)
+INFO:core_tools:Processing player 3: type=<class 'dict'>, value={'position': 'D2', 'zone': 'crease', 'team': 'home', 'has_puck': False}
+INFO:core_tools:🎯 CONVERTED zone 'crease' to coordinates (86, 0)
+INFO:core_tools:✅ Created Player object: Player(position='D2', x=86, y=0, team='home', has_puck=False)
+INFO:core_tools:✅ Converted 4 players to Player objects
+INFO:core_tools:✅ Applied offsets to 4 players
+INFO:core_tools:About to call generator.generate_diagram with 4 players
+INFO:core_tools:Player 0: <class 'generator.Player'> - Player(position='F1', x=-53, y=0, team='home', has_puck=False)
+INFO:core_tools:Player 1: <class 'generator.Player'> - Player(position='F2', x=-47, y=0, team='home', has_puck=False)
+INFO:core_tools:Player 2: <class 'generator.Player'> - Player(position='D1', x=-75, y=0, team='home', has_puck=False)
+INFO:core_tools:Player 3: <class 'generator.Player'> - Player(position='D2', x=86, y=0, team='home', has_puck=False)
+/Users/liammckendry/spacy_env/lib/python3.11/site-packages/sportypy/_base_classes/_base_surface.py:442: DeprecationWarning: open_text is deprecated. Use files() instead. Refer to https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy for migration advice.
+  with importlib.resources.open_text(
+/Users/liammckendry/spacy_env/lib/python3.11/site-packages/sportypy/_base_classes/_base_surface.py:420: DeprecationWarning: open_text is deprecated. Use files() instead. Refer to https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy for migration advice.
+  with importlib.resources.open_text(
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:hockey_tools:✅ generate_diagram_from_spec_core returned: success=True
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:hockey_diagram_agent:⏱️ Agent processing completed in 34.16s
+INFO:hockey_diagram_agent:📋 Result type: RunResult
+INFO:hockey_diagram_agent:📋 Result attributes: ['input', 'new_items', 'raw_responses', 'final_output', 'input_guardrail_results', 'output_guardrail_results', 'context_wrapper', '_last_agent']
+INFO:hockey_diagram_agent:📋 Inspecting 5 result items...
+INFO:hockey_diagram_agent:  📄 Item 1: ToolCallItem
+INFO:hockey_diagram_agent:    Item type: tool_call_item
+INFO:hockey_diagram_agent:    🛠️ Tool call: parse_hockey_formation
+INFO:hockey_diagram_agent:    📝 Args: {"prompt":"Diamond formation for penalty kill in hockey, where two forwards and one defenseman form the top of the diamond, while one defenseman takes the front position, all maintaining an organized ...
+INFO:hockey_diagram_agent:  📄 Item 2: ToolCallOutputItem
+INFO:hockey_diagram_agent:    Item type: tool_call_output_item
+INFO:hockey_diagram_agent:    📊 Tool output type: str
+INFO:hockey_diagram_agent:    🔍 Parser traces extracted: {'parser_used': 'unknown', 'parsed_data': {'title': 'Diamond Penalty Kill Formation', 'player_count': 4, 'movement_count': 0, 'view': 'defensive'}}
+INFO:hockey_diagram_agent:  📄 Item 3: ToolCallItem
+INFO:hockey_diagram_agent:    Item type: tool_call_item
+INFO:hockey_diagram_agent:    🛠️ Tool call: generate_diagram_from_spec
+INFO:hockey_diagram_agent:    📝 Args: {"diagram_spec":"{\"diagram_type\":\"formation\",\"title\":\"Diamond Penalty Kill Formation\",\"view\":\"defensive\",\"players\":[{\"position\":\"F1\",\"zone\":\"defensive_high_slot\",\"team\":\"home\...
+INFO:hockey_diagram_agent:  📄 Item 4: ToolCallOutputItem
+INFO:hockey_diagram_agent:    Item type: tool_call_output_item
+INFO:hockey_diagram_agent:    📊 Tool output type: str
+INFO:hockey_diagram_agent:  📄 Item 5: MessageOutputItem
+INFO:hockey_diagram_agent:    Item type: message_output_item
+INFO:hockey_diagram_agent:📝 Agent response length: 609 characters
+INFO:hockey_diagram_agent:🎭 Agent response preview: RunResult:
+- Last agent: Agent(name="Hockey Diagram Expert", ...)
+- Final output (str):
+    ```
+    ✅ Generated Diamond Penalty Kill Formation diagram
+    
+    📁 Diagram: generated_diagrams/hockey_dia...
+INFO:hockey_diagram_agent:🛠️ Tools used in order: parse_hockey_formation → generate_diagram_from_spec
+INFO:hockey_diagram_agent:🔢 Total tool calls: 2
+INFO:hockey_diagram_agent:✅ Diagram request completed in 34.16s
+INFO:hockey_diagram_agent:🛠️ Tools used: ['parse_hockey_formation', 'generate_diagram_from_spec']
+INFO:     127.0.0.1:53647 - "POST /generate HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+WARNING:diagram_cache:HTTP client failed: Chroma server host provided in settings[https://chroma-copy-copy-production.up.railway.app] is different to the one provided in HttpClient: [localhost], using PersistentClient
+INFO:diagram_cache:Using local PersistentClient for diagram cache
+INFO:diagram_cache:Collection 'hockey_diagram_specs' ready
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+INFO:diagram_cache:Saved diagram diagram_4d196851e023 to cache
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: Direct api_key configuration will not be persisted. Please use environment variables via api_key_env_var for persistent storage.
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: legacy embedding function config: The CHROMA_OPENAI_API_KEY environment variable is not set.
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53710 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+WARNING:diagram_cache:HTTP client failed: Chroma server host provided in settings[https://chroma-copy-copy-production.up.railway.app] is different to the one provided in HttpClient: [localhost], using PersistentClient
+INFO:diagram_cache:Using local PersistentClient for diagram cache
+INFO:diagram_cache:Collection 'hockey_diagram_specs' ready
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: Direct api_key configuration will not be persisted. Please use environment variables via api_key_env_var for persistent storage.
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: legacy embedding function config: The CHROMA_OPENAI_API_KEY environment variable is not set.
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53710 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+ERROR:server:Error retrieving cached diagram: 17 validation errors for DiagramSpec
+players.0.x
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.0.y
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.x
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.y
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.x
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.y
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.x
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.y
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.area
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.team
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.area
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.team
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.zone_type
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.area
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.team
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53714 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+ERROR:server:Error retrieving cached diagram: 17 validation errors for DiagramSpec
+players.0.x
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.0.y
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.x
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.y
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.x
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.y
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.x
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.y
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.area
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.team
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.area
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.team
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.zone_type
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.area
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.team
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53714 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+ERROR:server:Error retrieving cached diagram: 17 validation errors for DiagramSpec
+players.0.x
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.0.y
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.x
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.y
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.x
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.y
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.x
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.y
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.area
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.team
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.area
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.team
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.zone_type
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.area
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.team
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53714 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+ERROR:server:Error retrieving cached diagram: 17 validation errors for DiagramSpec
+players.0.x
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.0.y
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.x
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.y
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.x
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.y
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.x
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.y
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.area
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.team
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.area
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.team
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.zone_type
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.area
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.team
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53714 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+ERROR:server:Error retrieving cached diagram: 17 validation errors for DiagramSpec
+players.0.x
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.0.y
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.x
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.y
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.x
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.y
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.x
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.y
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.area
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.team
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.area
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.team
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.zone_type
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.area
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.team
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53714 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: open_text is deprecated. Use files() instead. Refer to https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy for migration advice.
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: open_text is deprecated. Use files() instead. Refer to https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy for migration advice.
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+ERROR:server:Error retrieving cached diagram: 16 validation errors for DiagramSpec
+players.0.x
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...home', 'has_puck': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.0.y
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...home', 'has_puck': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.x
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.y
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.x
+  Field required [type=missing, input_value={'position': 'F3', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.y
+  Field required [type=missing, input_value={'position': 'F3', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.x
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.y
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.4.x
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.4.y
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.5.x
+  Field required [type=missing, input_value={'position': 'F4', 'zone'...way', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.5.y
+  Field required [type=missing, input_value={'position': 'F4', 'zone'...way', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.6.x
+  Field required [type=missing, input_value={'position': 'F5', 'zone'...way', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.6.y
+  Field required [type=missing, input_value={'position': 'F5', 'zone'...way', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.7.x
+  Field required [type=missing, input_value={'position': 'F6', 'zone'...way', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.7.y
+  Field required [type=missing, input_value={'position': 'F6', 'zone'...way', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+WARNING:diagram_cache:HTTP client failed: Chroma server host provided in settings[https://chroma-copy-copy-production.up.railway.app] is different to the one provided in HttpClient: [localhost], using PersistentClient
+INFO:diagram_cache:Using local PersistentClient for diagram cache
+INFO:diagram_cache:Collection 'hockey_diagram_specs' ready
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: Direct api_key configuration will not be persisted. Please use environment variables via api_key_env_var for persistent storage.
+INFO:mcp.server.lowlevel.server:Warning: DeprecationWarning: legacy embedding function config: The CHROMA_OPENAI_API_KEY environment variable is not set.
+INFO:     127.0.0.1:53714 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53718 - "POST /mcp HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53721 - "POST /mcp HTTP/1.1" 200 OK
+INFO:mcp.server.lowlevel.server:Processing request of type CallToolRequest
+ERROR:server:Error retrieving cached diagram: 17 validation errors for DiagramSpec
+players.0.x
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.0.y
+  Field required [type=missing, input_value={'position': 'F1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.x
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.1.y
+  Field required [type=missing, input_value={'position': 'F2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.x
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.2.y
+  Field required [type=missing, input_value={'position': 'D1', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.x
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+players.3.y
+  Field required [type=missing, input_value={'position': 'D2', 'zone'...ome', 'has_puck': False}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.area
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.0.team
+  Field required [type=missing, input_value={'zone': 'defensive_high_...erage': 'passing lanes'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.zone_type
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.area
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.1.team
+  Field required [type=missing, input_value={'zone': 'defensive_slot'...erage': 'shot blocking'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.zone_type
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.area
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+zones.2.team
+  Field required [type=missing, input_value={'zone': 'crease', 'coverage': 'goal protection'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+INFO:     127.0.0.1:53725 - "POST /mcp HTTP/1.1" 200 OK

@@ -707,6 +707,51 @@ async def save_diagram_to_cache(
         }
 
 @mcp.tool()
+async def list_all_cached_diagrams(
+    limit: int = 50,
+    offset: int = 0,
+    sort_by: str = "created_at",
+    ascending: bool = False
+) -> Dict[str, Any]:
+    """
+    List all diagrams in the cache with pagination support.
+    
+    Args:
+        limit: Maximum number of diagrams to return (default 50, max 100)
+        offset: Number of diagrams to skip for pagination (default 0)
+        sort_by: Field to sort by - 'created_at', 'usage_count', or 'prompt' (default 'created_at')
+        ascending: Sort order - False for newest/highest first (default False)
+    
+    Returns:
+        Dictionary containing:
+        - success: Whether the operation succeeded
+        - diagrams: List of diagram records
+        - total: Total number of diagrams in cache
+        - limit: Number of diagrams per page
+        - offset: Current offset
+        - has_more: Whether more pages are available
+    """
+    try:
+        cache = DiagramCacheManager()
+        result = cache.list_all_diagrams(
+            limit=limit,
+            offset=offset,
+            sort_by=sort_by,
+            ascending=ascending
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error listing all diagrams: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "diagrams": [],
+            "total": 0
+        }
+
+@mcp.tool()
 async def search_cached_diagrams(
     query: str,
     limit: int = 10,

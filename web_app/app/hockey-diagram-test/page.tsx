@@ -33,9 +33,13 @@ export default function HockeyDiagramTest() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [savedDiagramId, setSavedDiagramId] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [showLibrary, setShowLibrary] = useState(false)
   const [libraryDiagrams, setLibraryDiagrams] = useState<any[]>([])
   const [loadingLibrary, setLoadingLibrary] = useState(false)
+  const [libraryTotal, setLibraryTotal] = useState(0)
+  const [libraryOffset, setLibraryOffset] = useState(0)
+  const [libraryHasMore, setLibraryHasMore] = useState(false)
 
   // Example prompts
   const examplePrompts = [
@@ -58,6 +62,9 @@ export default function HockeyDiagramTest() {
     setRating(0)
     setFeedbackComment('')
     setFeedbackCategories([])
+    setSaved(false)
+    setSavedDiagramId(null)
+    setSaveError(null)
 
     try {
       console.log('🚀 Generating diagram for prompt:', prompt)
@@ -143,9 +150,54 @@ export default function HockeyDiagramTest() {
 
   // Save diagram to cache
   const saveDiagram = async () => {
-    if (!result?.parserSpec || !prompt) return
+    if (!prompt) {
+      console.error('❌ Cannot save: Missing prompt')
+      return
+    }
+
+    // Extract the actual spec from traces or parserSpec
+    let actualSpec = null
+    
+    // First try to extract from agentTraces (most accurate)
+    if (result?.agentTraces && result.agentTraces.length > 0) {
+      // Look for the generate_diagram_from_spec tool call which has the full spec
+      for (const trace of result.agentTraces) {
+        if (trace.name === 'generate_diagram_from_spec') {
+          try {
+            const args = typeof trace.arguments === 'string' ? JSON.parse(trace.arguments) : trace.arguments
+            if (args.diagram_spec) {
+              actualSpec = typeof args.diagram_spec === 'string' ? JSON.parse(args.diagram_spec) : args.diagram_spec
+              console.log('✅ Extracted spec from generate_diagram_from_spec trace')
+              break
+            }
+          } catch (e) {
+            console.warn('Failed to parse spec from trace:', e)
+          }
+        }
+      }
+    }
+    
+    // Fallback to parserSpec if it's an object (not the RunResult string)
+    if (!actualSpec && result?.parserSpec && typeof result.parserSpec === 'object') {
+      actualSpec = result.parserSpec
+      console.log('✅ Using parserSpec as it is already an object')
+    }
+    
+    if (!actualSpec) {
+      console.error('❌ Cannot save: Could not extract diagram specification', {
+        hasAgentTraces: !!(result?.agentTraces?.length),
+        parserSpecType: typeof result?.parserSpec
+      })
+      return
+    }
 
     setSaving(true)
+    console.log('💾 Saving diagram to cache...', {
+      prompt,
+      spec: actualSpec,
+      parserType: result?.parserType
+    })
+    
     try {
       const response = await fetch('/api/hockey-diagram/cache', {
         method: 'POST',
@@ -156,39 +208,81 @@ export default function HockeyDiagramTest() {
           action: 'save',
           data: {
             prompt,
-            spec: result.parserSpec,
-            parserType: result.parserType || 'unknown',
+            spec: actualSpec,
+            parserType: result?.parserType || 'unknown',
             tags: ['test', 'web-ui'],
             author: 'web-user'
           }
         })
       })
 
+      console.log('📡 Save response status:', response.status)
       const data = await response.json()
+      console.log('📦 Save response data:', data)
+      
       if (data.success) {
         setSaved(true)
         setSavedDiagramId(data.diagram_id)
-        setTimeout(() => setSaved(false), 3000) // Reset after 3 seconds
+        setSaveError(null)
+        console.log('✅ Diagram saved with ID:', data.diagram_id)
+        setTimeout(() => {
+          setSaved(false)
+          setSavedDiagramId(null)
+        }, 5000) // Reset after 5 seconds
+      } else {
+        setSaveError(data.error || 'Failed to save diagram')
+        console.error('❌ Save failed:', data.error)
+        setTimeout(() => setSaveError(null), 5000) // Clear error after 5 seconds
       }
     } catch (error) {
-      console.error('Failed to save diagram:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Failed to save diagram'
+      setSaveError(errorMsg)
+      console.error('❌ Failed to save diagram:', error)
+      setTimeout(() => setSaveError(null), 5000) // Clear error after 5 seconds
     } finally {
       setSaving(false)
     }
   }
 
-  // Load library of cached diagrams
-  const loadLibrary = async () => {
+  // Load library of cached diagrams with pagination
+  const loadLibrary = async (offset: number = 0) => {
     setLoadingLibrary(true)
+    console.log(`📚 Loading diagram library (offset: ${offset})...`)
+    
     try {
-      const response = await fetch('/api/hockey-diagram/cache?action=search&query=&limit=20')
+      // Use the new list endpoint to get all diagrams
+      const response = await fetch(`/api/hockey-diagram/cache?action=list&limit=20&offset=${offset}&sortBy=created_at`)
+      console.log('📡 Library response status:', response.status)
+      
       const data = await response.json()
+      console.log('📦 Library data:', data)
       
       if (data.success && data.diagrams) {
         setLibraryDiagrams(data.diagrams)
+        setLibraryTotal(data.total || 0)
+        setLibraryOffset(data.offset || 0)
+        setLibraryHasMore(data.has_more || false)
+        console.log(`✅ Loaded ${data.diagrams.length} diagrams (${data.total} total)`)
+        
+        if (data.has_more) {
+          console.log(`📄 More diagrams available (showing ${data.offset + 1}-${data.offset + data.diagrams.length} of ${data.total})`)
+        }
+      } else if (!data.success) {
+        console.error('❌ Failed to load library:', data.error)
+        setLibraryDiagrams([])
+        setLibraryTotal(0)
+        setLibraryHasMore(false)
+      } else {
+        console.log('📭 No diagrams in library')
+        setLibraryDiagrams([])
+        setLibraryTotal(0)
+        setLibraryHasMore(false)
       }
     } catch (error) {
-      console.error('Failed to load library:', error)
+      console.error('❌ Failed to load library:', error)
+      setLibraryDiagrams([])
+      setLibraryTotal(0)
+      setLibraryHasMore(false)
     } finally {
       setLoadingLibrary(false)
     }
@@ -224,7 +318,7 @@ export default function HockeyDiagramTest() {
   const toggleLibrary = () => {
     setShowLibrary(!showLibrary)
     if (!showLibrary && libraryDiagrams.length === 0) {
-      loadLibrary()
+      loadLibrary(0)  // Start from the beginning
     }
   }
 
@@ -316,23 +410,54 @@ export default function HockeyDiagramTest() {
                       <div className="text-sm text-gray-500">
                         {result.processingTimeMs}ms
                       </div>
-                      {result.success && result.parserSpec && (
+                      {result.success && (
                         <button
                           onClick={saveDiagram}
                           disabled={saving || saved}
                           className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                             saved 
                               ? 'bg-green-100 text-green-700' 
+                              : saveError
+                              ? 'bg-red-100 text-red-700'
                               : saving
                               ? 'bg-gray-100 text-gray-500'
                               : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                           }`}
                         >
-                          {saved ? '✓ Saved' : saving ? 'Saving...' : '💾 Save'}
+                          {saved ? '✓ Saved' : saveError ? '✗ Failed' : saving ? 'Saving...' : '💾 Save'}
                         </button>
                       )}
                     </div>
                   </div>
+
+                  {/* Save status notification */}
+                  {(saved || saveError) && (
+                    <div className={`mb-4 p-3 rounded-lg text-sm ${
+                      saved 
+                        ? 'bg-green-50 border border-green-200 text-green-800'
+                        : 'bg-red-50 border border-red-200 text-red-800'
+                    }`}>
+                      {saved ? (
+                        <div>
+                          <strong>✓ Diagram saved successfully!</strong>
+                          {savedDiagramId && (
+                            <span className="ml-2 text-xs text-green-600">
+                              ID: {savedDiagramId}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <strong>✗ Failed to save diagram</strong>
+                          {saveError && (
+                            <span className="ml-2 text-xs">
+                              {saveError}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {result.success && result.imageBase64 ? (
                     <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden">
@@ -532,14 +657,37 @@ export default function HockeyDiagramTest() {
             
             <div className="border-t px-6 py-3 flex justify-between items-center">
               <div className="text-sm text-gray-500">
-                {libraryDiagrams.length} diagrams in library
+                {libraryTotal > 0 && (
+                  <>
+                    Showing {libraryOffset + 1}-{Math.min(libraryOffset + libraryDiagrams.length, libraryTotal)} of {libraryTotal} diagrams
+                  </>
+                )}
+                {libraryTotal === 0 && 'No diagrams in library'}
               </div>
-              <button
-                onClick={loadLibrary}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Refresh
-              </button>
+              <div className="flex gap-2">
+                {libraryOffset > 0 && (
+                  <button
+                    onClick={() => loadLibrary(Math.max(0, libraryOffset - 20))}
+                    className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                  >
+                    ← Previous
+                  </button>
+                )}
+                {libraryHasMore && (
+                  <button
+                    onClick={() => loadLibrary(libraryOffset + 20)}
+                    className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                  >
+                    Next →
+                  </button>
+                )}
+                <button
+                  onClick={() => loadLibrary(0)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
             </div>
           </div>
         </div>

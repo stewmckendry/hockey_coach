@@ -10,6 +10,11 @@ export interface DiagramResult {
   success: boolean
   diagram_base64?: string
   explanation?: string
+  diagram_spec?: any
+  parser_traces?: {
+    parser_used?: string
+    parsed_data?: any
+  }
   metadata?: {
     tools_used: string[]
     parser_type?: string
@@ -165,6 +170,11 @@ export class HockeyDiagramExpertHTTP {
           tools_used: [],
           processing_time_ms: Date.now() - startTime
         }
+      }
+      
+      // Pass through parser_traces if available
+      if (result.parser_traces) {
+        result.parser_traces = result.parser_traces
       }
 
       return result
