@@ -75,13 +75,6 @@ async def generate_diagram_from_spec_core(
         view = diagram_spec.get('view', 'full')
         title = diagram_spec.get('title', 'Hockey Formation')
         
-        # Apply offsets to prevent overlapping players
-        from player_offset_system import apply_player_offsets
-        diagram_spec = apply_player_offsets(diagram_spec)
-        
-        # Re-extract players after offset application
-        players = diagram_spec.get('players', [])
-        
         # Convert player dicts to Player objects - HANDLE ALL COORDINATE CONVERSION HERE
         from generator import Player, Movement, CoverageZone
         from coordinate_mapper import coordinate_mapper
@@ -145,6 +138,38 @@ async def generate_diagram_from_spec_core(
             
             players = converted_players
             logger.info(f"✅ Converted {len(players)} players to Player objects")
+            
+            # Now apply offsets AFTER coordinate conversion
+            from player_offset_system import PlayerOffsetCalculator
+            calculator = PlayerOffsetCalculator()
+            
+            # Convert Player objects to dicts for offset calculation
+            player_dicts = [
+                {
+                    'x': p.x,
+                    'y': p.y,
+                    'position': p.position,
+                    'team': p.team,
+                    'has_puck': p.has_puck
+                }
+                for p in players
+            ]
+            
+            # Apply offsets
+            offset_players = calculator.calculate_offsets(player_dicts)
+            
+            # Convert back to Player objects
+            players = [
+                Player(
+                    position=p['position'],
+                    x=p['x'],
+                    y=p['y'],
+                    team=p['team'],
+                    has_puck=p['has_puck']
+                )
+                for p in offset_players
+            ]
+            logger.info(f"✅ Applied offsets to {len(players)} players")
         
         # Convert movement dicts to Movement objects if needed
         if movements and isinstance(movements[0], dict):

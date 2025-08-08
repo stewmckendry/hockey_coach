@@ -141,7 +141,7 @@ def create_parser_agent():
     return Agent(
         name="Hockey Parser",
         instructions=PARSER_INSTRUCTIONS,
-        model="gpt-4",
+        model="gpt-4o-mini",  # Cost-effective model
         mcp_servers=mcp_tools if mcp_tools else None
     )
 

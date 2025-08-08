@@ -12,6 +12,7 @@ import logging
 import os
 from typing import Dict, List, Optional, Any
 from pathlib import Path
+from pydantic import BaseModel, Field, ConfigDict
 
 from agents import Agent, Runner
 from agents.mcp import MCPServerStdio
@@ -25,6 +26,17 @@ load_dotenv()
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+class DiagramGenerationOutput(BaseModel):
+    """Structured output for hockey diagram generation."""
+    model_config = ConfigDict(strict=True)
+    
+    diagram_path: Optional[str] = Field(default=None, description="File path to the generated diagram image")
+    success: bool = Field(description="Whether the diagram was successfully generated")
+    response: str = Field(description="Agent's explanation of what was generated")
+    tools_used: List[str] = Field(default_factory=list, description="List of tools used during generation")
+    diagram_spec: Optional[Dict[str, Any]] = Field(default=None, description="The parsed diagram specification used")
+    error: Optional[str] = Field(default=None, description="Error message if generation failed")
 
 class HockeyDiagramExpert:
     """
@@ -149,12 +161,14 @@ class HockeyDiagramExpert:
             logger.info(f"📋 Total tools available: {len(all_tools)} (3 native + {len(subagent_tools)} subagents)")
             
             # Create agent with comprehensive instructions and all tools
+            # For now, don't use structured output due to SDK issues
             self.agent = Agent(
                 name="Hockey Diagram Expert",
                 instructions=EXPERT_INSTRUCTIONS,
                 mcp_servers=self.mcp_servers,
                 tools=all_tools,  # Native functions + subagents
-                model="gpt-4o-mini"  # Use cost-effective model
+                model="gpt-4o-mini",  # Use cost-effective model
+                # output_type=DiagramGenerationOutput  # Disabled for now due to strict JSON issues
             )
             
             logger.info("✅ Hockey Diagram Expert Agent initialized successfully")
@@ -203,7 +217,7 @@ class HockeyDiagramExpert:
             processing_time = asyncio.get_event_loop().time() - start_time
             logger.info(f"⏱️ Agent processing completed in {processing_time:.2f}s")
             
-            # Extract tools used from result with detailed logging
+            # Since we're not using structured output, extract from unstructured result
             tools_used = []
             tool_calls_detail = []
             parser_traces = {}  # To store parser stage traces
@@ -440,7 +454,7 @@ class HockeyDiagramExpert:
         
         capabilities = {
             "agent_name": "Hockey Diagram Expert",
-            "model": "gpt-4o",
+            "model": "gpt-4o-mini",  # Cost-effective model
             "mcp_servers": f"{len(self.mcp_servers)} MCP servers connected",
             "core_capabilities": [
                 "Parse known hockey formations instantly",

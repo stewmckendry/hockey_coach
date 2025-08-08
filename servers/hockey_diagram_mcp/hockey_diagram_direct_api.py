@@ -11,6 +11,10 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+# Load environment variables before any other imports
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent.parent / '.env')
+
 # Add the project root to path
 sys.path.append(str(Path(__file__).resolve().parent))
 
@@ -48,9 +52,32 @@ async def call_mcp_tool(request: ToolRequest):
         async with client:
             result = await client.call_tool(request.tool, request.parameters)
             
+            # Extract the actual result data
+            # FastMCP returns CallToolResult with content array
+            if hasattr(result, 'content') and isinstance(result.content, list):
+                # Parse the text content from the MCP response
+                for item in result.content:
+                    if hasattr(item, 'type') and item.type == 'text':
+                        try:
+                            # Try to parse as JSON
+                            data = json.loads(item.text)
+                            return {
+                                "success": True,
+                                "data": data,
+                                "timestamp": datetime.now().isoformat()
+                            }
+                        except json.JSONDecodeError:
+                            # Return as plain text if not JSON
+                            return {
+                                "success": True,
+                                "data": {"result": item.text},
+                                "timestamp": datetime.now().isoformat()
+                            }
+            
+            # Fallback for different result structures
             return {
                 "success": True,
-                "data": result.data if hasattr(result, 'data') else result,
+                "data": {"result": result if not hasattr(result, '__dict__') else vars(result)},
                 "timestamp": datetime.now().isoformat()
             }
             
@@ -83,7 +110,9 @@ async def generate_diagram(request: dict):
             diagram_path = result.get("diagram_path")
             if diagram_path:
                 try:
-                    full_path = os.path.join(os.path.dirname(__file__), diagram_path)
+                    # diagram_path is already an absolute path from the MCP tool
+                    # Don't join it with __file__ directory
+                    full_path = diagram_path if os.path.isabs(diagram_path) else os.path.join(os.path.dirname(__file__), diagram_path)
                     with open(full_path, 'rb') as f:
                         image_data = f.read()
                         base64_data = base64.b64encode(image_data).decode('utf-8')

@@ -143,7 +143,7 @@ export class HockeyDiagramExpertHTTP {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          request,
+          prompt: request,
           conversation_id: this.conversationId
         }),
         signal: controller.signal

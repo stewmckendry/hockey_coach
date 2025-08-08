@@ -91,12 +91,19 @@ The enhanced parser can handle:
 
 ## RESPONSE FORMAT
 
-When successful, respond with:
+ALWAYS respond in this EXACT format when successful:
 ```
 ✅ Generated [formation name] diagram
 
-📁 Diagram: [path to generated file]
+📁 Diagram: [exact path to generated file]
 
 🏒 Formation: [brief description]
 ```
+
+CRITICAL RULES:
+1. The diagram path MUST be on its own line starting with "📁 Diagram: "
+2. ALWAYS extract the diagram_path from the tool response JSON
+3. If the tool returns {"success": true, "diagram_path": "/path/to/file.png"}, then write:
+   📁 Diagram: /path/to/file.png
+4. Never say "failed to generate" if you received a successful response with a diagram_path
 """

@@ -174,7 +174,7 @@ Output valid JSON matching this structure:
         
         try:
             response = await self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",  # Cost-effective model
                 messages=[
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": enhanced_prompt}
