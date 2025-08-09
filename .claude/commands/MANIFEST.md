@@ -1,6 +1,28 @@
 # Slash Commands Manifest
 ## Hockey Coach AI Assistant - Claude Code Automation
 
+## 🚀 NEW CLAUDE? START HERE!
+
+### Quick Command Discovery:
+```bash
+/help                    # RUN THIS FIRST! Shows all commands and workflows
+```
+
+### Essential Three-Command Workflow:
+```bash
+/start-issue <github-url>    # Sets up everything: worktree, env, checks, docs
+/finish-issue <github-url>   # Completes work: test, document, commit, PR
+/merge-worktree <urls>       # After approval: merge and cleanup
+```
+
+### Debug When Stuck (Saves 30-40% Time):
+```bash
+/preflight-check         # Run before ANY work - catches common issues
+/debug-mcp --fix        # Fixes #1 time waster (missing MCP endpoints)
+```
+
+---
+
 This document provides a complete inventory of all slash commands for the Hockey Coach AI Assistant project, organized by category and implementation status.
 
 ---
