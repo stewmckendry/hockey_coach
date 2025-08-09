@@ -2,12 +2,39 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 QUICK START FOR NEW CLAUDE CODE INSTANCES
+
+### First Time? Start Here:
+```bash
+/help                    # See all available commands and workflows
+/preflight-check         # Verify your environment is ready
+```
+
+### Standard Development Workflow:
+```bash
+# 1. Start work on an issue
+/start-issue https://github.com/user/repo/issues/123
+
+# 2. Finish and submit work
+/finish-issue https://github.com/user/repo/issues/123
+
+# 3. After PR approval
+/merge-worktree https://github.com/user/repo/issues/123 <pr-url>
+```
+
+### ⚠️ Common Issues? Run These:
+```bash
+/debug-mcp --fix         # Fixes MCP endpoint issues (30-40% time saver!)
+/preflight-check         # Comprehensive environment check
+```
+
 ## ⚠️ CRITICAL: Virtual Environment Setup
 
 **ALWAYS activate the virtual environment before running any Python commands:**
 ```bash
 # From project root (thunder_playbook/)
 cd .. && source spacy_env/bin/activate && cd thunder_playbook
+# Or simply use: /activate
 ```
 
 **Common issue**: If you see import errors or missing dependencies, you likely forgot to activate the virtual environment. The `spacy_env` is located in the parent directory, not in the project root.
