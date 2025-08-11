@@ -128,7 +128,9 @@ async def generate_diagram_from_spec_core(
                         x=x,
                         y=y,
                         team=p.get('team', 'home'),
-                        has_puck=p.get('has_puck', False)
+                        has_puck=p.get('has_puck', False),
+                        label=p.get('label'),  # Pass through custom label
+                        zone=p.get('zone')  # Pass through zone name for display
                     )
                     converted_players.append(player_obj)
                     logger.info(f"✅ Created Player object: {player_obj}")
@@ -158,17 +160,20 @@ async def generate_diagram_from_spec_core(
             # Apply offsets
             offset_players = calculator.calculate_offsets(player_dicts)
             
-            # Convert back to Player objects
-            players = [
-                Player(
+            # Convert back to Player objects (preserve original label and zone info)
+            players = []
+            for i, p in enumerate(offset_players):
+                # Get original player to preserve label/zone info
+                original = converted_players[i] if i < len(converted_players) else None
+                players.append(Player(
                     position=p['position'],
                     x=p['x'],
                     y=p['y'],
                     team=p['team'],
-                    has_puck=p['has_puck']
-                )
-                for p in offset_players
-            ]
+                    has_puck=p['has_puck'],
+                    label=original.label if original else None,
+                    zone=original.zone if original else None
+                ))
             logger.info(f"✅ Applied offsets to {len(players)} players")
         
         # Convert movement dicts to Movement objects if needed
@@ -177,7 +182,8 @@ async def generate_diagram_from_spec_core(
                 Movement(
                     from_position=m.get('from_position', (m.get('from_x'), m.get('from_y')) if 'from_x' in m else None),
                     to_position=m.get('to_position', (m.get('to_x'), m.get('to_y')) if 'to_x' in m else None),
-                    movement_type=m.get('movement_type', 'skating')
+                    movement_type=m.get('movement_type', 'skating'),
+                    label=m.get('label')  # Pass through movement label
                 ) for m in movements if m.get('from_position') or 'from_x' in m
             ]
         

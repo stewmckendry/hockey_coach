@@ -22,13 +22,16 @@ class Player:
     y: float
     team: Literal["home", "away"]
     has_puck: bool = False
+    label: Optional[str] = None  # Custom label to display (e.g., zone name)
+    zone: Optional[str] = None  # Zone name for display purposes
     
 @dataclass
 class Movement:
     """Represents a movement or pass."""
     from_position: str  # Player position or coordinates
     to_position: Union[Tuple[float, float], str]  # Coordinates or player position
-    movement_type: Literal["skating", "pass", "shot", "forecheck"]
+    movement_type: Literal["skating", "pass", "shot", "forecheck", "carry", "lateral", "support"]
+    label: Optional[str] = None  # Label to display on the movement arrow
     
 @dataclass 
 class CoverageZone:
@@ -154,13 +157,24 @@ class HockeyDiagramGenerator:
                 logging.warning(f"Skipping player {player.position} with None coordinates")
                 continue
                 
-            # Determine color and label
+            # Determine color
             if player.team == "home":
                 color = self.HOME_COLOR
-                label = self.HOME_POSITIONS.get(player.position, player.position)
+                position_label = self.HOME_POSITIONS.get(player.position, player.position)
             else:
                 color = self.AWAY_COLOR
-                label = self.AWAY_POSITIONS.get(player.position, player.position)
+                position_label = self.AWAY_POSITIONS.get(player.position, player.position)
+            
+            # Create combined label (position + zone/custom label)
+            if player.label:
+                # Use custom label if provided
+                display_label = f"{position_label}\n({player.label})"
+            elif player.zone:
+                # Use zone name if provided
+                display_label = f"{position_label}\n{player.zone}"
+            else:
+                # Just show position
+                display_label = position_label
                 
             # Draw player circle
             circle = Circle(
@@ -173,13 +187,14 @@ class HockeyDiagramGenerator:
             )
             ax.add_patch(circle)
             
-            # Add position label
+            # Add combined label (position + zone)
             ax.text(
-                player.x, player.y, label,
-                ha='center', va='center',
-                fontsize=10, fontweight='bold',
+                player.x, player.y - 5, display_label,  # Offset below circle
+                ha='center', va='top',
+                fontsize=8, fontweight='bold',
                 color=color,
-                zorder=11
+                zorder=11,
+                bbox=dict(boxstyle="round,pad=0.2", facecolor='white', edgecolor=color, alpha=0.8)
             )
             
             # Add puck indicator if player has puck
@@ -251,6 +266,22 @@ class HockeyDiagramGenerator:
                 )
                 
             ax.add_patch(arrow)
+            
+            # Add movement label if provided
+            if hasattr(movement, 'label') and movement.label:
+                # Calculate midpoint of the arrow
+                mid_x = (start[0] + end[0]) / 2
+                mid_y = (start[1] + end[1]) / 2
+                
+                # Add label with background for visibility
+                ax.text(
+                    mid_x, mid_y, movement.label,
+                    ha='center', va='center',
+                    fontsize=7, fontweight='bold',
+                    color='black',
+                    bbox=dict(boxstyle="round,pad=0.2", facecolor='yellow', alpha=0.7),
+                    zorder=6
+                )
             
     def _draw_zones(self, ax, zones: List[CoverageZone]):
         """Draw coverage or pressure zones."""

@@ -11,24 +11,27 @@ from typing import Dict, Any, List
 from datetime import datetime
 from pathlib import Path
 
-API_URL = "http://localhost:8001/api/mcp"
+API_URL = "http://localhost:8001/generate-from-spec"
 
 def call_hockey_diagram_tool(spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Call the generate_diagram_from_spec tool via API"""
+    """Call the generate_diagram_from_spec tool via direct API"""
     try:
         response = requests.post(
             API_URL,
-            json={
-                "tool": "generate_diagram_from_spec",
-                "parameters": {"spec": spec}
-            },
+            json={"spec": spec},
             timeout=30
         )
         
         if response.status_code == 200:
             result = response.json()
             if result.get("success"):
-                return result["data"]
+                return {
+                    "diagram": result.get("base64_data"),
+                    "path": result.get("diagram_path"),
+                    "message": result.get("message")
+                }
+            else:
+                return {"error": result.get("error", "Unknown error")}
         return {"error": f"API error: {response.text}"}
     except Exception as e:
         return {"error": str(e)}

@@ -58,67 +58,14 @@ class HockeyDiagramExpert:
         try:
             logger.info("🚀 Initializing Hockey Diagram Expert Agent...")
             
-            # Connect to MCP servers using correct params format with increased timeout
-            # NOTE: Removed self-reference to hockey-diagram server to prevent recursive loop
-            # The agent should not connect to its own MCP server
+            # ARCHITECTURE CHANGE: Research tools moved to Parser Agent
+            # The main agent now focuses on orchestration only
+            # Parser Agent owns all hockey knowledge research
             self.mcp_servers = []
             
-            # Only try to connect to hockey MCP if it's not already being used by the parent
-            if os.environ.get("HOCKEY_DIAGRAM_AGENT_MODE") != "nested":
-                try:
-                    logger.info("Attempting to connect to hockey MCP server...")
-                    from agents.mcp import create_static_tool_filter
-                    
-                    hockey_mcp = MCPServerStdio(
-                        params={
-                            "command": "/Users/liammckendry/thunder_playbook/servers/start_hockey_mcp.sh",
-                            "args": [],
-                            "env": {}
-                        },
-                        client_session_timeout_seconds=30.0,  # Increased from default 5s
-                        # Only allow specific research tools from hockey MCP
-                        tool_filter=create_static_tool_filter(
-                            allowed_tool_names=["search_hockey_tactics", "search_hockey_drills", "search_hockey_videos"]
-                        )
-                    )
-                    self.mcp_servers.append(hockey_mcp)
-                except Exception as e:
-                    logger.warning(f"Could not add hockey MCP server: {e}")
-            else:
-                logger.info("Running in nested mode - skipping hockey MCP connection")
-            
-            # Connect all MCP servers
-            for i, server in enumerate(self.mcp_servers):
-                try:
-                    await server.connect()
-                    logger.info(f"✅ Connected MCP server {i+1}")
-                except Exception as e:
-                    logger.warning(f"⚠️ Failed to connect MCP server {i+1}: {e}")
-                    # Remove failed server from list
-                    self.mcp_servers.remove(server)
-            
-            # Add web research if Exa key available
-            if os.getenv("EXA_API_KEY"):
-                exa_server = MCPServerStdio(
-                    params={
-                        "command": "npx",
-                        "args": ["-y", "exa-mcp-server"],
-                        "env": {"EXA_API_KEY": os.getenv("EXA_API_KEY")}
-                    },
-                    client_session_timeout_seconds=60.0,  # Longer timeout for web research
-                    # Only allow web search tool from Exa
-                    tool_filter=create_static_tool_filter(
-                        allowed_tool_names=["web_search_exa"]
-                    )
-                )
-                try:
-                    await exa_server.connect()
-                    self.mcp_servers.append(exa_server)
-                    logger.info("✅ Exa web search connected")
-                except Exception as e:
-                    logger.warning(f"⚠️ Failed to connect Exa server: {e}")
-            else:
-                logger.info("ℹ️ Exa web search not available (no API key)")
+            # No MCP servers needed for main agent anymore
+            # All research happens in the Parser Agent
+            logger.info("✅ Main agent initialized (research delegated to Parser Agent)")
             
             # Import properly decorated function tools
             from hockey_tools import (
@@ -127,38 +74,18 @@ class HockeyDiagramExpert:
                 list_hockey_formations
             )
             
-            # Import subagents
-            from hockey_subagents import get_synthesis_agent, get_zone_mapping_agent
+            # ARCHITECTURE SIMPLIFIED: No subagents needed
+            # Parser Agent handles all research and synthesis internally
+            # Main Agent just orchestrates: Parse -> Generate
             
-            # Get subagent tools
-            subagent_tools = []
-            synthesis_agent = get_synthesis_agent()
-            zone_mapping_agent = get_zone_mapping_agent()
-            
-            if synthesis_agent.agent:
-                synthesis_tool = synthesis_agent.agent.as_tool(
-                    tool_name="synthesize_research_to_formation",
-                    tool_description="Synthesize raw research results into structured hockey formation data. Takes research findings and formation name, returns structured formation specification."
-                )
-                subagent_tools.append(synthesis_tool)
-                logger.info("✅ FormationSynthesisAgent added as direct tool")
-            
-            if zone_mapping_agent.agent:
-                zone_mapping_tool = zone_mapping_agent.agent.as_tool(
-                    tool_name="map_formation_to_zones",
-                    tool_description="Map structured formation data to precise zone-based diagram specification. Takes formation data and options, returns complete diagram specification with all entities."
-                )
-                subagent_tools.append(zone_mapping_tool)
-                logger.info("✅ ZoneMappingAgent added as direct tool")
-            
-            # Combine native function tools with subagent tools
+            # Only core orchestration tools needed
             all_tools = [
-                parse_hockey_formation,
-                generate_diagram_from_spec,
-                list_hockey_formations
-            ] + subagent_tools
+                parse_hockey_formation,  # Delegates to Parser Agent (with research)
+                generate_diagram_from_spec,  # Creates the diagram
+                list_hockey_formations  # Lists available presets
+            ]
             
-            logger.info(f"📋 Total tools available: {len(all_tools)} (3 native + {len(subagent_tools)} subagents)")
+            logger.info(f"📋 Total tools available: {len(all_tools)} (simplified architecture)")
             
             # Create agent with comprehensive instructions and all tools
             # For now, don't use structured output due to SDK issues

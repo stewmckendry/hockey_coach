@@ -17,9 +17,9 @@ interface ParsedSpec {
 
 interface AgentTrace {
   name: string
-  arguments: string
+  arguments: string | any
   order: number
-  output: string
+  output: string | any
 }
 
 interface TechnicalDetailsProps {
@@ -117,6 +117,20 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
     }
   }
 
+  // Map tool names to user-friendly descriptions
+  const toolDescriptions: Record<string, string> = {
+    'parse_hockey_formation': '🎯 Parse Formation',
+    'generate_diagram_from_spec': '🎨 Generate Diagram',
+    'search_hockey_tactics': '🔍 Search Tactics Database',
+    'search_hockey_drills': '📚 Search Drills Database',
+    'search_hockey_videos': '🎥 Search Video Database',
+    'web_search_exa': '🌐 Web Search',
+    'synthesize_research_to_formation': '🔄 Synthesize Research',
+    'map_formation_to_zones': '📍 Map to Zones',
+    'list_hockey_formations': '📋 List Formations',
+    'process_diagram_feedback': '✏️ Process Feedback'
+  }
+  
   // Format tool-specific display
   const renderToolDetails = (trace: AgentTrace) => {
     const { args, output } = parseToolData(trace)
@@ -161,8 +175,10 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
               <span className="font-medium text-gray-600">Parse Result:</span>
               <p className="text-sm text-gray-800 mt-1">
                 {output && typeof output === 'object' ? 
-                  (output.success ? '✅ Success' : `❌ ${output.error || 'Failed'}`) : 
-                  (output || 'N/A')}
+                  (output.success ? '✅ Success' : 
+                   output.error ? `❌ ${output.error}` : 
+                   '⏳ Processing...') : 
+                  (output || '⏳ Processing...')}
               </p>
             </div>
           )}
@@ -176,7 +192,11 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
           <div>
             <span className="font-medium text-gray-600">Status:</span>
             <p className="text-sm text-gray-800 mt-1">
-              {output && typeof output === 'object' && output.success ? '✅ Diagram generated successfully' : '❌ Generation failed'}
+              {output && typeof output === 'object' && (output.success || output.diagram_path) ? 
+                '✅ Diagram generated successfully' : 
+                output && typeof output === 'object' && output.error ? 
+                `❌ ${output.error}` :
+                '⏳ Generating diagram...'}
             </p>
           </div>
           {output && typeof output === 'object' && (output.diagram_path || output.filename) && (
@@ -196,6 +216,93 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
                   JSON.stringify(args.diagram_spec, null, 2)}
               </pre>
             </details>
+          )}
+        </div>
+      )
+    }
+    
+    // Handle research tools (search_hockey_tactics, search_hockey_drills, etc.)
+    if (trace.name.includes('search_hockey_')) {
+      return (
+        <div className="space-y-2">
+          <div>
+            <span className="font-medium text-gray-600">Query:</span>
+            <p className="text-sm text-gray-800 mt-1">
+              {typeof args === 'object' && args.query ? args.query : 
+               typeof args === 'object' && args.prompt ? args.prompt : 'N/A'}
+            </p>
+          </div>
+          <div>
+            <span className="font-medium text-gray-600">Results:</span>
+            <p className="text-sm text-gray-800 mt-1">
+              {output && typeof output === 'object' ? 
+                (output.results ? `✅ Found ${output.results.length || 0} results` : 
+                 output.n_results ? `✅ Found ${output.n_results} results` :
+                 output.success === false ? '❌ Search failed' :
+                 '✅ Results retrieved') : 
+                '⏳ Searching...'}
+            </p>
+            {output && typeof output === 'object' && output.results && output.results.length > 0 && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-gray-600 hover:text-gray-800 text-sm">Show results preview</summary>
+                <div className="mt-1 text-xs bg-gray-50 p-2 rounded overflow-x-auto max-h-48 overflow-y-auto">
+                  {output.results.slice(0, 3).map((result: any, idx: number) => (
+                    <div key={idx} className="mb-2 pb-2 border-b last:border-0">
+                      <p className="font-medium">{result.title || result.name || `Result ${idx + 1}`}</p>
+                      {result.content && <p className="text-gray-600 mt-1">{result.content.substring(0, 150)}...</p>}
+                      {result.metadata && <p className="text-gray-500 mt-1">Score: {result.metadata.score?.toFixed(2) || 'N/A'}</p>}
+                    </div>
+                  ))}
+                  {output.results.length > 3 && (
+                    <p className="text-gray-500 mt-2">...and {output.results.length - 3} more results</p>
+                  )}
+                </div>
+              </details>
+            )}
+          </div>
+        </div>
+      )
+    }
+    
+    // Handle web search
+    if (trace.name === 'web_search_exa') {
+      return (
+        <div className="space-y-2">
+          <div>
+            <span className="font-medium text-gray-600">Search Query:</span>
+            <p className="text-sm text-gray-800 mt-1">
+              {typeof args === 'object' && args.query ? args.query : 'N/A'}
+            </p>
+          </div>
+          <div>
+            <span className="font-medium text-gray-600">Results:</span>
+            <p className="text-sm text-gray-800 mt-1">
+              {output && typeof output === 'object' && output.results ? 
+                `✅ Found ${output.results.length || 0} web results` : 
+                '⏳ Searching web...'}
+            </p>
+          </div>
+        </div>
+      )
+    }
+    
+    // Handle synthesis and mapping subagents
+    if (trace.name === 'synthesize_research_to_formation' || trace.name === 'map_formation_to_zones') {
+      return (
+        <div className="space-y-2">
+          <div>
+            <span className="font-medium text-gray-600">Processing:</span>
+            <p className="text-sm text-gray-800 mt-1">
+              {trace.name === 'synthesize_research_to_formation' ? 
+                'Converting research findings into structured formation data...' :
+                'Mapping formation to precise zone coordinates...'}
+            </p>
+          </div>
+          {output && (
+            <div>
+              <span className="font-medium text-gray-600">Status:</span>
+              <p className="text-sm text-gray-800 mt-1">✅ Completed</p>
+            </div>
           )}
         </div>
       )
@@ -288,9 +395,7 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
                         {trace.order || index + 1}
                       </span>
                       <span className="font-medium text-gray-900">
-                        {trace.name === 'parse_hockey_formation' ? '🎯 Parse Formation' :
-                         trace.name === 'generate_diagram_from_spec' ? '🎨 Generate Diagram' :
-                         trace.name}
+                        {toolDescriptions[trace.name] || trace.name}
                       </span>
                     </div>
                   </div>
@@ -301,43 +406,30 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
               )
             })}
           </div>
-        ) : parserSpec ? (
-          // Fallback when no traces but we have a spec
+        ) : parserSpec && typeof parserSpec === 'object' && parserSpec.players ? (
+          // Fallback when no traces but we have a valid spec - diagram was likely generated successfully
           <div className="space-y-3">
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
-                <span className="flex items-center justify-center w-6 h-6 text-xs font-medium text-white bg-blue-600 rounded-full">
-                  1
+                <span className="flex items-center justify-center w-6 h-6 text-xs font-medium text-white bg-green-600 rounded-full">
+                  ✓
                 </span>
-                <span className="font-medium text-gray-900">🎯 Parse Formation</span>
-              </div>
-              <div className="ml-8">
-                <div className="space-y-2">
-                  <div>
-                    <span className="font-medium text-gray-600">Input:</span>
-                    <p className="text-sm text-gray-800 mt-1">{typeof parserSpec === 'string' ? 'Formation request' : 'N/A'}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Parse Result:</span>
-                    <p className="text-sm text-gray-800 mt-1">N/A</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="flex items-center justify-center w-6 h-6 text-xs font-medium text-white bg-blue-600 rounded-full">
-                  2
-                </span>
-                <span className="font-medium text-gray-900">🎨 Generate Diagram</span>
+                <span className="font-medium text-gray-900">🎨 Diagram Generated</span>
               </div>
               <div className="ml-8">
                 <div className="space-y-2">
                   <div>
                     <span className="font-medium text-gray-600">Status:</span>
                     <p className="text-sm text-gray-800 mt-1">
-                      ❌ Generation failed
+                      ✅ Successfully generated from specification
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Details:</span>
+                    <p className="text-sm text-gray-800 mt-1">
+                      {parserSpec.players?.length || 0} players positioned • 
+                      {parserSpec.movements?.length || 0} movements • 
+                      {parserSpec.view || 'full'} view
                     </p>
                   </div>
                 </div>
