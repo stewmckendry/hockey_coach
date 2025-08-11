@@ -333,6 +333,12 @@ class HockeyCoordinateMapper:
         "hash_marks": CoordinateMapping(69, 0, Zone.OFFENSIVE, description="Hash marks"),
         "side_boards": CoordinateMapping(50, 42.5, description="Side boards"),
         "end_boards": CoordinateMapping(100, 0, description="End boards"),
+        
+        # Penalty boxes and benches (NHL regulation positions)
+        "penalty_box_home": CoordinateMapping(-8, -40, Zone.NEUTRAL, description="Home team penalty box"),
+        "penalty_box_away": CoordinateMapping(8, -40, Zone.NEUTRAL, description="Away team penalty box"), 
+        "bench_home": CoordinateMapping(-25, 40, Zone.NEUTRAL, description="Home team bench"),
+        "bench_away": CoordinateMapping(25, 40, Zone.NEUTRAL, description="Away team bench"),
     }
     
     # Position-specific coordinates by zone and role
