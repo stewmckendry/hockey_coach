@@ -173,6 +173,39 @@ async def mcp_endpoint(request: dict):
             "error": {"code": -32603, "message": str(e)}
         }
 
+@app.post("/generate-from-spec")
+async def generate_from_spec(request: dict):
+    """Generate a hockey diagram from a parsed specification"""
+    try:
+        spec = request.get("spec")
+        if not spec:
+            raise HTTPException(status_code=400, detail="Missing spec in request")
+        
+        # Import and call the core function directly
+        from core_tools import generate_diagram_from_spec_core
+        
+        result = await generate_diagram_from_spec_core(spec, "png")
+        
+        if result.get("success"):
+            return {
+                "success": True,
+                "base64_data": result.get("base64_data"),
+                "diagram_path": result.get("diagram_path"),
+                "message": result.get("message")
+            }
+        else:
+            return {
+                "success": False,
+                "error": result.get("error", "Failed to generate diagram")
+            }
+            
+    except Exception as e:
+        print(f"Error generating from spec: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate from spec: {str(e)}"
+        )
+
 @app.post("/generate")
 async def generate_diagram(request: dict):
     """Generate a hockey diagram using the agent"""

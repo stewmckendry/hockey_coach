@@ -213,8 +213,8 @@ async def generate_diagram_from_spec_core(
         
         # Save if successful
         if isinstance(result, dict) and result.get('success'):
-            # Ensure directory exists
-            output_dir = Path("generated_diagrams")
+            # Ensure directory exists - use absolute path relative to this file
+            output_dir = Path(__file__).parent / "generated_diagrams"
             output_dir.mkdir(exist_ok=True)
             
             # Save with timestamp
@@ -239,7 +239,7 @@ async def generate_diagram_from_spec_core(
         else:
             # Handle string result (base64 data directly)
             if isinstance(result, str):
-                output_dir = Path("generated_diagrams")
+                output_dir = Path(__file__).parent / "generated_diagrams"
                 output_dir.mkdir(exist_ok=True)
                 
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

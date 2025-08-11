@@ -214,10 +214,54 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
 
   return (
     <div className="space-y-6">
-      {/* Parser Specification */}
+      {/* Current Diagram Specification */}
       <div>
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Formation Details</h3>
-        {message ? (
+        <h3 className="text-sm font-medium text-gray-900 mb-3">Current Diagram Specification</h3>
+        {parserSpec && typeof parserSpec === 'object' && (parserSpec.players || parserSpec.title || parserSpec.diagram_type) ? (
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="space-y-2 text-sm">
+              {parserSpec.title && (
+                <div>
+                  <span className="font-medium text-blue-900">Title:</span> {parserSpec.title}
+                </div>
+              )}
+              {parserSpec.diagram_type && (
+                <div>
+                  <span className="font-medium text-blue-900">Type:</span> {parserSpec.diagram_type}
+                </div>
+              )}
+              {parserSpec.view && (
+                <div>
+                  <span className="font-medium text-blue-900">View:</span> {parserSpec.view}
+                </div>
+              )}
+              {parserSpec.players && (
+                <div>
+                  <span className="font-medium text-blue-900">Players ({parserSpec.players.length}):</span>
+                  <div className="mt-2 bg-white rounded p-2 overflow-x-auto">
+                    <pre className="text-xs">{JSON.stringify(parserSpec.players, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
+              {parserSpec.movements && parserSpec.movements.length > 0 && (
+                <div>
+                  <span className="font-medium text-blue-900">Movements ({parserSpec.movements.length}):</span>
+                  <div className="mt-2 bg-white rounded p-2 overflow-x-auto">
+                    <pre className="text-xs">{JSON.stringify(parserSpec.movements, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
+              {parserSpec.annotations && parserSpec.annotations.length > 0 && (
+                <div>
+                  <span className="font-medium text-blue-900">Annotations:</span>
+                  <div className="mt-2 bg-white rounded p-2 overflow-x-auto">
+                    <pre className="text-xs">{JSON.stringify(parserSpec.annotations, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : message ? (
           <div className="bg-blue-50 rounded-lg p-4 space-y-2">
             <p className="text-sm font-medium text-blue-900">{message.status}</p>
             {message.description && (
@@ -225,7 +269,7 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
             )}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No formation details available</p>
+          <p className="text-sm text-gray-500">No specification available</p>
         )}
       </div>
 

@@ -16,6 +16,17 @@ interface DiagramResult {
   logId?: string
 }
 
+interface ModificationEntry {
+  feedback: string
+  changes: Array<{
+    type: string
+    target: string
+    details: string
+  }>
+  explanation: string
+  timestamp: Date
+}
+
 export default function HockeyDiagramTest() {
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,11 +34,12 @@ export default function HockeyDiagramTest() {
   const [showSpec, setShowSpec] = useState(false)
   const [showTraces, setShowTraces] = useState(false)
   
-  // Feedback state
-  const [rating, setRating] = useState(0)
-  const [feedbackComment, setFeedbackComment] = useState('')
-  const [feedbackCategories, setFeedbackCategories] = useState<string[]>([])
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+  // Interactive editing state
+  const [currentSpec, setCurrentSpec] = useState<any>(null)
+  const [feedbackMode, setFeedbackMode] = useState(false)
+  const [modificationText, setModificationText] = useState('')
+  const [modificationHistory, setModificationHistory] = useState<ModificationEntry[]>([])
+  const [isProcessingFeedback, setIsProcessingFeedback] = useState(false)
   
   // Cache state
   const [saving, setSaving] = useState(false)
@@ -58,13 +70,12 @@ export default function HockeyDiagramTest() {
 
     setLoading(true)
     setResult(null)
-    setFeedbackSubmitted(false)
-    setRating(0)
-    setFeedbackComment('')
-    setFeedbackCategories([])
     setSaved(false)
     setSavedDiagramId(null)
     setSaveError(null)
+    setModificationHistory([])
+    setFeedbackMode(false)
+    setModificationText('')
 
     try {
       console.log('🚀 Generating diagram for prompt:', prompt)
@@ -102,6 +113,45 @@ export default function HockeyDiagramTest() {
       }
       
       setResult(data)
+      // Store the spec for interactive editing
+      // First try to extract from agentTraces (most accurate)
+      let actualSpec = null
+      if (data.agentTraces && data.agentTraces.length > 0) {
+        // Look for the generate_diagram_from_spec tool call which has the zone-based spec in its arguments
+        // The spec passed to generate_diagram_from_spec has zones, which get converted to coordinates internally
+        for (const trace of data.agentTraces) {
+          if (trace.name === 'generate_diagram_from_spec') {
+            try {
+              const args = typeof trace.arguments === 'string' ? JSON.parse(trace.arguments) : trace.arguments
+              if (args.diagram_spec) {
+                // The diagram_spec argument contains the zone-based spec
+                actualSpec = typeof args.diagram_spec === 'string' ? JSON.parse(args.diagram_spec) : args.diagram_spec
+                console.log('✅ Extracted zone-based spec from generate_diagram_from_spec arguments:', actualSpec)
+                console.log('Spec keys:', Object.keys(actualSpec))
+                if (actualSpec.players && actualSpec.players.length > 0) {
+                  console.log('First player:', actualSpec.players[0])
+                }
+                break
+              }
+            } catch (e) {
+              console.warn('Failed to parse spec from generate trace:', e)
+            }
+          }
+        }
+      }
+      
+      // Fallback to parserSpec if it's an object with players array
+      if (!actualSpec && data.parserSpec && typeof data.parserSpec === 'object' && data.parserSpec.players) {
+        actualSpec = data.parserSpec
+        console.log('✅ Using parserSpec as it has players array')
+      }
+      
+      if (actualSpec) {
+        setCurrentSpec(actualSpec)
+        console.log('📋 Set currentSpec with', Object.keys(actualSpec))
+      } else {
+        console.warn('⚠️ Could not extract diagram spec for interactive editing')
+      }
     } catch (error) {
       console.error('❌ Failed to generate diagram:', error)
       setResult({
@@ -113,39 +163,6 @@ export default function HockeyDiagramTest() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const submitFeedback = async () => {
-    if (!result?.logId || rating === 0) return
-
-    try {
-      const response = await fetch('/api/hockey-diagram/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          logId: result.logId,
-          rating,
-          categories: feedbackCategories,
-          comment: feedbackComment
-        })
-      })
-
-      if (response.ok) {
-        setFeedbackSubmitted(true)
-      }
-    } catch (error) {
-      console.error('Failed to submit feedback:', error)
-    }
-  }
-
-  const toggleCategory = (category: string) => {
-    setFeedbackCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    )
   }
 
   // Save diagram to cache
@@ -319,6 +336,80 @@ export default function HockeyDiagramTest() {
     setShowLibrary(!showLibrary)
     if (!showLibrary && libraryDiagrams.length === 0) {
       loadLibrary(0)  // Start from the beginning
+    }
+  }
+
+  // Process modification feedback
+  const processFeedback = async () => {
+    if (!modificationText.trim() || !currentSpec) return
+
+    setIsProcessingFeedback(true)
+    
+    try {
+      const response = await fetch('/api/hockey-diagram/feedback-processor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentSpec,
+          feedback: modificationText
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to process feedback: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Update the spec
+        setCurrentSpec(data.updatedSpec)
+        
+        // Add to modification history
+        setModificationHistory([
+          ...modificationHistory,
+          {
+            feedback: modificationText,
+            changes: data.changes || [],
+            explanation: data.explanation || 'Changes applied',
+            timestamp: new Date()
+          }
+        ])
+        
+        // Generate new diagram from updated spec
+        const genResponse = await fetch('/api/hockey-diagram/generate-from-spec', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            spec: data.updatedSpec
+          })
+        })
+        
+        if (genResponse.ok) {
+          const genData = await genResponse.json()
+          setResult({
+            ...result!,
+            imageBase64: genData.imageBase64,
+            parserSpec: data.updatedSpec
+          })
+        }
+        
+        // Clear input and exit feedback mode
+        setModificationText('')
+        setFeedbackMode(false)
+      } else {
+        console.error('Feedback processing failed:', data.error)
+        alert(`Failed to process feedback: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Error processing feedback:', error)
+      alert('Failed to process feedback. Please try again.')
+    } finally {
+      setIsProcessingFeedback(false)
     }
   }
 
@@ -497,88 +588,83 @@ export default function HockeyDiagramTest() {
                       </p>
                     </div>
                   )}
-                </div>
-
-                {/* Feedback Section */}
-                {result.success && (
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Provide Feedback</h3>
-                    
-                    {!feedbackSubmitted ? (
-                      <div className="space-y-4">
-                        {/* Star Rating */}
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Overall Rating</p>
-                          <div className="flex gap-2">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                onClick={() => setRating(star)}
-                                className={`text-2xl transition-colors ${
-                                  star <= rating ? 'text-yellow-400' : 'text-gray-300'
-                                } hover:text-yellow-400`}
-                              >
-                                ★
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Categories */}
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Feedback Categories</p>
-                          <div className="flex flex-wrap gap-2">
-                            {['Accuracy', 'Positioning', 'Clarity', 'Performance'].map((category) => (
-                              <button
-                                key={category}
-                                onClick={() => toggleCategory(category)}
-                                className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                  feedbackCategories.includes(category)
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                              >
-                                {category}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Comment */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Additional Comments
-                          </label>
-                          <textarea
-                            value={feedbackComment}
-                            onChange={(e) => setFeedbackComment(e.target.value)}
-                            placeholder="What worked well? What could be improved?"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
-                            rows={3}
-                          />
-                        </div>
-
+                  
+                  {/* Interactive Editing Button */}
+                  {result.success && currentSpec && !feedbackMode && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => setFeedbackMode(true)}
+                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        ✏️ Modify Diagram
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Feedback Mode UI */}
+                  {feedbackMode && (
+                    <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <h4 className="text-sm font-medium text-purple-900 mb-2">
+                        Describe what you want to change:
+                      </h4>
+                      <textarea
+                        value={modificationText}
+                        onChange={(e) => setModificationText(e.target.value)}
+                        placeholder="e.g., Move F1 to the slot, Add passing lanes between defensemen"
+                        className="w-full px-3 py-2 border border-purple-300 rounded focus:ring-2 focus:ring-purple-500 focus:outline-none resize-none"
+                        rows={3}
+                        disabled={isProcessingFeedback}
+                      />
+                      <div className="flex gap-2 mt-3">
                         <button
-                          onClick={submitFeedback}
-                          disabled={rating === 0}
-                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                          onClick={processFeedback}
+                          disabled={isProcessingFeedback || !modificationText.trim()}
+                          className="flex-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                         >
-                          Submit Feedback
+                          {isProcessingFeedback ? 'Processing...' : 'Apply Changes'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setFeedbackMode(false)
+                            setModificationText('')
+                          }}
+                          disabled={isProcessingFeedback}
+                          className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+                        >
+                          Cancel
                         </button>
                       </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-green-600 font-medium">✓ Thank you for your feedback!</p>
+                    </div>
+                  )}
+                  
+                  {/* Modification History */}
+                  {modificationHistory.length > 0 && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded">
+                      <p className="text-sm font-medium text-blue-900 mb-2">
+                        Modification History ({modificationHistory.length})
+                      </p>
+                      <div className="space-y-2">
+                        {modificationHistory.map((mod, index) => (
+                          <div key={index} className="text-sm">
+                            <div className="font-medium text-blue-800">
+                              {index + 1}. "{mod.feedback}"
+                            </div>
+                            <div className="text-blue-600 ml-4">
+                              → {mod.explanation}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
+
 
                 {/* Technical Details */}
                 <div className="bg-white rounded-lg shadow p-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Technical Details</h3>
                   <TechnicalDetails 
-                    parserSpec={result.parserSpec}
+                    parserSpec={currentSpec || result.parserSpec}
                     agentTraces={result.agentTraces || []}
                   />
                 </div>
