@@ -269,9 +269,9 @@ class TestCoordinateMapping:
         
         # Offensive zone dots
         assert dots["offensive_left"][0] == 69
-        assert dots["offensive_left"][1] == -22.5
+        assert dots["offensive_left"][1] == 22.5
         assert dots["offensive_right"][0] == 69
-        assert dots["offensive_right"][1] == 22.5
+        assert dots["offensive_right"][1] == -22.5
         
         # Should be symmetrical
         assert abs(dots["defensive_left"][0]) == abs(dots["offensive_left"][0])

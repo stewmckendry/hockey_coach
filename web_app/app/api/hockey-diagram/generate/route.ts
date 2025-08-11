@@ -44,7 +44,10 @@ async function generateHockeyDiagram(prompt: string, sessionId?: string) {
         success: result.success,
         hasDiagramBase64: !!result.diagram_base64,
         base64Length: result.diagram_base64?.length || 0,
-        metadata: result.metadata
+        metadataKeys: result.metadata ? Object.keys(result.metadata) : [],
+        tracesCount: result.metadata?.traces?.length || 0,
+        traces: result.metadata?.traces,
+        toolsUsed: result.metadata?.tools_used
       })
       
       const finalResult = {

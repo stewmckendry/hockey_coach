@@ -277,20 +277,20 @@ class HockeyCoordinateMapper:
         "center": (0, 0),
         
         # Defensive zone (home team perspective)
-        "defensive_left": (-69, -22.5),
-        "defensive_right": (-69, 22.5),
+        "defensive_left": (-69, 22.5),
+        "defensive_right": (-69, -22.5),
         "defensive_center": (-69, 0),
         
         # Offensive zone (home team perspective)
-        "offensive_left": (69, -22.5),
-        "offensive_right": (69, 22.5),
+        "offensive_left": (69, 22.5),
+        "offensive_right": (69, -22.5),
         "offensive_center": (69, 0),
         
         # Neutral zone
-        "neutral_left_defensive": (-20.5, -22.5),
-        "neutral_right_defensive": (-20.5, 22.5),
-        "neutral_left_offensive": (20.5, -22.5),
-        "neutral_right_offensive": (20.5, 22.5),
+        "neutral_left_defensive": (-20.5, 22.5),
+        "neutral_right_defensive": (-20.5, -22.5),
+        "neutral_left_offensive": (20.5, 22.5),
+        "neutral_right_offensive": (20.5, -22.5),
     }
     
     # Named rink areas with precise coordinates
@@ -304,29 +304,29 @@ class HockeyCoordinateMapper:
         "goal_crease": CoordinateMapping(86, 0, Zone.OFFENSIVE, description="Goal crease"),  # Alias for crease
         
         # Point positions (moved from y=25 to y=35 to be clearly inside the zone)
-        "left_point": CoordinateMapping(35, -30, Zone.OFFENSIVE, description="Left point position"),
-        "right_point": CoordinateMapping(35, 30, Zone.OFFENSIVE, description="Right point position"),
+        "left_point": CoordinateMapping(35, 30, Zone.OFFENSIVE, description="Left point position"),
+        "right_point": CoordinateMapping(35, -30, Zone.OFFENSIVE, description="Right point position"),
         "center_point": CoordinateMapping(35, 0, Zone.OFFENSIVE, description="Center point position"),
         
         # Board areas
-        "left_half_wall": CoordinateMapping(60, -35, Zone.OFFENSIVE, description="Left half-wall"),
-        "right_half_wall": CoordinateMapping(60, 35, Zone.OFFENSIVE, description="Right half-wall"),
-        "left_corner": CoordinateMapping(85, -35, Zone.OFFENSIVE, description="Left corner"),
-        "right_corner": CoordinateMapping(85, 35, Zone.OFFENSIVE, description="Right corner"),
+        "left_half_wall": CoordinateMapping(60, 35, Zone.OFFENSIVE, description="Left half-wall"),
+        "right_half_wall": CoordinateMapping(60, -35, Zone.OFFENSIVE, description="Right half-wall"),
+        "left_corner": CoordinateMapping(85, 35, Zone.OFFENSIVE, description="Left corner"),
+        "right_corner": CoordinateMapping(85, -35, Zone.OFFENSIVE, description="Right corner"),
         "behind_net": CoordinateMapping(95, 0, Zone.OFFENSIVE, description="Behind the net"),
         
         # Defensive positions
         "defensive_slot": CoordinateMapping(-75, 0, Zone.DEFENSIVE, description="Defensive slot"),
         "defensive_high_slot": CoordinateMapping(-50, 0, Zone.DEFENSIVE, description="Defensive high slot"),
-        "defensive_left_point": CoordinateMapping(-25, -30, Zone.DEFENSIVE, description="Defensive left point"),
-        "defensive_right_point": CoordinateMapping(-25, 30, Zone.DEFENSIVE, description="Defensive right point"),
-        "defensive_left_corner": CoordinateMapping(-85, -35, Zone.DEFENSIVE, description="Defensive left corner"),
-        "defensive_right_corner": CoordinateMapping(-85, 35, Zone.DEFENSIVE, description="Defensive right corner"),
+        "defensive_left_point": CoordinateMapping(-25, 30, Zone.DEFENSIVE, description="Defensive left point"),
+        "defensive_right_point": CoordinateMapping(-25, -30, Zone.DEFENSIVE, description="Defensive right point"),
+        "defensive_left_corner": CoordinateMapping(-85, 35, Zone.DEFENSIVE, description="Defensive left corner"),
+        "defensive_right_corner": CoordinateMapping(-85, -35, Zone.DEFENSIVE, description="Defensive right corner"),
         
         # Neutral zone
         "neutral_center": CoordinateMapping(0, 0, Zone.NEUTRAL, description="Center ice"),
-        "neutral_left": CoordinateMapping(0, -25, Zone.NEUTRAL, description="Neutral zone left"),
-        "neutral_right": CoordinateMapping(0, 25, Zone.NEUTRAL, description="Neutral zone right"),
+        "neutral_left": CoordinateMapping(0, 25, Zone.NEUTRAL, description="Neutral zone left"),
+        "neutral_right": CoordinateMapping(0, -25, Zone.NEUTRAL, description="Neutral zone right"),
         
         # Special areas
         "top_of_circles": CoordinateMapping(54, 0, Zone.OFFENSIVE, description="Top of face-off circles"),

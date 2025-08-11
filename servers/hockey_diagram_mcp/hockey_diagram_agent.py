@@ -240,7 +240,7 @@ class HockeyDiagramExpert:
                                                 result_data = json.loads(output)
                                                 if result_data.get('success') and 'parsed_data' in result_data:
                                                     parser_traces = {
-                                                        "parser_used": result_data.get('parser_used', 'unknown'),
+                                                        "parser_used": result_data.get('parser_used', result_data.get('parser', 'unknown')),
                                                         "parsed_data": {
                                                             "title": result_data['parsed_data'].get('title'),
                                                             "player_count": len(result_data['parsed_data'].get('players', [])),
@@ -249,6 +249,29 @@ class HockeyDiagramExpert:
                                                         }
                                                     }
                                                     logger.info(f"    🔍 Parser traces extracted: {parser_traces}")
+                                                    
+                                                    # Extract and merge sub-tool traces from parser agent
+                                                    if 'tool_traces' in result_data:
+                                                        logger.info(f"    📊 Parser agent made {len(result_data['tool_traces'])} tool calls")
+                                                        # Insert the parser's tool traces before the current parse_hockey_formation call
+                                                        # This shows the research tools that were used
+                                                        current_index = i
+                                                        for sub_trace in result_data['tool_traces']:
+                                                            # Adjust order to insert before parse_hockey_formation
+                                                            sub_trace['order'] = current_index
+                                                            sub_trace['from_parser'] = True  # Mark as coming from parser agent
+                                                            tool_calls_detail.insert(current_index, sub_trace)
+                                                            current_index += 1
+                                                            
+                                                            # Add to tools_used list
+                                                            if sub_trace['name'] not in tools_used:
+                                                                tools_used.insert(tools_used.index('parse_hockey_formation'), sub_trace['name'])
+                                                        
+                                                        # Update the order of subsequent items
+                                                        for j in range(current_index, len(tool_calls_detail)):
+                                                            tool_calls_detail[j]['order'] = j + 1
+                                                            
+                                                        logger.info(f"    ✅ Merged {len(result_data['tool_traces'])} parser sub-tool traces")
                                         except (json.JSONDecodeError, TypeError) as e:
                                             logger.error(f"    ❌ Failed to parse tool output: {e}")
                                     break

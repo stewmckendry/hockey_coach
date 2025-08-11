@@ -183,7 +183,7 @@ class HockeyDiagramGenerator:
                 facecolor='white',
                 edgecolor=color,
                 linewidth=2,
-                zorder=10
+                zorder=100  # High zorder to ensure players are on top of rink lines
             )
             ax.add_patch(circle)
             
@@ -193,7 +193,7 @@ class HockeyDiagramGenerator:
                 ha='center', va='top',
                 fontsize=8, fontweight='bold',
                 color=color,
-                zorder=11,
+                zorder=101,  # Higher than player circle
                 bbox=dict(boxstyle="round,pad=0.2", facecolor='white', edgecolor=color, alpha=0.8)
             )
             
@@ -203,7 +203,7 @@ class HockeyDiagramGenerator:
                     (player.x + 3, player.y - 3),
                     radius=1,
                     facecolor=self.PUCK_COLOR,
-                    zorder=12
+                    zorder=102  # Highest priority for puck visibility
                 )
                 ax.add_patch(puck)
                 
@@ -230,20 +230,20 @@ class HockeyDiagramGenerator:
                 # Solid arrow for skating
                 arrow = FancyArrowPatch(
                     start, end,
-                    arrowstyle='->,head_width=0.8,head_length=0.4',
+                    arrowstyle='->,head_width=2.0,head_length=1.5',
                     color='black',
                     linewidth=2,
-                    zorder=5
+                    zorder=90  # High zorder for visibility
                 )
             elif movement.movement_type == "pass":
                 # Dashed line for passes
                 arrow = FancyArrowPatch(
                     start, end,
-                    arrowstyle='->,head_width=0.8,head_length=0.4',
+                    arrowstyle='->,head_width=2.0,head_length=1.5',
                     color='black',
                     linewidth=2,
                     linestyle='dashed',
-                    zorder=5
+                    zorder=90  # High zorder for visibility
                 )
             elif movement.movement_type == "shot":
                 # Thick arrow for shots

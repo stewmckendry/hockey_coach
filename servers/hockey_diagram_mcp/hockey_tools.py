@@ -40,6 +40,13 @@ async def parse_hockey_formation(prompt: str, parser_type: str = "agent") -> str
                 from parser_agent import parse_with_agent
                 result_json = await parse_with_agent(prompt)
                 result = json.loads(result_json)
+                
+                # Log tool traces if present
+                if result.get("tool_traces"):
+                    logger.info(f"🔍 Parser agent tool traces: {len(result.get('tool_traces', []))} tools used")
+                    for trace in result.get("tool_traces", []):
+                        logger.info(f"  - {trace.get('name')}")
+                        
             elif parser_type == "simple":
                 # Use simple pattern matching
                 from parser_agent import parse_simple
@@ -57,7 +64,8 @@ async def parse_hockey_formation(prompt: str, parser_type: str = "agent") -> str
             if span:
                 span.span_data.output = json.dumps({
                     "success": result.get("success"),
-                    "parser_used": result.get("parser", parser_type)
+                    "parser_used": result.get("parser", parser_type),
+                    "tool_count": len(result.get("tool_traces", []))
                 })
             
             return json_result

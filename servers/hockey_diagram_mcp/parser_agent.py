@@ -189,6 +189,59 @@ async def parse_with_agent(prompt: str) -> str:
         # Extract the JSON from the agent's response
         response_text = str(result)
         
+        # Extract tool calls from the result
+        tool_traces = []
+        tools_used = []
+        
+        # Parse tool calls from the result (similar to hockey_diagram_agent.py)
+        if hasattr(result, 'new_items') and result.new_items:
+            logger.info(f"📋 Parser agent made {len(result.new_items)} items")
+            for i, item in enumerate(result.new_items):
+                # Check for ToolCallItem
+                if hasattr(item, 'type') and item.type == "tool_call_item":
+                    raw_item = getattr(item, 'raw_item', None)
+                    if raw_item:
+                        function_name = None
+                        function_args = None
+                        
+                        # Extract function details
+                        if hasattr(raw_item, 'function'):
+                            function_name = raw_item.function.name
+                            function_args = raw_item.function.arguments
+                        elif hasattr(raw_item, 'name'):
+                            function_name = raw_item.name
+                            function_args = getattr(raw_item, 'arguments', None)
+                        
+                        if function_name:
+                            tools_used.append(function_name)
+                            tool_trace = {
+                                "name": function_name,
+                                "arguments": function_args,
+                                "order": len(tools_used),
+                                "output": None
+                            }
+                            tool_traces.append(tool_trace)
+                            logger.info(f"    🛠️ Parser used tool: {function_name}")
+                
+                # Check for ToolCallOutputItem  
+                elif hasattr(item, 'type') and item.type == "tool_call_output_item":
+                    output = item.output
+                    # Match output to last tool call without output
+                    for trace in reversed(tool_traces):
+                        if trace["output"] is None:
+                            trace["output"] = str(output)[:500] + "..." if len(str(output)) > 500 else str(output)
+                            break
+        
+        # Also check direct tool_calls attribute
+        if hasattr(result, 'tool_calls') and result.tool_calls:
+            for call in result.tool_calls:
+                if hasattr(call, 'name') and call.name not in tools_used:
+                    tools_used.append(call.name)
+                    logger.info(f"    🛠️ Parser used tool: {call.name}")
+        
+        if tools_used:
+            logger.info(f"🔍 Parser agent used tools: {' → '.join(tools_used)}")
+        
         # Find JSON in the response
         import re
         json_match = re.search(r'\{[\s\S]*\}', response_text)
@@ -196,19 +249,15 @@ async def parse_with_agent(prompt: str) -> str:
             spec_json = json_match.group(0)
             spec_data = json.loads(spec_json)
             
-            # Log if research tools were used
-            if hasattr(result, 'tool_calls') and result.tool_calls:
-                tools_used = [call.name for call in result.tool_calls]
-                if any(tool in tools_used for tool in ['search_hockey_tactics', 'search_hockey_drills', 'web_search_exa']):
-                    logger.info(f"🔍 Parser agent used research tools: {tools_used}")
-            
-            # Return ONLY zone-based specification (NO coordinate conversion)
+            # Return zone-based specification WITH tool traces
             logger.info(f"✅ Parser returning zone-based spec with {len(spec_data.get('players', []))} players")
             
             return json.dumps({
                 "success": True,
                 "parsed_data": spec_data,  # Pure zone labels only
-                "parser": "agent"
+                "parser": "agent",
+                "tool_traces": tool_traces,  # Include tool traces for visibility
+                "tools_used": tools_used
             })
         else:
             return json.dumps({

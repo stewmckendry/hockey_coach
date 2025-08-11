@@ -20,6 +20,7 @@ interface AgentTrace {
   arguments: string | any
   order: number
   output: string | any
+  from_parser?: boolean
 }
 
 interface TechnicalDetailsProps {
@@ -48,8 +49,8 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
     const specStr = typeof spec === 'string' ? spec : JSON.stringify(spec)
     
     // Extract the message between ✅ and 📁
-    const messageMatch = specStr.match(/✅\s*(.*?)\s*📁/s)
-    const formationMatch = specStr.match(/🏒\s*Formation:\s*(.*?)(?:\n|```|$)/s)
+    const messageMatch = specStr.match(/✅\s*(.*?)\s*📁/)
+    const formationMatch = specStr.match(/🏒\s*Formation:\s*(.*?)(?:\n|```|$)/)
     
     return {
       status: messageMatch?.[1]?.trim() || 'Diagram generated',
@@ -124,6 +125,11 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
     'search_hockey_tactics': '🔍 Search Tactics Database',
     'search_hockey_drills': '📚 Search Drills Database',
     'search_hockey_videos': '🎥 Search Video Database',
+    'search_hockey_skills': '⚡ Search Skills Database',
+    'search_hockey_dryland': '🏃 Search Dryland Training',
+    'search_hockey_dryland_videos': '📹 Search Training Videos',
+    'search_hockey_nhl_insights': '🏆 Search NHL Insights',
+    'search_hockey_rules': '📖 Search Hockey Rules',
     'web_search_exa': '🌐 Web Search',
     'synthesize_research_to_formation': '🔄 Synthesize Research',
     'map_formation_to_zones': '📍 Map to Zones',
@@ -177,8 +183,8 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
                 {output && typeof output === 'object' ? 
                   (output.success ? '✅ Success' : 
                    output.error ? `❌ ${output.error}` : 
-                   '⏳ Processing...') : 
-                  (output || '⏳ Processing...')}
+                   '✅ Completed') : 
+                  (output ? '✅ Completed' : '⏳ Processing...')}
               </p>
             </div>
           )}
@@ -196,7 +202,7 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
                 '✅ Diagram generated successfully' : 
                 output && typeof output === 'object' && output.error ? 
                 `❌ ${output.error}` :
-                '⏳ Generating diagram...'}
+                output ? '✅ Diagram generated' : '⏳ Generating diagram...'}
             </p>
           </div>
           {output && typeof output === 'object' && (output.diagram_path || output.filename) && (
@@ -388,15 +394,20 @@ export function TechnicalDetails({ parserSpec, agentTraces }: TechnicalDetailsPr
             {agentTraces.map((trace, index) => {
               console.log(`Trace ${index}:`, trace)
               return (
-                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                <div key={index} className={`${trace.from_parser ? 'ml-4 border-l-2 border-blue-300' : ''} bg-gray-50 rounded-lg p-4`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      <span className="flex items-center justify-center w-6 h-6 text-xs font-medium text-white bg-blue-600 rounded-full">
+                      <span className={`flex items-center justify-center w-6 h-6 text-xs font-medium text-white rounded-full ${
+                        trace.from_parser ? 'bg-purple-600' : 'bg-blue-600'
+                      }`}>
                         {trace.order || index + 1}
                       </span>
                       <span className="font-medium text-gray-900">
                         {toolDescriptions[trace.name] || trace.name}
                       </span>
+                      {trace.from_parser && (
+                        <span className="text-xs text-purple-600 font-medium">(Parser Agent)</span>
+                      )}
                     </div>
                   </div>
                   <div className="ml-8">

@@ -104,7 +104,9 @@ export default function HockeyDiagramTest() {
         toolsUsed: data.toolsUsed,
         parserType: data.parserType,
         error: data.error,
-        processingTimeMs: data.processingTimeMs
+        processingTimeMs: data.processingTimeMs,
+        agentTracesCount: data.agentTraces?.length || 0,
+        agentTraces: data.agentTraces
       })
       
       // Log the first 100 chars of base64 if present
