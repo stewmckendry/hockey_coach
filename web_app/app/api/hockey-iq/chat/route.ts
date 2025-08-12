@@ -31,12 +31,12 @@ export async function POST(request: NextRequest) {
 
     body = await request.json()
     
-    // Generate session ID from IP or use provided one
-    const sessionId = body.sessionId || clientIP
+    // Extract session information from request
+    const sessionInfo = SessionManager.extractSessionInfo(request)
+    const sessionId = body.sessionId || sessionInfo.sessionId
     
     // Initialize or update session tracking
-    const userAgent = request.headers.get('user-agent') || 'Unknown'
-    SessionManager.createOrUpdateSession(sessionId, clientIP, userAgent, 'chat')
+    SessionManager.createOrUpdateSession(sessionId, clientIP, sessionInfo.userAgent, 'chat')
     
     // Validate input
     if (!body.message || typeof body.message !== 'string') {
@@ -105,6 +105,12 @@ export async function POST(request: NextRequest) {
     
     // Save to persistent storage
     monitorStorage.saveSession(SessionManager.getSession(sessionId)!)
+    
+    // Save chat interactions to persistent storage
+    const chatInteractions = SessionManager.getChatInteractions(sessionId)
+    const allInteractions = monitorStorage.loadChatInteractions()
+    allInteractions[sessionId] = chatInteractions
+    monitorStorage.saveChatInteractions(allInteractions)
 
     // Create response with session cookie
     const response = NextResponse.json({
@@ -116,12 +122,13 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     })
     
-    // Set session cookie for browser tracking
+    // Set session cookie for browser tracking (always update to ensure valid format)
     response.cookies.set('hockey-iq-session', sessionId, {
       maxAge: 60 * 60 * 24 * 7, // 7 days
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'  // Ensure cookie is available site-wide
     })
     
     return response

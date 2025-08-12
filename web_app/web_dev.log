@@ -1,0 +1,1008 @@
+
+> hockey-coach-web-app@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.30
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1088ms
+ ✓ Compiled /api/hockey-iq/quiz in 312ms (162 modules)
+[Quiz Cache] Starting initialization...
+[Quiz API] Attempting dynamic generation for category: skills
+[Quiz] Generating new question for skills
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async POST (webpack-internal:///(rsc)/./app/api/hockey-iq/quiz/route.ts:39:53)
+    at async /Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/hockey-iq/quiz 200 in 3662ms
+[Quiz] Starting question preload...
+[Quiz] Generating new question for rules
+[Quiz] Generating new question for positioning
+[Quiz] Generating new question for skills
+[Quiz] Generating new question for teamwork
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for rules
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for rules
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+ ✓ Compiled in 48ms (162 modules)
+[Quiz] Generating new question for rules
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for rules
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:286:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:285:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Preload complete. Cache stats: {
+  skills: {
+    total: 11,
+    valid: 11,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:02.560Z'
+  },
+  positioning: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:08.426Z'
+  },
+  fun_facts: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:12.009Z'
+  },
+  teamwork: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:02.483Z'
+  },
+  rules: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:07.780Z'
+  }
+}
+[Quiz Cache] Initialization complete
+[Quiz Cache] Starting initialization...
+[Quiz API] Attempting dynamic generation for category: rules
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async POST (webpack-internal:///(rsc)/./app/api/hockey-iq/quiz/route.ts:39:53)
+    at async /Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/liammckendry/thunder_playbook/web_app/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/hockey-iq/quiz 200 in 4671ms
+[Quiz] Starting question preload...
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_nhl_insights',
+  body: {
+    tool: 'search_hockey_nhl_insights',
+    parameters: { query: 'hockey history NHL players Stanley Cup records' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_nhl_insights',
+  body: {
+    tool: 'search_hockey_nhl_insights',
+    parameters: { query: 'hockey history NHL players Stanley Cup records' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_nhl_insights',
+  body: {
+    tool: 'search_hockey_nhl_insights',
+    parameters: { query: 'hockey history NHL players Stanley Cup records' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_nhl_insights',
+  body: {
+    tool: 'search_hockey_nhl_insights',
+    parameters: { query: 'hockey history NHL players Stanley Cup records' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Generating new question for fun_facts
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:8000/mcp',
+  tool: 'search_hockey_nhl_insights',
+  body: {
+    tool: 'search_hockey_nhl_insights',
+    parameters: { query: 'hockey history NHL players Stanley Cup records' }
+  }
+}
+[Quiz] MCP Response: 406 Not Acceptable
+[Quiz] MCP search failed: Error: MCP search failed: Not Acceptable
+    at DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:140:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:293:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 4)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:292:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17)
+[Quiz] Preload complete. Cache stats: {
+  rules: {
+    total: 11,
+    valid: 11,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:42.927Z'
+  },
+  skills: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:41.645Z'
+  },
+  teamwork: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:43.169Z'
+  },
+  positioning: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:41.883Z'
+  },
+  fun_facts: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T02:54:46.621Z'
+  }
+}
+[Quiz Cache] Initialization complete
+ ○ Compiling /hockey-iq ...
+ ✓ Compiled /hockey-iq in 2.4s (1035 modules)
+ ✓ Compiled in 165ms (1012 modules)
+ GET /_next/static/webpack/0971df6aecfd0406.webpack.hot-update.json 404 in 2628ms
+ GET /hockey-iq 200 in 42ms
+ GET /hockey-iq 200 in 58ms
+ ✓ Compiled /api/hockey-iq/chat in 164ms (644 modules)
+🎯 Using OpenAI Responses API for Hockey IQ
+📝 Starting new Hockey IQ log file for today
+📥 Hockey IQ Response ID: resp_6894165cd58c8198aaeccc3a1060404004dcfc8c73478a45
+🛠️ Hockey IQ Tools used: [ 'search_hockey_rules' ]
+🏒 [Hockey IQ chat] What's a hat trick? 🎩...
+   🔧 Tools: search_hockey_rules
+   ⏱️ Response time: 10447ms
+ POST /api/hockey-iq/chat 200 in 10654ms
+🎯 Using OpenAI Responses API for Hockey IQ
+📥 Hockey IQ Response ID: resp_689416723ea881988793eab1a4cd58f504dcfc8c73478a45
+🛠️ Hockey IQ Tools used: []
+🏒 [Hockey IQ chat] Its hard to do...
+   ⏱️ Response time: 3184ms
+ POST /api/hockey-iq/chat 200 in 3193ms
+🎯 Using OpenAI Responses API for Hockey IQ
+📥 Hockey IQ Response ID: resp_6894168fb35881989e2a30110f33b64e04dcfc8c73478a45
+🛠️ Hockey IQ Tools used: []
+🏒 [Hockey IQ chat] Get to the net...
+   ⏱️ Response time: 3455ms
+ POST /api/hockey-iq/chat 200 in 3464ms
+[?25h

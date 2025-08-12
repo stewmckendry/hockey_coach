@@ -1,0 +1,720 @@
+
+> hockey-coach-web-app@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+  ▲ Next.js 14.2.30
+  - Local:        http://localhost:3001
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1467ms
+ ✓ Compiled /api/hockey-iq/monitor/sessions in 185ms (61 modules)
+[Monitor][API] Sessions endpoint: returning 1/1 sessions
+ GET /api/hockey-iq/monitor/sessions 200 in 231ms
+ ✓ Compiled /api/hockey-iq/monitor/chat/[sessionId] in 114ms (63 modules)
+[Monitor][API] Chat history for ::1: 0 interactions
+ GET /api/hockey-iq/monitor/chat/%3A%3A1 200 in 274ms
+ ✓ Compiled /api/hockey-iq/chat in 179ms (168 modules)
+🎯 Using OpenAI Responses API for Hockey IQ
+📥 Hockey IQ Response ID: resp_6894e4bf2f648190b46d5bb286ddde94077a845511818a24
+🛠️ Hockey IQ Tools used: []
+🏒 [Hockey IQ chat] Test message for monitoring...
+   ⏱️ Response time: 2528ms
+[Monitor][Chat][::1] Test message for monitoring... (2529ms)
+ POST /api/hockey-iq/chat 200 in 2730ms
+[Monitor][API] Chat history for ::1: 1 interactions
+ GET /api/hockey-iq/monitor/chat/%3A%3A1 200 in 8ms
+ ✓ Compiled /api/hockey-iq/quiz in 70ms (173 modules)
+[Quiz Cache] Starting initialization...
+[Quiz API] Using static questions for category: rules
+ POST /api/hockey-iq/quiz 200 in 94ms
+[Quiz] Starting question preload...
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] Generating new question for fun_facts
+[Quiz] Exa API Request: {
+  query: 'interesting hockey facts NHL records amazing hockey statistics fun hockey trivia for kids 2024',
+  numResults: 5
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Exa API Response: 200 OK
+[Quiz] Exa source: https://gitnux.org/most-nhl-goals-in-a-game/
+[Quiz] Exa source: https://blackhawkup.com/the-blackhawks-and-maple-leafs-once-played-the-cleanest-game-in-nhl-history
+[Quiz] Exa source: https://en.wikipedia.org/wiki/List_of_NHL_records_(individual)
+[Quiz] Exa returned 5 results, using top 3
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for fun_facts
+[Quiz] Exa API Request: {
+  query: 'interesting hockey facts NHL records amazing hockey statistics fun hockey trivia for kids 2024',
+  numResults: 5
+}
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Exa API Response: 200 OK
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Exa source: https://gitnux.org/most-nhl-goals-in-a-game/
+[Quiz] Exa source: https://blackhawkup.com/the-blackhawks-and-maple-leafs-once-played-the-cleanest-game-in-nhl-history
+[Quiz] Exa source: https://en.wikipedia.org/wiki/List_of_NHL_records_(individual)
+[Quiz] Exa returned 5 results, using top 3
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for rules
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_rules',
+  body: {
+    tool: 'search_hockey_rules',
+    parameters: { query: 'hockey rules penalties offsides icing basics' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 0)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for fun_facts
+[Quiz] Exa API Request: {
+  query: 'interesting hockey facts NHL records amazing hockey statistics fun hockey trivia for kids 2024',
+  numResults: 5
+}
+[Quiz] Exa API Response: 200 OK
+[Quiz] Exa source: https://gitnux.org/most-nhl-goals-in-a-game/
+[Quiz] Exa source: https://blackhawkup.com/the-blackhawks-and-maple-leafs-once-played-the-cleanest-game-in-nhl-history
+[Quiz] Exa source: https://en.wikipedia.org/wiki/List_of_NHL_records_(individual)
+[Quiz] Exa returned 5 results, using top 3
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz API] Evaluate answer: {
+  questionId: 'rules_4',
+  userAnswer: 'Minor penalty is 2 minutes, major is 5 minutes',
+  hasQuestionText: true,
+  hasCorrectAnswer: true
+}
+[Monitor][Quiz][::1] rules question - Correct (850ms)
+ POST /api/hockey-iq/quiz 200 in 858ms
+[Quiz] Generating new question for teamwork
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey teamwork communication support systems' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 3)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for positioning
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_tactics',
+  body: {
+    tool: 'search_hockey_tactics',
+    parameters: { query: 'hockey positions defensive offensive zone coverage' }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 1)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for skills
+[Quiz] MCP Request: {
+  endpoint: 'http://localhost:3003/api/mcp',
+  tool: 'search_hockey_skills',
+  body: {
+    tool: 'search_hockey_skills',
+    parameters: {
+      query: 'hockey skating passing shooting stickhandling techniques'
+    }
+  }
+}
+[Quiz] MCP search failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DynamicQuizGenerator.searchHockeyKnowledge (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:133:30)
+    at async DynamicQuizGenerator.generateWithResearch (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:54:26)
+    at async DynamicQuizGenerator.generateQuestion (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:41:30)
+    at async eval (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:444:20)
+    at async eval (webpack-internal:///(rsc)/./lib/server/quizCache.ts:95:42)
+    at async Promise.all (index 2)
+    at async QuizCacheService.preloadCategories (webpack-internal:///(rsc)/./lib/server/quizCache.ts:103:9)
+    at async DynamicQuizGenerator.preloadQuestions (webpack-internal:///(rsc)/./lib/server/dynamicQuizGenerator.ts:443:9)
+    at async Timeout.eval [as _onTimeout] (webpack-internal:///(rsc)/./lib/server/initializeQuizCache.ts:21:17) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1139:18)
+      at afterConnectMultiple (node:net:1714:7)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[Quiz] Generating new question for fun_facts
+[Quiz] Exa API Request: {
+  query: 'interesting hockey facts NHL records amazing hockey statistics fun hockey trivia for kids 2024',
+  numResults: 5
+}
+[Quiz] Exa API Response: 200 OK
+[Quiz] Exa source: https://gitnux.org/most-nhl-goals-in-a-game/
+[Quiz] Exa source: https://blackhawkup.com/the-blackhawks-and-maple-leafs-once-played-the-cleanest-game-in-nhl-history
+[Quiz] Exa source: https://en.wikipedia.org/wiki/List_of_NHL_records_(individual)
+[Quiz] Exa returned 5 results, using top 3
+[Quiz] Generating new question for fun_facts
+[Quiz] Exa API Request: {
+  query: 'interesting hockey facts NHL records amazing hockey statistics fun hockey trivia for kids 2024',
+  numResults: 5
+}
+ ✓ Compiled /api/hockey-iq/monitor/quiz/[sessionId] in 36ms (171 modules)
+[Monitor][API] Quiz history for ::1: 0 turns, session reconstructed
+ GET /api/hockey-iq/monitor/quiz/%3A%3A1 200 in 189ms
+[Quiz] Exa API Response: 200 OK
+[Quiz] Exa source: https://gitnux.org/most-nhl-goals-in-a-game/
+[Quiz] Exa source: https://blackhawkup.com/the-blackhawks-and-maple-leafs-once-played-the-cleanest-game-in-nhl-history
+[Quiz] Exa source: https://en.wikipedia.org/wiki/List_of_NHL_records_(individual)
+[Quiz] Exa returned 5 results, using top 3
+[Quiz] Preload complete. Cache stats: {
+  rules: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T17:40:05.458Z'
+  },
+  skills: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T17:40:16.922Z'
+  },
+  teamwork: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T17:40:16.063Z'
+  },
+  positioning: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T17:40:17.843Z'
+  },
+  fun_facts: {
+    total: 10,
+    valid: 10,
+    expired: 0,
+    lastUpdated: '2025-08-07T17:40:35.000Z'
+  }
+}
+[Quiz Cache] Initialization complete
+ ✓ Compiled /api/hockey-iq/monitor/sessions in 20ms (171 modules)
+[Monitor][API] Sessions endpoint: returning 1/1 sessions
+ GET /api/hockey-iq/monitor/sessions 200 in 30ms
+[?25h

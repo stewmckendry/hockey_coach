@@ -60,16 +60,23 @@ class DynamicQuizGenerator {
   /**
    * Main entry point for quiz question generation
    */
-  async generateQuestion(options: GenerationOptions): Promise<Question> {
-    const { category, difficulty = 'rookie', includeThunderContext = true, useCache = true } = options
+  async generateQuestion(options: GenerationOptions & { askedQuestionIds?: string[] }): Promise<Question> {
+    const { 
+      category, 
+      difficulty = 'rookie', 
+      includeThunderContext = true, 
+      useCache = true,
+      askedQuestionIds = []
+    } = options
 
-    // Check cache first
+    // Check cache first, looking for unasked questions
     if (useCache) {
-      const cachedQuestion = quizCache.getQuestion(category)
+      const cachedQuestion = quizCache.getUniqueQuestion(category, askedQuestionIds)
       if (cachedQuestion) {
-        console.log(`[Quiz] Returning cached question for ${category}`)
+        console.log(`[Quiz] Returning cached unasked question for ${category}`)
         return cachedQuestion
       }
+      console.log(`[Quiz] No unasked cached questions for ${category}, generating new one`)
     }
 
     try {
@@ -478,18 +485,116 @@ Return a JSON object with:
   }
 
   /**
-   * Get search query for category
+   * Get dynamic search query for category - rotates through different topics
    */
   private getCategorySearchQuery(category: string): string {
-    const queries: Record<string, string> = {
-      'rules': 'hockey rules penalties offsides icing basics',
-      'positioning': 'hockey positions defensive offensive zone coverage',
-      'skills': 'hockey skating passing shooting stickhandling techniques',
-      'teamwork': 'hockey teamwork communication support systems',
-      'fun_facts': 'interesting hockey facts NHL records amazing hockey statistics fun hockey trivia for kids 2024'
+    // Define pools of varied search topics for each category
+    const topicPools: Record<string, string[]> = {
+      'rules': [
+        // Penalties
+        'hockey penalties tripping slashing hooking minor major',
+        'hockey misconduct penalties fighting checking from behind',
+        'hockey penalty box power play penalty kill rules',
+        // Icing variations
+        'hockey icing hybrid icing touch icing rules',
+        'hockey icing exceptions power play short-handed',
+        // Offsides variations  
+        'hockey offsides delayed offside neutral zone',
+        'hockey offside pass two-line pass rules',
+        // Face-offs
+        'hockey face-off rules circle positions winning draws',
+        'hockey face-off violations encroachment rules',
+        // Other rules
+        'hockey goalie crease rules interference trapezoid',
+        'hockey overtime shootout rules 3 on 3',
+        'hockey video review coach challenge rules',
+        'hockey too many men line changes rules'
+      ],
+      'positioning': [
+        // Forwards
+        'hockey center position responsibilities face-offs',
+        'hockey winger left wing right wing roles',
+        'hockey forward checking forechecking backcheck',
+        // Defense
+        'hockey defenseman positioning gap control',
+        'hockey defense pairs left right responsibilities',
+        'hockey defensive zone coverage box plus one',
+        // Goalie
+        'hockey goalie positioning angles butterfly',
+        'hockey goaltender playing the puck behind net',
+        // Systems
+        'hockey 2-1-2 forecheck aggressive system',
+        'hockey 1-2-2 neutral zone trap defensive',
+        'hockey breakout patterns D to D reverse',
+        'hockey power play formations 1-3-1 umbrella'
+      ],
+      'skills': [
+        // Skating
+        'hockey forward skating stride technique speed',
+        'hockey backward skating crossovers pivots',
+        'hockey edge work inside outside edges',
+        'hockey stopping techniques hockey stop T-stop',
+        // Passing
+        'hockey passing forehand backhand saucer pass',
+        'hockey tape to tape passing receiving techniques',
+        'hockey one-touch passing give and go plays',
+        // Shooting
+        'hockey wrist shot technique follow through',
+        'hockey slap shot wind up power transfer',
+        'hockey snap shot quick release accuracy',
+        'hockey backhand shot deception close range',
+        // Stickhandling
+        'hockey puck control stickhandling dekes moves',
+        'hockey toe drag moves protecting the puck'
+      ],
+      'teamwork': [
+        // Communication
+        'hockey communication calling for passes talking',
+        'hockey bench communication line changes signals',
+        // Support
+        'hockey supporting the puck carrier options',
+        'hockey defensive support covering for partner',
+        // Team play
+        'hockey cycling the puck offensive zone',
+        'hockey team defense blocking shots sacrificing',
+        'hockey creating space for teammates screens',
+        'hockey backchecking forward responsibility team defense'
+      ],
+      'fun_facts': [
+        // NHL records
+        'Wayne Gretzky NHL records points goals assists',
+        'NHL fastest goals hat tricks record breakers',
+        'NHL Stanley Cup dynasties champions history',
+        'NHL goalies shutout records wins Martin Brodeur',
+        // Hockey history
+        'hockey invention origins Canada James Creighton',
+        'Original Six NHL teams history expansion',
+        'hockey Olympics miracle on ice 1980',
+        'hockey equipment evolution wooden sticks composite',
+        // Fun trivia
+        'NHL mascots funny entertaining team spirits',
+        'hockey superstitions playoff beards rituals',
+        'NHL outdoor games Winter Classic Stadium Series',
+        'hockey fastest shot hardest hit records',
+        // Current stars
+        'Connor McDavid Edmonton Oilers speed skills 2024',
+        'Auston Matthews goal scoring Toronto Maple Leafs'
+      ]
     }
     
-    return queries[category] || 'hockey basics for kids'
+    // Get the topic pool for this category
+    const topics = topicPools[category]
+    if (!topics || topics.length === 0) {
+      return 'hockey basics for kids'
+    }
+    
+    // Select a random topic from the pool
+    const randomIndex = Math.floor(Math.random() * topics.length)
+    const selectedTopic = topics[randomIndex]
+    
+    console.log(`[Quiz] Selected search query for ${category}: "${selectedTopic}"`)
+    
+    return selectedTopic
   }
 
   /**

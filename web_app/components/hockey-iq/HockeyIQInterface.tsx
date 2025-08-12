@@ -34,6 +34,8 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationMessage, setCelebrationMessage] = useState('')
+  const [askedQuestionIds, setAskedQuestionIds] = useState<string[]>([])
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false)
 
   // Check for achievements
   useEffect(() => {
@@ -53,18 +55,85 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
     setTimeout(() => setShowCelebration(false), 3000)
   }
 
+  // Fetch dynamic question from API
+  const fetchDynamicQuestion = async (category?: Category): Promise<Question | null> => {
+    try {
+      setIsLoadingQuestion(true)
+      const response = await fetch('/api/hockey-iq/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'get_question',
+          category: category || 'rules',
+          useDynamic: true,
+          difficulty: 'rookie',
+          askedQuestionIds: askedQuestionIds // Pass already asked questions
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch question')
+      }
+
+      const data = await response.json()
+      
+      if (data.success && data.question) {
+        // Track this question as asked
+        setAskedQuestionIds(prev => [...prev, data.question.id])
+        return data.question
+      }
+      
+      return null
+    } catch (error) {
+      console.error('Error fetching dynamic question:', error)
+      return null
+    } finally {
+      setIsLoadingQuestion(false)
+    }
+  }
+
+  // Fallback to static questions if dynamic fails
   const getRandomQuestion = (category?: Category): Question => {
+    // Filter out already asked questions
     const questions = category 
-      ? questionsData.questions.filter(q => q.category === category)
-      : questionsData.questions
-    return questions[Math.floor(Math.random() * questions.length)]
+      ? questionsData.questions.filter(q => q.category === category && !askedQuestionIds.includes(q.id))
+      : questionsData.questions.filter(q => !askedQuestionIds.includes(q.id))
+    
+    // If all questions have been asked, reset the tracking
+    if (questions.length === 0) {
+      console.log('All questions asked, resetting...')
+      setAskedQuestionIds([])
+      const allQuestions = category 
+        ? questionsData.questions.filter(q => q.category === category)
+        : questionsData.questions
+      return allQuestions[Math.floor(Math.random() * allQuestions.length)]
+    }
+    
+    const question = questions[Math.floor(Math.random() * questions.length)]
+    // Track this question as asked
+    setAskedQuestionIds(prev => [...prev, question.id])
+    return question
+  }
+
+  // Load a new question (tries dynamic first, falls back to static)
+  const loadNewQuestion = async (category?: Category) => {
+    // Try dynamic first
+    const dynamicQuestion = await fetchDynamicQuestion(category)
+    
+    if (dynamicQuestion) {
+      setCurrentQuestion(dynamicQuestion)
+    } else {
+      // Fall back to static
+      console.log('Falling back to static questions')
+      setCurrentQuestion(getRandomQuestion(category))
+    }
   }
 
   const handleModeSwitch = (newMode: Mode) => {
     setMode(newMode)
     if (newMode === 'quiz') {
-      // Start with a random question when entering quiz mode
-      setCurrentQuestion(getRandomQuestion(selectedCategory || undefined))
+      // Start with a dynamic question when entering quiz mode
+      loadNewQuestion(selectedCategory || undefined)
     }
   }
 
@@ -81,8 +150,8 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
     setShowCelebration(true)
     setTimeout(() => {
       setShowCelebration(false)
-      // Load next question after celebration
-      setCurrentQuestion(getRandomQuestion(selectedCategory || undefined))
+      // Load next dynamic question after celebration
+      loadNewQuestion(selectedCategory || undefined)
     }, 2000)
   }
 
@@ -90,7 +159,7 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
     setSelectedCategory(category)
     // Categories are now only used in quiz mode
     if (mode === 'quiz') {
-      setCurrentQuestion(getRandomQuestion(category))
+      loadNewQuestion(category)
     }
   }
 
@@ -167,13 +236,29 @@ export function HockeyIQInterface({ embedded = false, className = '' }: HockeyIQ
             embedded={embedded}
           />
         ) : (
-          currentQuestion && (
-            <QuizQuestion
-              question={currentQuestion}
-              onAnswer={handleQuizAnswer}
-              questionsAnswered={questionsAnswered}
-            />
-          )
+          <>
+            {isLoadingQuestion ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading your next question...</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {askedQuestionIds.length > 0 && `Questions answered: ${askedQuestionIds.length}`}
+                  </p>
+                </div>
+              </div>
+            ) : currentQuestion ? (
+              <QuizQuestion
+                question={currentQuestion}
+                onAnswer={handleQuizAnswer}
+                questionsAnswered={questionsAnswered}
+              />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-lg text-gray-600">Select a category above to start the quiz!</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

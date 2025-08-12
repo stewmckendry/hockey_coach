@@ -23,12 +23,12 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Generate session ID from IP or use provided one
-    const sessionId = body.sessionId || clientIP
+    // Extract session information from request
+    const sessionInfo = SessionManager.extractSessionInfo(request)
+    const sessionId = body.sessionId || sessionInfo.sessionId
     
     // Initialize or update session tracking for quiz mode
-    const userAgent = request.headers.get('user-agent') || 'Unknown'
-    SessionManager.createOrUpdateSession(sessionId, clientIP, userAgent, 'quiz')
+    SessionManager.createOrUpdateSession(sessionId, clientIP, sessionInfo.userAgent, 'quiz')
     
     // Validate input
     if (!body.action || typeof body.action !== 'string') {
@@ -43,17 +43,45 @@ export async function POST(request: NextRequest) {
         // Use hybrid approach: Try dynamic generation first, fallback to static
         const category = body.category
         const useDynamic = body.useDynamic !== false // Default to true
+        const askedQuestionIds: string[] = body.askedQuestionIds || []
         
         try {
           if (useDynamic) {
             // Try dynamic generation with caching
             console.log(`[Quiz API] Attempting dynamic generation for category: ${category}`)
+            console.log(`[Quiz API] Already asked questions: ${askedQuestionIds.length}`)
+            
+            // Pass asked question IDs to the generator for smart caching
             const dynamicQuestion = await dynamicQuizGenerator.generateQuestion({
               category: category || 'rules',
               difficulty: body.difficulty || 'rookie',
               includeThunderContext: body.includeThunderContext !== false,
-              useCache: true
+              useCache: true,
+              askedQuestionIds: askedQuestionIds // Pass the already asked questions
             })
+            
+            // The generator now handles duplicate prevention internally
+            // It will either return:
+            // 1. A cached question that hasn't been asked
+            // 2. A newly generated question if all cached ones were asked
+            
+            // Double-check it's not a duplicate (shouldn't happen with new logic)
+            if (askedQuestionIds.includes(dynamicQuestion.id)) {
+              console.warn(`[Quiz API] Duplicate question returned despite prevention: ${dynamicQuestion.id}`)
+            }
+            
+            // Initialize or update quiz session with the generated question
+            const quizSession = SessionManager.createOrUpdateQuizSession(sessionId, {
+              questionBank: [dynamicQuestion],
+              questionsAsked: [],
+              questionsRemaining: [dynamicQuestion.id],
+              difficulty: body.difficulty || 'rookie'
+            })
+            
+            // Save quiz session to persistent storage
+            const allSessions = monitorStorage.loadQuizSessions()
+            allSessions[sessionId] = quizSession
+            monitorStorage.saveQuizSessions(allSessions)
             
             const response = NextResponse.json({
               success: true,
@@ -92,6 +120,19 @@ export async function POST(request: NextRequest) {
         }
         
         const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
+        
+        // Initialize or update quiz session with static questions
+        const quizSession = SessionManager.createOrUpdateQuizSession(sessionId, {
+          questionBank: questions,
+          questionsAsked: [],
+          questionsRemaining: questions.map(q => q.id),
+          difficulty: body.difficulty || 'rookie'
+        })
+        
+        // Save quiz session to persistent storage
+        const allSessions = monitorStorage.loadQuizSessions()
+        allSessions[sessionId] = quizSession
+        monitorStorage.saveQuizSessions(allSessions)
         
         const response = NextResponse.json({
           success: true,
@@ -219,6 +260,20 @@ Respond with a JSON object:
         
         // Save to persistent storage
         monitorStorage.saveSession(SessionManager.getSession(sessionId)!)
+        
+        // Save quiz turns to persistent storage
+        const quizTurns = SessionManager.getQuizTurns(sessionId)
+        const allTurns = monitorStorage.loadQuizTurns()
+        allTurns[sessionId] = quizTurns
+        monitorStorage.saveQuizTurns(allTurns)
+        
+        // Update quiz session with question bank info
+        const quizSession = SessionManager.getQuizSession(sessionId)
+        if (quizSession) {
+          const allSessions = monitorStorage.loadQuizSessions()
+          allSessions[sessionId] = quizSession
+          monitorStorage.saveQuizSessions(allSessions)
+        }
         
         const response = NextResponse.json({
           success: true,
@@ -357,6 +412,33 @@ Respond with a JSON object:
           stats,
           timestamp: new Date().toISOString()
         })
+      }
+      
+      case 'clear_cache': {
+        // Clear cache for testing or when questions get stale
+        const { category } = body
+        
+        if (category) {
+          // Clear specific category
+          await import('@/lib/server/quizCache').then(m => m.quizCache.clearCategory(category))
+          console.log(`[Quiz API] Cleared cache for category: ${category}`)
+          
+          return NextResponse.json({
+            success: true,
+            message: `Cache cleared for category: ${category}`,
+            timestamp: new Date().toISOString()
+          })
+        } else {
+          // Clear entire cache
+          await import('@/lib/server/quizCache').then(m => m.quizCache.clearCache())
+          console.log(`[Quiz API] Cleared entire cache`)
+          
+          return NextResponse.json({
+            success: true,
+            message: 'Entire cache cleared',
+            timestamp: new Date().toISOString()
+          })
+        }
       }
 
       case 'get_socratic_followup': {

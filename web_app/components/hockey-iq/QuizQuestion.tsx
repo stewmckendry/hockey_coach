@@ -29,6 +29,13 @@ export function QuizQuestion({ question, onAnswer, questionsAnswered }: QuizQues
     setAttempts(0)
     setShowFollowUp(false)
     setIsCorrect(null)
+    
+    // Log question source for debugging
+    if (question.id.startsWith('dynamic_')) {
+      console.log('📚 Dynamic question loaded:', question.id, 'Research:', (question as any).researchSource)
+    } else {
+      console.log('📝 Static question loaded:', question.id)
+    }
   }, [question.id])
 
   const handleSubmit = async () => {

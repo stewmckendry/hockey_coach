@@ -861,7 +861,7 @@ def _parse_field(doc: str, label: str) -> str:
 # Resources for better integration
 
 @mcp.resource("hockey://skills/by-age/{age_group}")
-def get_skills_by_age_group(uri: str) -> str:
+def get_skills_by_age_group(age_group: str) -> str:
     """Get all skills for a specific age group.
     
     Returns a list of all skill titles and categories for the specified age group,
@@ -874,21 +874,15 @@ def get_skills_by_age_group(uri: str) -> str:
     - hockey://skills/by-age/All%20Ages%20-%20Goalies
     
     Args:
-        uri: Resource URI in format hockey://skills/by-age/{age_group}
+        age_group: The age group to filter by (URL-decoded automatically)
     
     Returns:
         JSON string containing all skills for the age group
     """
-    # Parse age group from URI
-    import re
     import urllib.parse
     
-    match = re.match(r"hockey://skills/by-age/(.+)", uri)
-    if not match:
-        return json.dumps({"error": "Invalid URI format"})
-    
-    # Decode URL-encoded age groups
-    age_group = urllib.parse.unquote(match.group(1))
+    # Decode URL-encoded age groups if needed
+    age_group = urllib.parse.unquote(age_group)
     
     try:
         logger.info(f"📋 [RESOURCE] Fetching skills for age group: {age_group}")
@@ -992,6 +986,433 @@ def get_available_age_groups() -> str:
         
     except Exception as e:
         logger.error(f"❌ Error fetching available age groups: {e}")
+        return json.dumps({"error": str(e)})
+
+
+# ====== DRILL RESOURCES ======
+
+@mcp.resource("hockey://drills/categories")
+def get_drill_categories() -> str:
+    """Get all available drill categories based on skills practiced.
+    
+    Returns:
+        JSON string containing drill categories and their counts
+    """
+    try:
+        logger.info("📋 [RESOURCE] Fetching drill categories")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_drills")
+        
+        results = collection.get(
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"categories": [], "total_drills": 0})
+        
+        # Count by skills field (categories)
+        from collections import Counter
+        category_counts = Counter()
+        
+        for metadata in results['metadatas']:
+            if metadata and metadata.get("skills"):
+                # Skills field contains comma-separated categories
+                skills = metadata["skills"].split(", ")
+                for skill in skills:
+                    category_counts[skill.strip()] += 1
+        
+        categories = [
+            {"category": cat, "drill_count": count}
+            for cat, count in sorted(category_counts.items())
+        ]
+        
+        logger.info(f"✅ [RESOURCE] Found {len(categories)} drill categories")
+        
+        return json.dumps({
+            "categories": categories,
+            "total_drills": len(results['metadatas'])
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching drill categories: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.resource("hockey://drills/by-category/{category}")
+def get_drills_by_category(category: str) -> str:
+    """Get all drills for a specific category/skill.
+    
+    Args:
+        category: The category to filter by (URL-decoded automatically)
+    
+    Returns:
+        JSON string containing all drills for the category
+    """
+    import urllib.parse
+    
+    category = urllib.parse.unquote(category)
+    
+    try:
+        logger.info(f"📋 [RESOURCE] Fetching drills for category: {category}")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_drills")
+        
+        # Get all drills and filter by category
+        results = collection.get(
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"category": category, "drills": [], "count": 0})
+        
+        # Filter drills that include this category
+        drills = []
+        for metadata in results['metadatas']:
+            if metadata and metadata.get("skills"):
+                if category.lower() in metadata["skills"].lower():
+                    drills.append({
+                        "title": metadata.get("title", "Untitled"),
+                        "complexity": metadata.get("complexity", ""),
+                        "equipment": metadata.get("equipment", ""),
+                        "positions": metadata.get("positions", ""),
+                        "summary": metadata.get("summary", "")[:200] + "..."
+                    })
+        
+        drills.sort(key=lambda x: x["title"])
+        
+        logger.info(f"✅ [RESOURCE] Found {len(drills)} drills for {category}")
+        
+        return json.dumps({
+            "category": category,
+            "drills": drills,
+            "count": len(drills)
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching drills for category {category}: {e}")
+        return json.dumps({"error": str(e)})
+
+
+# ====== TACTICS RESOURCES ======
+
+@mcp.resource("hockey://tactics/categories")
+def get_tactic_categories() -> str:
+    """Get all available tactic categories based on skills/systems.
+    
+    Returns:
+        JSON string containing tactic categories and their counts
+    """
+    try:
+        logger.info("📋 [RESOURCE] Fetching tactic categories")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_tactics")
+        
+        results = collection.get(
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"categories": [], "total_tactics": 0})
+        
+        # Count by skills field (categories)
+        from collections import Counter
+        category_counts = Counter()
+        
+        for metadata in results['metadatas']:
+            if metadata and metadata.get("skills"):
+                # Skills field contains tactical categories
+                skills = metadata["skills"].split(", ")
+                for skill in skills:
+                    category_counts[skill.strip()] += 1
+        
+        categories = [
+            {"category": cat, "tactic_count": count}
+            for cat, count in sorted(category_counts.items())
+        ]
+        
+        logger.info(f"✅ [RESOURCE] Found {len(categories)} tactic categories")
+        
+        return json.dumps({
+            "categories": categories,
+            "total_tactics": len(results['metadatas'])
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching tactic categories: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.resource("hockey://tactics/by-category/{category}")
+def get_tactics_by_category(category: str) -> str:
+    """Get all tactics for a specific category/system.
+    
+    Args:
+        category: The category to filter by (URL-decoded automatically)
+    
+    Returns:
+        JSON string containing all tactics for the category
+    """
+    import urllib.parse
+    
+    category = urllib.parse.unquote(category)
+    
+    try:
+        logger.info(f"📋 [RESOURCE] Fetching tactics for category: {category}")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_tactics")
+        
+        # Get all tactics and filter by category
+        results = collection.get(
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"category": category, "tactics": [], "count": 0})
+        
+        # Filter tactics that include this category
+        tactics = []
+        for metadata in results['metadatas']:
+            if metadata and metadata.get("skills"):
+                if category.lower() in metadata["skills"].lower():
+                    tactics.append({
+                        "title": metadata.get("tactic_name", "Untitled"),
+                        "summary": metadata.get("summary", "")[:200] + "...",
+                        "centre_role": metadata.get("centre_assignments", ""),
+                        "winger_role": metadata.get("winger_assignments", ""),
+                        "defense_role": metadata.get("defense_assignments", "")
+                    })
+        
+        tactics.sort(key=lambda x: x["title"])
+        
+        logger.info(f"✅ [RESOURCE] Found {len(tactics)} tactics for {category}")
+        
+        return json.dumps({
+            "category": category,
+            "tactics": tactics,
+            "count": len(tactics)
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching tactics for category {category}: {e}")
+        return json.dumps({"error": str(e)})
+
+
+# ====== VIDEO RESOURCES ======
+
+@mcp.resource("hockey://videos/categories")
+def get_video_categories() -> str:
+    """Get all available video categories based on skill focus.
+    
+    Returns:
+        JSON string containing video categories and their counts
+    """
+    try:
+        logger.info("📋 [RESOURCE] Fetching video categories")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_videos")
+        
+        results = collection.get(
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"categories": [], "total_videos": 0})
+        
+        # Count by play_or_skill_focus field
+        from collections import Counter
+        category_counts = Counter()
+        
+        for metadata in results['metadatas']:
+            if metadata and metadata.get("play_or_skill_focus"):
+                category_counts[metadata["play_or_skill_focus"]] += 1
+        
+        categories = [
+            {"category": cat, "video_count": count}
+            for cat, count in sorted(category_counts.items())
+        ]
+        
+        logger.info(f"✅ [RESOURCE] Found {len(categories)} video categories")
+        
+        return json.dumps({
+            "categories": categories,
+            "total_videos": len(results['metadatas'])
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching video categories: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.resource("hockey://videos/by-category/{category}")
+def get_videos_by_category(category: str) -> str:
+    """Get all videos for a specific category/skill focus.
+    
+    Args:
+        category: The category to filter by (URL-decoded automatically)
+    
+    Returns:
+        JSON string containing all videos for the category
+    """
+    import urllib.parse
+    
+    category = urllib.parse.unquote(category)
+    
+    try:
+        logger.info(f"📋 [RESOURCE] Fetching videos for category: {category}")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_videos")
+        
+        # Get videos matching the category
+        results = collection.get(
+            where={"play_or_skill_focus": {"$eq": category}},
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"category": category, "videos": [], "count": 0})
+        
+        # Extract video information
+        videos = []
+        for metadata in results['metadatas']:
+            if metadata:
+                videos.append({
+                    "title": metadata.get("title", "Untitled"),
+                    "video_url": metadata.get("video_url", ""),
+                    "duration": metadata.get("duration", ""),
+                    "complexity": metadata.get("complexity", ""),
+                    "position": metadata.get("position", ""),
+                    "summary": metadata.get("summary", "")[:200] + "..."
+                })
+        
+        videos.sort(key=lambda x: x["title"])
+        
+        logger.info(f"✅ [RESOURCE] Found {len(videos)} videos for {category}")
+        
+        return json.dumps({
+            "category": category,
+            "videos": videos,
+            "count": len(videos)
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching videos for category {category}: {e}")
+        return json.dumps({"error": str(e)})
+
+
+# ====== DRYLAND RESOURCES ======
+
+@mcp.resource("hockey://dryland/categories")
+def get_dryland_categories() -> str:
+    """Get all available dryland exercise categories.
+    
+    Returns:
+        JSON string containing dryland categories and their counts
+    """
+    try:
+        logger.info("📋 [RESOURCE] Fetching dryland categories")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_dryland")
+        
+        results = collection.get(
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"categories": [], "total_exercises": 0})
+        
+        # Count by category field
+        from collections import Counter
+        category_counts = Counter()
+        
+        for metadata in results['metadatas']:
+            if metadata and metadata.get("category"):
+                category_counts[metadata["category"]] += 1
+        
+        categories = [
+            {"category": cat, "exercise_count": count}
+            for cat, count in sorted(category_counts.items())
+        ]
+        
+        logger.info(f"✅ [RESOURCE] Found {len(categories)} dryland categories")
+        
+        return json.dumps({
+            "categories": categories,
+            "total_exercises": len(results['metadatas'])
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching dryland categories: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.resource("hockey://dryland/by-category/{category}")
+def get_dryland_by_category(category: str) -> str:
+    """Get all dryland exercises for a specific category.
+    
+    Args:
+        category: The category to filter by (URL-decoded automatically)
+    
+    Returns:
+        JSON string containing all dryland exercises for the category
+    """
+    import urllib.parse
+    
+    category = urllib.parse.unquote(category)
+    
+    try:
+        logger.info(f"📋 [RESOURCE] Fetching dryland exercises for category: {category}")
+        
+        client = get_client()
+        collection = client.get_collection(name="hockey_dryland")
+        
+        # Get exercises matching the category
+        results = collection.get(
+            where={"category": {"$eq": category}},
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        if not results['metadatas']:
+            return json.dumps({"category": category, "exercises": [], "count": 0})
+        
+        # Extract exercise information
+        exercises = []
+        for metadata in results['metadatas']:
+            if metadata:
+                exercises.append({
+                    "title": metadata.get("title", "Untitled"),
+                    "complexity": metadata.get("complexity", ""),
+                    "equipment": metadata.get("equipment", ""),
+                    "age_recommendation": metadata.get("age_recommendation", ""),
+                    "summary": metadata.get("summary", "")[:200] + "..."
+                })
+        
+        exercises.sort(key=lambda x: x["title"])
+        
+        logger.info(f"✅ [RESOURCE] Found {len(exercises)} dryland exercises for {category}")
+        
+        return json.dumps({
+            "category": category,
+            "exercises": exercises,
+            "count": len(exercises)
+        }, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching dryland exercises for category {category}: {e}")
         return json.dumps({"error": str(e)})
 
 @mcp.resource("hockey://schema/unified_result")

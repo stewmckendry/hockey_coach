@@ -68,6 +68,34 @@ class QuizCacheService {
   }
 
   /**
+   * Get a question from cache that hasn't been asked yet
+   * Returns null if all cached questions have been asked
+   */
+  getUniqueQuestion(category: string, askedQuestionIds: string[]): CachedQuestion | null {
+    const entry = this.cache.get(category)
+    
+    if (!entry || entry.questions.length === 0) {
+      console.log(`[QuizCache] No questions in cache for category: ${category}`)
+      return null
+    }
+
+    // Filter out expired and already asked questions
+    const validQuestions = entry.questions.filter(q => 
+      q.expiresAt > Date.now() && !askedQuestionIds.includes(q.id)
+    )
+
+    if (validQuestions.length === 0) {
+      console.log(`[QuizCache] All cached questions for ${category} have been asked or expired`)
+      return null
+    }
+
+    // Return random valid unasked question
+    const randomIndex = Math.floor(Math.random() * validQuestions.length)
+    console.log(`[QuizCache] Found ${validQuestions.length} unasked questions for ${category}`)
+    return validQuestions[randomIndex]
+  }
+
+  /**
    * Add a question to the cache
    */
   addQuestion(category: string, question: Question, thunderContext?: string, researchSource?: string): void {

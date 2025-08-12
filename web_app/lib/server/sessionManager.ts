@@ -36,7 +36,14 @@ export class SessionManager {
     const timestamp = new Date().toISOString()
     
     // Get session ID from cookie or create new one
-    const sessionCookie = request.cookies.get('hockey-iq-session')?.value
+    let sessionCookie = request.cookies.get('hockey-iq-session')?.value
+    
+    // Check if the session cookie is invalid (e.g., just an IP address)
+    if (sessionCookie && !sessionCookie.startsWith('hiq_')) {
+      console.log(`[SessionManager] Invalid session cookie detected: ${sessionCookie}, generating new one`)
+      sessionCookie = undefined  // Force generation of new ID
+    }
+    
     const sessionId = sessionCookie || this.generateSessionId(ipAddress, userAgent)
     
     return {
