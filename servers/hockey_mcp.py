@@ -251,6 +251,7 @@ def search_hockey_drills(
 @mcp.tool("search_hockey_skills")
 def search_hockey_skills(
     query: str,
+    age_groups: Optional[List[str]] = None,
     n_results: int = 10
 ) -> List[HockeyKnowledgeResult]:
     """
@@ -258,21 +259,37 @@ def search_hockey_skills(
     
     Args:
         query: Search query for skills (e.g., "U10 skating", "puck handling progression", "goalie development")
+        age_groups: Optional filter for specific age groups (e.g., ["U10", "U12", "All Ages - Goalies"])
         n_results: Number of results to return
     """
     start_time = datetime.now()
-    logger.info(f"⚡ [TOOL CALL] search_hockey_skills: query='{query}', n_results={n_results}")
+    logger.info(f"⚡ [TOOL CALL] search_hockey_skills: query='{query}', age_groups={age_groups}, n_results={n_results}")
     
     try:
         # Get the dedicated hockey skills collection
         chroma_client = get_client()
         skills_collection = chroma_client.get_collection(name="hockey_skills")
         
+        # Build where clause for filtering
+        where_conditions = None
+        if age_groups:
+            # Create OR conditions for each age group
+            # Using $eq for exact matching since ChromaDB doesn't support $contains
+            if len(age_groups) == 1:
+                where_conditions = {"age_group": {"$eq": age_groups[0]}}
+            else:
+                where_conditions = {"$or": [
+                    {"age_group": {"$eq": age_group}} 
+                    for age_group in age_groups
+                ]}
+            logger.debug(f"Applying age group filter: {age_groups}")
+        
         # Search the skills collection
-        logger.debug(f"Searching skills collection with query: '{query}'")
+        logger.debug(f"Searching skills collection with query: '{query}', filters: {where_conditions}")
         results = skills_collection.query(
             query_texts=[query],
-            n_results=n_results
+            n_results=n_results if not age_groups else n_results * 2,  # Get more results if filtering
+            where=where_conditions
         )
         
         docs = results.get("documents", [[]])[0]
@@ -285,6 +302,10 @@ def search_hockey_skills(
             # Create unified result structure for skills
             unified_result = _create_skills_result(doc, meta, doc_id)
             unified_results.append(unified_result)
+            
+            # Stop if we've reached the requested number of results
+            if len(unified_results) >= n_results:
+                break
         
         duration = (datetime.now() - start_time).total_seconds()
         logger.info(f"✅ [TOOL COMPLETE] search_hockey_skills: returned {len(unified_results)} skills in {duration:.2f}s")
