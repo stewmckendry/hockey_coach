@@ -463,6 +463,8 @@ def search_hockey_nhl_insights(
         logger.info(f"❌ [TOOL ERROR] search_hockey_nhl_insights failed in {duration:.2f}s")
         return []
 
+# Removed tools - converted to resources below
+
 @mcp.tool("search_hockey_rules")
 def search_hockey_rules(
     query: str,
@@ -859,126 +861,138 @@ def _parse_field(doc: str, label: str) -> str:
 # Resources for better integration
 
 @mcp.resource("hockey://skills/by-age/{age_group}")
-def list_skills_by_age(age_group: str) -> str:
-    """
-    List all skills for a specific age group (titles and categories only).
+def get_skills_by_age_group(uri: str) -> str:
+    """Get all skills for a specific age group.
+    
+    Returns a list of all skill titles and categories for the specified age group,
+    without pagination limits. This is useful for getting a complete overview of
+    available skills.
     
     URI Examples:
     - hockey://skills/by-age/U11
     - hockey://skills/by-age/U13
     - hockey://skills/by-age/All%20Ages%20-%20Goalies
     
-    Returns a lightweight JSON list of skill titles and categories.
+    Args:
+        uri: Resource URI in format hockey://skills/by-age/{age_group}
+    
+    Returns:
+        JSON string containing all skills for the age group
     """
+    # Parse age group from URI
+    import re
+    import urllib.parse
+    
+    match = re.match(r"hockey://skills/by-age/(.+)", uri)
+    if not match:
+        return json.dumps({"error": "Invalid URI format"})
+    
+    # Decode URL-encoded age groups
+    age_group = urllib.parse.unquote(match.group(1))
+    
     try:
-        # Decode URL-encoded age groups (e.g., "All%20Ages%20-%20Goalies" -> "All Ages - Goalies")
-        import urllib.parse
-        age_group = urllib.parse.unquote(age_group)
+        logger.info(f"📋 [RESOURCE] Fetching skills for age group: {age_group}")
         
-        logger.info(f"📋 [RESOURCE] Listing all skills for age group: {age_group}")
+        # Get skills collection
+        client = get_client()
+        collection = client.get_collection(name="hockey_skills")
         
-        # Get the skills collection
-        chroma_client = get_client()
-        skills_collection = chroma_client.get_collection(name="hockey_skills")
-        
-        # Query with age group filter - get ALL matching skills
-        where_conditions = {"age_group": {"$eq": age_group}}
-        
-        # Use get() instead of query() to retrieve all matching documents
-        results = skills_collection.get(
-            where=where_conditions,
+        # Use get() to retrieve all matching documents
+        results = collection.get(
+            where={"age_group": {"$eq": age_group}},
             limit=1000,  # Get up to 1000 skills
             include=["metadatas"]
         )
         
-        # Extract just titles and categories
-        skills_list = []
-        for metadata in results.get("metadatas", []):
+        if not results['metadatas']:
+            return json.dumps({
+                "age_group": age_group,
+                "skills": [],
+                "count": 0
+            })
+        
+        # Extract skill information
+        skills = []
+        for metadata in results['metadatas']:
             if metadata:
-                skills_list.append({
-                    "title": metadata.get("skill_name", "Untitled"),
-                    "category": metadata.get("skill_category", "Unknown"),
+                skills.append({
+                    "skill_name": metadata.get("skill_name", "Unknown"),
+                    "skill_category": metadata.get("skill_category", "Unknown"),
                     "complexity": metadata.get("complexity", ""),
-                    "positions": metadata.get("positions", "All")
+                    "positions": metadata.get("positions", "").split("; ") if metadata.get("positions") else []
                 })
         
-        # Sort by category then title for better organization
-        skills_list.sort(key=lambda x: (x["category"], x["title"]))
+        # Sort by category and name for better organization
+        skills.sort(key=lambda x: (x["skill_category"], x["skill_name"]))
         
-        result = {
+        logger.info(f"✅ [RESOURCE] Found {len(skills)} skills for {age_group}")
+        
+        return json.dumps({
             "age_group": age_group,
-            "total_count": len(skills_list),
-            "skills": skills_list
-        }
-        
-        logger.info(f"✅ [RESOURCE] Found {len(skills_list)} skills for {age_group}")
-        return json.dumps(result, indent=2)
+            "skills": skills,
+            "count": len(skills)
+        }, indent=2)
         
     except Exception as e:
-        logger.error(f"❌ Error listing skills for age group {age_group}: {e}")
-        return json.dumps({
-            "error": str(e),
-            "age_group": age_group,
-            "total_count": 0,
-            "skills": []
-        })
+        logger.error(f"❌ Error fetching skills for age group {age_group}: {e}")
+        return json.dumps({"error": str(e)})
+
 
 @mcp.resource("hockey://skills/age-groups")
-def list_available_age_groups() -> str:
-    """
-    List all available age groups in the skills collection.
+def get_available_age_groups() -> str:
+    """Get all available age groups in the skills database.
     
-    Returns a JSON list of all unique age groups with counts.
+    Returns a list of all age groups with skill counts for each.
+    
+    Returns:
+        JSON string containing age groups and their skill counts
     """
     try:
-        logger.info("📋 [RESOURCE] Listing all available age groups")
+        logger.info("📋 [RESOURCE] Fetching available age groups")
         
-        # Get the skills collection
-        chroma_client = get_client()
-        skills_collection = chroma_client.get_collection(name="hockey_skills")
+        # Get skills collection
+        client = get_client()
+        collection = client.get_collection(name="hockey_skills")
         
         # Get all documents to extract age groups
-        results = skills_collection.get(
-            limit=1000,
+        results = collection.get(
+            limit=1000,  # Get up to 1000 skills
             include=["metadatas"]
         )
         
-        # Count age groups
+        if not results['metadatas']:
+            return json.dumps({
+                "age_groups": [],
+                "total_skills": 0
+            })
+        
+        # Count skills by age group
         from collections import Counter
-        age_groups = []
-        for metadata in results.get("metadatas", []):
-            if metadata and "age_group" in metadata:
-                age_groups.append(metadata["age_group"])
+        age_group_counts = Counter()
         
-        age_group_counts = Counter(age_groups)
+        for metadata in results['metadatas']:
+            if metadata and metadata.get("age_group"):
+                age_group_counts[metadata["age_group"]] += 1
         
-        # Format as list with counts
-        age_groups_list = [
+        # Format results
+        age_groups = [
             {
                 "age_group": age_group,
-                "count": count,
-                "uri": f"hockey://skills/by-age/{urllib.parse.quote(age_group)}"
+                "skill_count": count
             }
-            for age_group, count in age_group_counts.most_common()
+            for age_group, count in sorted(age_group_counts.items())
         ]
         
-        result = {
-            "total_age_groups": len(age_group_counts),
-            "total_skills": len(age_groups),
-            "age_groups": age_groups_list
-        }
+        logger.info(f"✅ [RESOURCE] Found {len(age_groups)} unique age groups")
         
-        logger.info(f"✅ [RESOURCE] Found {len(age_group_counts)} unique age groups")
-        return json.dumps(result, indent=2)
+        return json.dumps({
+            "age_groups": age_groups,
+            "total_skills": sum(age_group_counts.values())
+        }, indent=2)
         
     except Exception as e:
-        logger.error(f"❌ Error listing age groups: {e}")
-        return json.dumps({
-            "error": str(e),
-            "total_age_groups": 0,
-            "total_skills": 0,
-            "age_groups": []
-        })
+        logger.error(f"❌ Error fetching available age groups: {e}")
+        return json.dumps({"error": str(e)})
 
 @mcp.resource("hockey://schema/unified_result")
 def get_unified_schema() -> str:
