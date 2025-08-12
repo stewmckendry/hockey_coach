@@ -10,6 +10,8 @@ import logging
 from openai import OpenAI
 from datetime import datetime
 import asyncio
+import urllib.parse
+from collections import Counter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -855,6 +857,129 @@ def _parse_field(doc: str, label: str) -> str:
 
 # ====== RESOURCES ======
 # Resources for better integration
+
+@mcp.resource("hockey://skills/by-age/{age_group}")
+def list_skills_by_age(age_group: str) -> str:
+    """
+    List all skills for a specific age group (titles and categories only).
+    
+    URI Examples:
+    - hockey://skills/by-age/U11
+    - hockey://skills/by-age/U13
+    - hockey://skills/by-age/All%20Ages%20-%20Goalies
+    
+    Returns a lightweight JSON list of skill titles and categories.
+    """
+    try:
+        # Decode URL-encoded age groups (e.g., "All%20Ages%20-%20Goalies" -> "All Ages - Goalies")
+        import urllib.parse
+        age_group = urllib.parse.unquote(age_group)
+        
+        logger.info(f"📋 [RESOURCE] Listing all skills for age group: {age_group}")
+        
+        # Get the skills collection
+        chroma_client = get_client()
+        skills_collection = chroma_client.get_collection(name="hockey_skills")
+        
+        # Query with age group filter - get ALL matching skills
+        where_conditions = {"age_group": {"$eq": age_group}}
+        
+        # Use get() instead of query() to retrieve all matching documents
+        results = skills_collection.get(
+            where=where_conditions,
+            limit=1000,  # Get up to 1000 skills
+            include=["metadatas"]
+        )
+        
+        # Extract just titles and categories
+        skills_list = []
+        for metadata in results.get("metadatas", []):
+            if metadata:
+                skills_list.append({
+                    "title": metadata.get("skill_name", "Untitled"),
+                    "category": metadata.get("skill_category", "Unknown"),
+                    "complexity": metadata.get("complexity", ""),
+                    "positions": metadata.get("positions", "All")
+                })
+        
+        # Sort by category then title for better organization
+        skills_list.sort(key=lambda x: (x["category"], x["title"]))
+        
+        result = {
+            "age_group": age_group,
+            "total_count": len(skills_list),
+            "skills": skills_list
+        }
+        
+        logger.info(f"✅ [RESOURCE] Found {len(skills_list)} skills for {age_group}")
+        return json.dumps(result, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error listing skills for age group {age_group}: {e}")
+        return json.dumps({
+            "error": str(e),
+            "age_group": age_group,
+            "total_count": 0,
+            "skills": []
+        })
+
+@mcp.resource("hockey://skills/age-groups")
+def list_available_age_groups() -> str:
+    """
+    List all available age groups in the skills collection.
+    
+    Returns a JSON list of all unique age groups with counts.
+    """
+    try:
+        logger.info("📋 [RESOURCE] Listing all available age groups")
+        
+        # Get the skills collection
+        chroma_client = get_client()
+        skills_collection = chroma_client.get_collection(name="hockey_skills")
+        
+        # Get all documents to extract age groups
+        results = skills_collection.get(
+            limit=1000,
+            include=["metadatas"]
+        )
+        
+        # Count age groups
+        from collections import Counter
+        age_groups = []
+        for metadata in results.get("metadatas", []):
+            if metadata and "age_group" in metadata:
+                age_groups.append(metadata["age_group"])
+        
+        age_group_counts = Counter(age_groups)
+        
+        # Format as list with counts
+        age_groups_list = [
+            {
+                "age_group": age_group,
+                "count": count,
+                "uri": f"hockey://skills/by-age/{urllib.parse.quote(age_group)}"
+            }
+            for age_group, count in age_group_counts.most_common()
+        ]
+        
+        result = {
+            "total_age_groups": len(age_group_counts),
+            "total_skills": len(age_groups),
+            "age_groups": age_groups_list
+        }
+        
+        logger.info(f"✅ [RESOURCE] Found {len(age_group_counts)} unique age groups")
+        return json.dumps(result, indent=2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error listing age groups: {e}")
+        return json.dumps({
+            "error": str(e),
+            "total_age_groups": 0,
+            "total_skills": 0,
+            "age_groups": []
+        })
+
 @mcp.resource("hockey://schema/unified_result")
 def get_unified_schema() -> str:
     """Schema for unified hockey knowledge results."""
