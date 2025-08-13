@@ -106,9 +106,14 @@ class DiagramCacheManager:
             "validated": False
         }
         
-        # Add custom metadata if provided
+        # Add custom metadata if provided, converting lists to JSON strings
         if metadata:
-            cache_metadata.update(metadata)
+            for key, value in metadata.items():
+                if isinstance(value, (list, dict)):
+                    # Convert lists and dicts to JSON strings for ChromaDB
+                    cache_metadata[key] = json.dumps(value)
+                elif value is not None:
+                    cache_metadata[key] = value
         
         # Store in ChromaDB
         collection.add(
@@ -162,6 +167,14 @@ class DiagramCacheManager:
                         # Parse spec from JSON string
                         spec = json.loads(metadata.get('spec', '{}'))
                         
+                        # Parse tags if it's a JSON string
+                        tags = metadata.get('tags', '[]')
+                        if isinstance(tags, str):
+                            try:
+                                tags = json.loads(tags)
+                            except:
+                                tags = []
+                        
                         diagrams.append({
                             'id': diagram_id,
                             'prompt': metadata.get('prompt', ''),
@@ -171,7 +184,7 @@ class DiagramCacheManager:
                             'usage_count': metadata.get('usage_count', 0),
                             'validated': metadata.get('validated', False),
                             'similarity': similarity,
-                            'tags': metadata.get('tags', []),
+                            'tags': tags,
                             'author': metadata.get('author', 'anonymous')
                         })
             
@@ -181,6 +194,100 @@ class DiagramCacheManager:
         except Exception as e:
             logger.error(f"Error searching diagrams: {e}")
             return []
+    
+    def list_all_diagrams(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        sort_by: str = "created_at",
+        ascending: bool = False
+    ) -> Dict[str, Any]:
+        """
+        List all diagrams in the cache with pagination support.
+        
+        Args:
+            limit: Maximum number of diagrams to return (default 50, max 100)
+            offset: Number of diagrams to skip for pagination
+            sort_by: Field to sort by ('created_at', 'usage_count', 'prompt')
+            ascending: Sort order (False = descending/newest first)
+            
+        Returns:
+            Dictionary with diagrams list and pagination info
+        """
+        collection = self._get_collection()
+        
+        try:
+            # Get all diagrams
+            all_results = collection.get()
+            
+            if not all_results or not all_results['ids']:
+                return {
+                    'success': True,
+                    'diagrams': [],
+                    'total': 0,
+                    'limit': limit,
+                    'offset': offset,
+                    'has_more': False
+                }
+            
+            # Build diagram list
+            diagrams = []
+            for idx, diagram_id in enumerate(all_results['ids']):
+                metadata = all_results['metadatas'][idx]
+                
+                # Parse spec from JSON string
+                spec = json.loads(metadata.get('spec', '{}'))
+                
+                # Parse tags if it's a JSON string
+                tags = metadata.get('tags', '[]')
+                if isinstance(tags, str):
+                    try:
+                        tags = json.loads(tags)
+                    except:
+                        tags = []
+                
+                diagrams.append({
+                    'id': diagram_id,
+                    'prompt': metadata.get('prompt', ''),
+                    'spec': spec,
+                    'parser_type': metadata.get('parser_type', ''),
+                    'created_at': metadata.get('created_at', ''),
+                    'usage_count': metadata.get('usage_count', 0),
+                    'validated': metadata.get('validated', False),
+                    'tags': tags,
+                    'author': metadata.get('author', 'anonymous')
+                })
+            
+            # Sort diagrams
+            if sort_by == 'usage_count':
+                diagrams.sort(key=lambda x: x['usage_count'], reverse=not ascending)
+            elif sort_by == 'prompt':
+                diagrams.sort(key=lambda x: x['prompt'].lower(), reverse=not ascending)
+            else:  # Default to created_at
+                diagrams.sort(key=lambda x: x['created_at'], reverse=not ascending)
+            
+            # Apply pagination
+            total = len(diagrams)
+            limit = min(limit, 100)  # Cap at 100
+            paginated_diagrams = diagrams[offset:offset + limit]
+            
+            return {
+                'success': True,
+                'diagrams': paginated_diagrams,
+                'total': total,
+                'limit': limit,
+                'offset': offset,
+                'has_more': (offset + limit) < total
+            }
+            
+        except Exception as e:
+            logger.error(f"Error listing diagrams: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'diagrams': [],
+                'total': 0
+            }
     
     def get_diagram(self, diagram_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -203,6 +310,14 @@ class DiagramCacheManager:
                 # Parse spec from JSON string
                 spec = json.loads(metadata.get('spec', '{}'))
                 
+                # Parse tags if it's a JSON string
+                tags = metadata.get('tags', '[]')
+                if isinstance(tags, str):
+                    try:
+                        tags = json.loads(tags)
+                    except:
+                        tags = []
+                
                 # Update usage stats
                 self._update_usage_stats(diagram_id)
                 
@@ -214,7 +329,7 @@ class DiagramCacheManager:
                     'created_at': metadata.get('created_at', ''),
                     'usage_count': metadata.get('usage_count', 0) + 1,
                     'validated': metadata.get('validated', False),
-                    'tags': metadata.get('tags', []),
+                    'tags': tags,
                     'author': metadata.get('author', 'anonymous')
                 }
             

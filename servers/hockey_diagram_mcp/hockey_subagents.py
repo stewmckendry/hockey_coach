@@ -158,7 +158,7 @@ List of 3-5 tactical concepts. Choose from:
 
 Always format your response as valid JSON matching the exact structure specified above.
             """,
-            model="gpt-4o"
+            model="gpt-4o-mini"  # Cost-effective model
         )
     
     async def synthesize_formation(
@@ -248,7 +248,7 @@ Create a JSON specification with: name, description, players_involved, steps, pr
         research_text = self._format_research_context(research_results, formation_name)
         
         response = await client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",  # Cost-effective model
             messages=[
                 {"role": "system", "content": "You are a hockey tactics expert. Create structured formation data from research."},
                 {"role": "user", "content": research_text}
@@ -463,7 +463,7 @@ For coverage areas, specify:
 
 Always format your response as valid JSON matching the exact structure specified above.
             """,
-            model="gpt-4o"
+            model="gpt-4o-mini"  # Cost-effective model
         )
     
     async def map_to_zones(
@@ -573,7 +573,7 @@ Create a complete JSON diagram specification with players, movements (if request
         mapping_context = self._format_mapping_context(formation_data, include_movements, include_coverage)
         
         response = await client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",  # Cost-effective model
             messages=[
                 {"role": "system", "content": "You are a hockey zone mapping expert. Create precise zone-based specifications."},
                 {"role": "user", "content": mapping_context}

@@ -75,13 +75,6 @@ async def generate_diagram_from_spec_core(
         view = diagram_spec.get('view', 'full')
         title = diagram_spec.get('title', 'Hockey Formation')
         
-        # Apply offsets to prevent overlapping players
-        from player_offset_system import apply_player_offsets
-        diagram_spec = apply_player_offsets(diagram_spec)
-        
-        # Re-extract players after offset application
-        players = diagram_spec.get('players', [])
-        
         # Convert player dicts to Player objects - HANDLE ALL COORDINATE CONVERSION HERE
         from generator import Player, Movement, CoverageZone
         from coordinate_mapper import coordinate_mapper
@@ -135,7 +128,9 @@ async def generate_diagram_from_spec_core(
                         x=x,
                         y=y,
                         team=p.get('team', 'home'),
-                        has_puck=p.get('has_puck', False)
+                        has_puck=p.get('has_puck', False),
+                        label=p.get('label'),  # Pass through custom label
+                        zone=p.get('zone')  # Pass through zone name for display
                     )
                     converted_players.append(player_obj)
                     logger.info(f"✅ Created Player object: {player_obj}")
@@ -145,6 +140,41 @@ async def generate_diagram_from_spec_core(
             
             players = converted_players
             logger.info(f"✅ Converted {len(players)} players to Player objects")
+            
+            # Now apply offsets AFTER coordinate conversion
+            from player_offset_system import PlayerOffsetCalculator
+            calculator = PlayerOffsetCalculator()
+            
+            # Convert Player objects to dicts for offset calculation
+            player_dicts = [
+                {
+                    'x': p.x,
+                    'y': p.y,
+                    'position': p.position,
+                    'team': p.team,
+                    'has_puck': p.has_puck
+                }
+                for p in players
+            ]
+            
+            # Apply offsets
+            offset_players = calculator.calculate_offsets(player_dicts)
+            
+            # Convert back to Player objects (preserve original label and zone info)
+            players = []
+            for i, p in enumerate(offset_players):
+                # Get original player to preserve label/zone info
+                original = converted_players[i] if i < len(converted_players) else None
+                players.append(Player(
+                    position=p['position'],
+                    x=p['x'],
+                    y=p['y'],
+                    team=p['team'],
+                    has_puck=p['has_puck'],
+                    label=original.label if original else None,
+                    zone=original.zone if original else None
+                ))
+            logger.info(f"✅ Applied offsets to {len(players)} players")
         
         # Convert movement dicts to Movement objects if needed
         if movements and isinstance(movements[0], dict):
@@ -152,7 +182,8 @@ async def generate_diagram_from_spec_core(
                 Movement(
                     from_position=m.get('from_position', (m.get('from_x'), m.get('from_y')) if 'from_x' in m else None),
                     to_position=m.get('to_position', (m.get('to_x'), m.get('to_y')) if 'to_x' in m else None),
-                    movement_type=m.get('movement_type', 'skating')
+                    movement_type=m.get('movement_type', 'skating'),
+                    label=m.get('label')  # Pass through movement label
                 ) for m in movements if m.get('from_position') or 'from_x' in m
             ]
         
@@ -188,8 +219,8 @@ async def generate_diagram_from_spec_core(
         
         # Save if successful
         if isinstance(result, dict) and result.get('success'):
-            # Ensure directory exists
-            output_dir = Path("generated_diagrams")
+            # Ensure directory exists - use absolute path relative to this file
+            output_dir = Path(__file__).parent / "generated_diagrams"
             output_dir.mkdir(exist_ok=True)
             
             # Save with timestamp
@@ -214,7 +245,7 @@ async def generate_diagram_from_spec_core(
         else:
             # Handle string result (base64 data directly)
             if isinstance(result, str):
-                output_dir = Path("generated_diagrams")
+                output_dir = Path(__file__).parent / "generated_diagrams"
                 output_dir.mkdir(exist_ok=True)
                 
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

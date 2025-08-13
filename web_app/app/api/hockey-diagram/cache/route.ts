@@ -135,6 +135,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(result)
     }
 
+    if (action === 'list') {
+      // List all diagrams with pagination
+      const limit = parseInt(searchParams.get('limit') || '50')
+      const offset = parseInt(searchParams.get('offset') || '0')
+      const sortBy = searchParams.get('sortBy') || 'created_at'
+      const ascending = searchParams.get('ascending') === 'true'
+
+      const result = await callMCPTool('list_all_cached_diagrams', {
+        limit,
+        offset,
+        sort_by: sortBy,
+        ascending
+      })
+      return NextResponse.json(result)
+    }
+
     if (action === 'search') {
       const query = searchParams.get('query') || ''
       const limit = parseInt(searchParams.get('limit') || '10')

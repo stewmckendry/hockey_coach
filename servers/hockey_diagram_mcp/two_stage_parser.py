@@ -468,11 +468,11 @@ Example output:
             
             with generation_span(
                 input=messages,
-                model="gpt-4",
+                model="gpt-4o-mini",  # Cost-effective model
                 model_config={"temperature": 0.1, "max_tokens": 1500}
             ) as gen_span:
                 response = await self.client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-4o-mini",  # Cost-effective model
                     messages=messages,
                     temperature=0.1,
                     max_tokens=1500  # Increased to handle detailed procedural breakdowns
@@ -594,11 +594,11 @@ Use zone names from the pick list below, NOT coordinates.
         
         with generation_span(
             input=messages,
-            model="gpt-4",
+            model="gpt-4o-mini",  # Cost-effective model
             model_config={"temperature": 0.1, "max_tokens": 2000}
         ) as gen_span:
             response = await self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",  # Cost-effective model
                 messages=messages,
                 temperature=0.1,
                 max_tokens=2000

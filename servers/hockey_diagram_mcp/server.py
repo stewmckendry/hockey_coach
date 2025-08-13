@@ -707,6 +707,51 @@ async def save_diagram_to_cache(
         }
 
 @mcp.tool()
+async def list_all_cached_diagrams(
+    limit: int = 50,
+    offset: int = 0,
+    sort_by: str = "created_at",
+    ascending: bool = False
+) -> Dict[str, Any]:
+    """
+    List all diagrams in the cache with pagination support.
+    
+    Args:
+        limit: Maximum number of diagrams to return (default 50, max 100)
+        offset: Number of diagrams to skip for pagination (default 0)
+        sort_by: Field to sort by - 'created_at', 'usage_count', or 'prompt' (default 'created_at')
+        ascending: Sort order - False for newest/highest first (default False)
+    
+    Returns:
+        Dictionary containing:
+        - success: Whether the operation succeeded
+        - diagrams: List of diagram records
+        - total: Total number of diagrams in cache
+        - limit: Number of diagrams per page
+        - offset: Current offset
+        - has_more: Whether more pages are available
+    """
+    try:
+        cache = DiagramCacheManager()
+        result = cache.list_all_diagrams(
+            limit=limit,
+            offset=offset,
+            sort_by=sort_by,
+            ascending=ascending
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error listing all diagrams: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "diagrams": [],
+            "total": 0
+        }
+
+@mcp.tool()
 async def search_cached_diagrams(
     query: str,
     limit: int = 10,
@@ -933,6 +978,103 @@ async def get_cache_statistics() -> Dict[str, Any]:
         return {
             "success": False,
             "error": str(e)
+        }
+
+
+@mcp.tool()
+async def process_diagram_feedback(
+    current_spec: Dict[str, Any],
+    feedback: str,
+    openai_api_key: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Process natural language feedback to update a hockey diagram specification.
+    Enables interactive refinement of diagrams through conversational adjustments.
+    
+    Args:
+        current_spec: Current diagram specification (from generate_hockey_diagram)
+        feedback: Natural language description of desired changes
+            Examples:
+            - "Move F1 to the slot"
+            - "Add passing lanes between defensemen"
+            - "Remove the center"
+            - "Show forechecking pressure"
+        openai_api_key: Optional OpenAI API key (uses environment variable if not provided)
+    
+    Returns:
+        Dictionary containing:
+        - updated_spec: Modified diagram specification
+        - changes: List of changes made
+        - explanation: Human-readable explanation of changes
+        - success: Boolean indicating success
+        - processing_time: Time taken to process feedback
+    """
+    start_time = datetime.now()
+    logger.info(f"Processing diagram feedback: {feedback[:50]}...")
+    
+    try:
+        # Import feedback processor
+        from feedback_processor import FeedbackProcessor
+        
+        # Initialize processor
+        processor = FeedbackProcessor(openai_api_key=openai_api_key)
+        
+        # Process the feedback
+        result = processor.process_feedback(current_spec, feedback)
+        
+        if result.success:
+            logger.info(f"✅ Feedback processed successfully: {result.explanation}")
+            
+            # Update cache with modification metadata
+            if 'id' in current_spec:
+                cache_manager.update_metadata(
+                    current_spec['id'],
+                    {
+                        'modified_at': datetime.now().isoformat(),
+                        'modification_count': current_spec.get('modification_count', 0) + 1,
+                        'last_feedback': feedback
+                    }
+                )
+            
+            return {
+                "success": True,
+                "updated_spec": result.updated_spec,
+                "changes": [
+                    {
+                        "type": change.change_type,
+                        "target": change.target,
+                        "details": change.details
+                    }
+                    for change in result.changes
+                ],
+                "explanation": result.explanation,
+                "processing_time": result.processing_time,
+                "suggestions": processor.suggest_improvements(result.updated_spec)
+            }
+        else:
+            logger.error(f"❌ Feedback processing failed: {result.error_message}")
+            return {
+                "success": False,
+                "error": result.error_message,
+                "original_spec": current_spec,
+                "processing_time": result.processing_time
+            }
+            
+    except ImportError as e:
+        logger.error(f"Import error: {e}")
+        return {
+            "success": False,
+            "error": "Feedback processor not available. Please ensure feedback_processor.py is in the server directory.",
+            "original_spec": current_spec
+        }
+    except Exception as e:
+        logger.error(f"Error processing feedback: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "original_spec": current_spec,
+            "processing_time": (datetime.now() - start_time).total_seconds()
         }
 
 

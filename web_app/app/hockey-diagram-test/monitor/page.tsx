@@ -402,7 +402,7 @@ export default function HockeyDiagramMonitor() {
                       <h4 className="text-sm font-medium text-gray-700 mb-3">Technical Details</h4>
                       <TechnicalDetails 
                         parserSpec={selectedLog.parserSpec}
-                        agentTraces={selectedLog.agentTraces || []}
+                        agentTraces={(selectedLog.agentTraces || []) as any}
                       />
                     </div>
                   )}

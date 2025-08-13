@@ -22,13 +22,16 @@ class Player:
     y: float
     team: Literal["home", "away"]
     has_puck: bool = False
+    label: Optional[str] = None  # Custom label to display (e.g., zone name)
+    zone: Optional[str] = None  # Zone name for display purposes
     
 @dataclass
 class Movement:
     """Represents a movement or pass."""
     from_position: str  # Player position or coordinates
     to_position: Union[Tuple[float, float], str]  # Coordinates or player position
-    movement_type: Literal["skating", "pass", "shot", "forecheck"]
+    movement_type: Literal["skating", "pass", "shot", "forecheck", "carry", "lateral", "support"]
+    label: Optional[str] = None  # Label to display on the movement arrow
     
 @dataclass 
 class CoverageZone:
@@ -48,8 +51,8 @@ class HockeyDiagramGenerator:
     }
     
     AWAY_POSITIONS = {
-        "X1": "X�", "X2": "X�", "X3": "X�",
-        "X4": "X�", "X5": "X�", "XG": "XG"
+        "X1": "X1", "X2": "X2", "X3": "X3",
+        "X4": "X4", "X5": "X5", "XG": "XG"
     }
     
     # Team colors
@@ -141,8 +144,8 @@ class HockeyDiagramGenerator:
             ax.set_xlim(-100, -25)
             ax.set_ylim(-42.5, 42.5)
         elif view == "neutral":
-            # Neutral zone
-            ax.set_xlim(-25, 25)
+            # Neutral zone (expanded for better tactical visibility)
+            ax.set_xlim(-50, 50)
             ax.set_ylim(-42.5, 42.5)
             
     def _draw_players(self, ax, players: List[Player]):
@@ -154,13 +157,24 @@ class HockeyDiagramGenerator:
                 logging.warning(f"Skipping player {player.position} with None coordinates")
                 continue
                 
-            # Determine color and label
+            # Determine color
             if player.team == "home":
                 color = self.HOME_COLOR
-                label = self.HOME_POSITIONS.get(player.position, player.position)
+                position_label = self.HOME_POSITIONS.get(player.position, player.position)
             else:
                 color = self.AWAY_COLOR
-                label = self.AWAY_POSITIONS.get(player.position, player.position)
+                position_label = self.AWAY_POSITIONS.get(player.position, player.position)
+            
+            # Create combined label (position + zone/custom label)
+            if player.label:
+                # Use custom label if provided
+                display_label = f"{position_label}\n({player.label})"
+            elif player.zone:
+                # Use zone name if provided
+                display_label = f"{position_label}\n{player.zone}"
+            else:
+                # Just show position
+                display_label = position_label
                 
             # Draw player circle
             circle = Circle(
@@ -169,17 +183,18 @@ class HockeyDiagramGenerator:
                 facecolor='white',
                 edgecolor=color,
                 linewidth=2,
-                zorder=10
+                zorder=100  # High zorder to ensure players are on top of rink lines
             )
             ax.add_patch(circle)
             
-            # Add position label
+            # Add combined label (position + zone)
             ax.text(
-                player.x, player.y, label,
-                ha='center', va='center',
-                fontsize=10, fontweight='bold',
+                player.x, player.y - 5, display_label,  # Offset below circle
+                ha='center', va='top',
+                fontsize=8, fontweight='bold',
                 color=color,
-                zorder=11
+                zorder=101,  # Higher than player circle
+                bbox=dict(boxstyle="round,pad=0.2", facecolor='white', edgecolor=color, alpha=0.8)
             )
             
             # Add puck indicator if player has puck
@@ -188,7 +203,7 @@ class HockeyDiagramGenerator:
                     (player.x + 3, player.y - 3),
                     radius=1,
                     facecolor=self.PUCK_COLOR,
-                    zorder=12
+                    zorder=102  # Highest priority for puck visibility
                 )
                 ax.add_patch(puck)
                 
@@ -210,47 +225,156 @@ class HockeyDiagramGenerator:
             else:
                 end = movement.to_position
                 
+            # Check if path goes through nets and adjust if needed
+            start, end = self._adjust_path_around_nets(start, end)
+                
             # Draw based on movement type
             if movement.movement_type == "skating":
                 # Solid arrow for skating
                 arrow = FancyArrowPatch(
                     start, end,
-                    arrowstyle='->,head_width=0.8,head_length=0.4',
+                    arrowstyle='->,head_width=2.0,head_length=1.5',
                     color='black',
                     linewidth=2,
-                    zorder=5
+                    zorder=90  # High zorder for visibility
                 )
             elif movement.movement_type == "pass":
                 # Dashed line for passes
                 arrow = FancyArrowPatch(
                     start, end,
-                    arrowstyle='->,head_width=0.8,head_length=0.4',
+                    arrowstyle='->,head_width=2.0,head_length=1.5',
                     color='black',
                     linewidth=2,
                     linestyle='dashed',
-                    zorder=5
+                    zorder=90  # High zorder for visibility
                 )
             elif movement.movement_type == "shot":
                 # Thick arrow for shots
                 arrow = FancyArrowPatch(
                     start, end,
-                    arrowstyle='->,head_width=1.0,head_length=0.5',
+                    arrowstyle='->,head_width=2.5,head_length=2.0',
                     color='black',
                     linewidth=3,
-                    zorder=5
+                    zorder=90  # High zorder for visibility
                 )
             else:  # forecheck or other
                 # Curved arrow for forechecking
                 arrow = FancyArrowPatch(
                     start, end,
-                    arrowstyle='->,head_width=0.8,head_length=0.4',
+                    arrowstyle='->,head_width=2.0,head_length=1.5',
                     color='gray',
                     linewidth=2,
                     connectionstyle="arc3,rad=0.3",
-                    zorder=5
+                    zorder=90  # High zorder for visibility
                 )
                 
             ax.add_patch(arrow)
+            
+            # Add movement label if provided
+            if hasattr(movement, 'label') and movement.label:
+                # Calculate midpoint of the arrow
+                mid_x = (start[0] + end[0]) / 2
+                mid_y = (start[1] + end[1]) / 2
+                
+                # Add label with background for visibility
+                ax.text(
+                    mid_x, mid_y, movement.label,
+                    ha='center', va='center',
+                    fontsize=7, fontweight='bold',
+                    color='black',
+                    bbox=dict(boxstyle="round,pad=0.2", facecolor='yellow', alpha=0.7),
+                    zorder=95  # Even higher for movement labels
+                )
+    
+    def _adjust_path_around_nets(self, start: Tuple[float, float], end: Tuple[float, float]) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        """
+        Adjust movement path to avoid going through goal nets.
+        
+        Args:
+            start: Starting coordinates (x, y)
+            end: Ending coordinates (x, y)
+            
+        Returns:
+            Adjusted (start, end) coordinates
+        """
+        # NHL goal net positions (approximate)
+        home_net_center = (-89, 0)  # Home team defends this net
+        away_net_center = (89, 0)   # Away team defends this net
+        net_width = 6  # Goal width
+        net_depth = 4  # Goal depth
+        
+        # Check if path intersects with either net
+        adjusted_start, adjusted_end = start, end
+        
+        # Check home net (left side)
+        if self._path_intersects_net(start, end, home_net_center, net_width, net_depth):
+            # Adjust path to go around the net
+            adjusted_start, adjusted_end = self._route_around_net(start, end, home_net_center, net_width, net_depth)
+            
+        # Check away net (right side) - only if not already adjusted
+        elif self._path_intersects_net(start, end, away_net_center, net_width, net_depth):
+            # Adjust path to go around the net  
+            adjusted_start, adjusted_end = self._route_around_net(start, end, away_net_center, net_width, net_depth)
+            
+        return adjusted_start, adjusted_end
+    
+    def _path_intersects_net(self, start: Tuple[float, float], end: Tuple[float, float], 
+                            net_center: Tuple[float, float], net_width: float, net_depth: float) -> bool:
+        """Check if a straight line path intersects with a goal net area."""
+        net_x, net_y = net_center
+        # Define net rectangle bounds
+        net_left = net_x - net_depth/2
+        net_right = net_x + net_depth/2
+        net_bottom = net_y - net_width/2
+        net_top = net_y + net_width/2
+        
+        # Simple line-rectangle intersection check
+        # Check if the path line segment intersects with the net rectangle
+        x1, y1 = start
+        x2, y2 = end
+        
+        # Check if either endpoint is inside the net
+        if (net_left <= x1 <= net_right and net_bottom <= y1 <= net_top) or \
+           (net_left <= x2 <= net_right and net_bottom <= y2 <= net_top):
+            return True
+            
+        # Check if line crosses any of the net rectangle edges
+        # This is a simplified check - for production might want more sophisticated intersection
+        if (x1 < net_left < x2 or x2 < net_left < x1) and \
+           (min(y1, y2) <= net_y <= max(y1, y2)):
+            return True
+            
+        if (x1 < net_right < x2 or x2 < net_right < x1) and \
+           (min(y1, y2) <= net_y <= max(y1, y2)):
+            return True
+            
+        return False
+    
+    def _route_around_net(self, start: Tuple[float, float], end: Tuple[float, float],
+                         net_center: Tuple[float, float], net_width: float, net_depth: float) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        """Route path around a net by choosing the shorter side."""
+        net_x, net_y = net_center
+        
+        # Calculate which side of the net to go around (top or bottom)
+        start_y_offset = start[1] - net_y
+        end_y_offset = end[1] - net_y
+        
+        # Choose the side based on average Y position
+        avg_y_offset = (start_y_offset + end_y_offset) / 2
+        
+        if avg_y_offset > 0:
+            # Route around the top of the net
+            clearance_y = net_y + net_width/2 + 5  # 5 feet clearance
+        else:
+            # Route around the bottom of the net
+            clearance_y = net_y - net_width/2 - 5  # 5 feet clearance
+            
+        # For now, just adjust the Y coordinates to avoid the net
+        # In a more sophisticated implementation, might add intermediate waypoints
+        adjusted_start = (start[0], clearance_y if abs(start[0] - net_x) < 15 else start[1])
+        adjusted_end = (end[0], clearance_y if abs(end[0] - net_x) < 15 else end[1])
+        
+        return adjusted_start, adjusted_end
             
     def _draw_zones(self, ax, zones: List[CoverageZone]):
         """Draw coverage or pressure zones."""

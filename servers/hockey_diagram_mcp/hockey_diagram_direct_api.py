@@ -11,6 +11,10 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+# Load environment variables before any other imports
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent.parent / '.env')
+
 # Add the project root to path
 sys.path.append(str(Path(__file__).resolve().parent))
 
@@ -48,9 +52,32 @@ async def call_mcp_tool(request: ToolRequest):
         async with client:
             result = await client.call_tool(request.tool, request.parameters)
             
+            # Extract the actual result data
+            # FastMCP returns CallToolResult with content array
+            if hasattr(result, 'content') and isinstance(result.content, list):
+                # Parse the text content from the MCP response
+                for item in result.content:
+                    if hasattr(item, 'type') and item.type == 'text':
+                        try:
+                            # Try to parse as JSON
+                            data = json.loads(item.text)
+                            return {
+                                "success": True,
+                                "data": data,
+                                "timestamp": datetime.now().isoformat()
+                            }
+                        except json.JSONDecodeError:
+                            # Return as plain text if not JSON
+                            return {
+                                "success": True,
+                                "data": {"result": item.text},
+                                "timestamp": datetime.now().isoformat()
+                            }
+            
+            # Fallback for different result structures
             return {
                 "success": True,
-                "data": result.data if hasattr(result, 'data') else result,
+                "data": {"result": result if not hasattr(result, '__dict__') else vars(result)},
                 "timestamp": datetime.now().isoformat()
             }
             
@@ -59,6 +86,124 @@ async def call_mcp_tool(request: ToolRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to call MCP tool: {str(e)}"
+        )
+
+# MCP-style endpoint for cache operations
+@app.post("/mcp")
+async def mcp_endpoint(request: dict):
+    """MCP-style endpoint for tools/call method"""
+    try:
+        method = request.get("method", "")
+        
+        if method == "tools/call":
+            # Extract tool name and arguments
+            params = request.get("params", {})
+            tool_name = params.get("name", "")
+            tool_args = params.get("arguments", {})
+            
+            # Use the FastMCP Client
+            from fastmcp import Client
+            client = Client(mcp)
+            
+            async with client:
+                result = await client.call_tool(tool_name, tool_args)
+                
+                # Format response in MCP style
+                if hasattr(result, 'content') and isinstance(result.content, list):
+                    for item in result.content:
+                        if hasattr(item, 'type') and item.type == 'text':
+                            try:
+                                data = json.loads(item.text)
+                                return {
+                                    "jsonrpc": "2.0",
+                                    "id": request.get("id", 1),
+                                    "result": {
+                                        "content": [{"type": "text", "text": json.dumps(data)}]
+                                    }
+                                }
+                            except json.JSONDecodeError:
+                                return {
+                                    "jsonrpc": "2.0",
+                                    "id": request.get("id", 1),
+                                    "result": {
+                                        "content": [{"type": "text", "text": item.text}]
+                                    }
+                                }
+                
+                # Fallback
+                return {
+                    "jsonrpc": "2.0",
+                    "id": request.get("id", 1),
+                    "result": {"content": [{"type": "text", "text": str(result)}]}
+                }
+                
+        elif method == "tools/list":
+            # List available tools
+            from fastmcp import Client
+            client = Client(mcp)
+            
+            async with client:
+                tools = await client.list_tools()
+                tool_list = []
+                for tool in tools:
+                    tool_list.append({
+                        "name": tool.name,
+                        "description": getattr(tool, 'description', ''),
+                        "inputSchema": getattr(tool, 'inputSchema', {})
+                    })
+                
+                return {
+                    "jsonrpc": "2.0",
+                    "id": request.get("id", 1),
+                    "result": {"tools": tool_list}
+                }
+        
+        else:
+            return {
+                "jsonrpc": "2.0",
+                "id": request.get("id", 1),
+                "error": {"code": -32601, "message": f"Method not found: {method}"}
+            }
+            
+    except Exception as e:
+        print(f"Error in MCP endpoint: {e}")
+        return {
+            "jsonrpc": "2.0",
+            "id": request.get("id", 1),
+            "error": {"code": -32603, "message": str(e)}
+        }
+
+@app.post("/generate-from-spec")
+async def generate_from_spec(request: dict):
+    """Generate a hockey diagram from a parsed specification"""
+    try:
+        spec = request.get("spec")
+        if not spec:
+            raise HTTPException(status_code=400, detail="Missing spec in request")
+        
+        # Import and call the core function directly
+        from core_tools import generate_diagram_from_spec_core
+        
+        result = await generate_diagram_from_spec_core(spec, "png")
+        
+        if result.get("success"):
+            return {
+                "success": True,
+                "base64_data": result.get("base64_data"),
+                "diagram_path": result.get("diagram_path"),
+                "message": result.get("message")
+            }
+        else:
+            return {
+                "success": False,
+                "error": result.get("error", "Failed to generate diagram")
+            }
+            
+    except Exception as e:
+        print(f"Error generating from spec: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate from spec: {str(e)}"
         )
 
 @app.post("/generate")
@@ -83,7 +228,9 @@ async def generate_diagram(request: dict):
             diagram_path = result.get("diagram_path")
             if diagram_path:
                 try:
-                    full_path = os.path.join(os.path.dirname(__file__), diagram_path)
+                    # diagram_path is already an absolute path from the MCP tool
+                    # Don't join it with __file__ directory
+                    full_path = diagram_path if os.path.isabs(diagram_path) else os.path.join(os.path.dirname(__file__), diagram_path)
                     with open(full_path, 'rb') as f:
                         image_data = f.read()
                         base64_data = base64.b64encode(image_data).decode('utf-8')

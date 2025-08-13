@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
             { status: 400 }
           )
         }
-        const logs = await hockeyDiagramLogger.searchLogs(query, date)
+        const logs = await hockeyDiagramLogger.searchLogs(query, date || undefined)
         return NextResponse.json({
           success: true,
           logs,
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'stats': {
-        const stats = await hockeyDiagramLogger.getStatistics(date)
+        const stats = await hockeyDiagramLogger.getStatistics(date || undefined)
         return NextResponse.json({
           success: true,
           stats,

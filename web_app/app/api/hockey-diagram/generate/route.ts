@@ -17,7 +17,15 @@ async function generateHockeyDiagram(prompt: string, sessionId?: string) {
       
       // Transform agent result to our expected format
       let parserSpec = null
-      if (result.explanation) {
+      
+      // First check if we have parser_traces with the actual spec
+      if (result.parser_traces && result.parser_traces.parsed_data) {
+        parserSpec = result.parser_traces.parsed_data
+      } else if (result.diagram_spec) {
+        // Direct spec from result
+        parserSpec = result.diagram_spec
+      } else if (result.explanation) {
+        // Try to extract from explanation
         try {
           // Try to parse if it looks like JSON
           if (typeof result.explanation === 'string' && (result.explanation.trim().startsWith('{') || result.explanation.trim().startsWith('['))) {
@@ -36,7 +44,10 @@ async function generateHockeyDiagram(prompt: string, sessionId?: string) {
         success: result.success,
         hasDiagramBase64: !!result.diagram_base64,
         base64Length: result.diagram_base64?.length || 0,
-        metadata: result.metadata
+        metadataKeys: result.metadata ? Object.keys(result.metadata) : [],
+        tracesCount: result.metadata?.traces?.length || 0,
+        traces: result.metadata?.traces,
+        toolsUsed: result.metadata?.tools_used
       })
       
       const finalResult = {
@@ -65,7 +76,13 @@ async function generateHockeyDiagram(prompt: string, sessionId?: string) {
       
       // Handle parser spec safely for direct MCP too
       let parserSpecFallback = null
-      if (result.explanation) {
+      
+      // Check for parser_traces or diagram_spec first
+      if (result.parser_traces && result.parser_traces.parsed_data) {
+        parserSpecFallback = result.parser_traces.parsed_data
+      } else if (result.diagram_spec) {
+        parserSpecFallback = result.diagram_spec
+      } else if (result.explanation) {
         try {
           if (typeof result.explanation === 'string' && (result.explanation.trim().startsWith('{') || result.explanation.trim().startsWith('['))) {
             parserSpecFallback = JSON.parse(result.explanation)

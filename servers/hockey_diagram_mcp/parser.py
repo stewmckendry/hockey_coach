@@ -110,7 +110,7 @@ Common hockey terms to understand:
         try:
             # Call GPT-4 to parse the prompt
             response = await self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",  # Cost-effective model
                 messages=[
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": enhanced_prompt}
