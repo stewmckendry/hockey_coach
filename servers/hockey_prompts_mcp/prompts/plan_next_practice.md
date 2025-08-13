@@ -93,56 +93,144 @@ RECENTLY PRACTICED (reference only):
 
 ---
 
-## STEP 3: Smart Drill Selection
+## STEP 3: Smart Drill Selection (Enhanced with Resource Browsing)
 
 ### Tools Required
 - `mcp__airtable__list_records` - Query Drill Favorites table
-- `search_hockey_drills` - Search for drills (if requested)
+- MCP Resources:
+  - `hockey://drills/categories` - Browse all drill categories
+  - `hockey://drills/by-category/{category}` - Get drills by category
+  - `hockey://videos/categories` - Browse video categories
+- Hockey MCP Search Tools:
+  - `search_hockey_drills` - Get detailed drill information
+  - `search_hockey_videos` - Find video demonstrations
 
 ### Actions
-1. Review Drill Favorites table for drills covering priority skills
-2. Identify skill combinations that can be practiced together
-3. Present drill options grouped by efficiency
+
+#### 3A: Check Your Drill Favorites
+1. Query Drill Favorites table for drills covering priority skills
+2. Identify which favorites match today's skill priorities
+3. Note ratings and previous usage
+
+#### 3B: Browse Drill Library by Category
+1. Query `hockey://drills/categories` to show available categories
+2. For each priority skill from Step 2:
+   - Query `hockey://drills/by-category/{skill}` 
+   - Show count of available drills
+   - List top 3-5 drills by complexity/age appropriateness
+3. Check `hockey://videos/categories` for matching video content
+
+#### 3C: Present Hybrid Selection
 
 ### Display Format
 ```
-🏒 DRILL OPTIONS
+🏒 DRILL SELECTION OPTIONS
 
-EFFICIENT COMBINATIONS (Multiple Skills):
-Option A: "Figure 8 Edge Work"
-  • Skills: Edge Control + Turning/Crossovers + Backward Skating
+━━━ YOUR DRILL FAVORITES ━━━
+Matching Priority Skills:
+✅ "Figure 8 Edge Work"
+  • Skills: Edge Control + Turning/Crossovers
+  • Your Rating: ⭐⭐⭐⭐⭐ (5/5)
+  • Last Used: 7 days ago
   • Duration: 7 minutes
-  • Rating: ⭐⭐⭐⭐⭐ (5/5)
-  • Setup: Simple - cones only
 
-Option B: "3 Station Skills - Passing"
-  • Skills: Stationary Passing + Receiving + Give-and-go
+✅ "3 Station Passing"
+  • Skills: Stationary Passing + Receiving
+  • Your Rating: Not yet rated
+  • Last Used: Never
   • Duration: 15 minutes
-  • Rating: Not yet rated (new)
-  • Setup: Moderate - nets and pucks
 
-SINGLE SKILL DRILLS:
-"1v1 Defense vs Forward"
-  • Skills: Individual Defense
-  • Duration: 7 minutes
-  • Rating: ⭐⭐⭐⭐ (4/5)
-  • Setup: Simple - cones and pucks
+━━━ DRILL LIBRARY CATALOG ━━━
+📚 Available Categories (from hockey://drills/categories):
+
+PASSING DRILLS (45 total available)
+Top picks for [age_group]:
+  1. "Progressive Passing" - Beginner
+     • Focus: Stationary passing, receiving
+     • Equipment: Pucks, cones
+  2. "Star Passing Drill" - Intermediate  
+     • Focus: Quick release, accuracy
+     • Equipment: Pucks, cones or tires
+  3. "2v0 Give and Go" - Intermediate
+     • Focus: Timing, movement
+     • Equipment: Pucks, nets
+  📹 Videos available: 12 demonstrations
+
+SKATING DRILLS (52 total available)
+Top picks for [age_group]:
+  1. "C-Cuts Progression" - Beginner
+     • Focus: Edge control, power
+     • Equipment: None
+  2. "Transition Skating" - Intermediate
+     • Focus: Forward/backward transitions
+     • Equipment: Cones
+  3. "Cross-Ice Edges" - Advanced
+     • Focus: Inside/outside edges
+     • Equipment: Cones or lines
+  📹 Videos available: 18 demonstrations
+
+PUCK HANDLING DRILLS (38 total available)
+[Show if relevant to selected skills]
+
+━━━ BROWSE MORE OPTIONS ━━━
+• Type "browse [category]" to see more drills
+• Type "details [drill name]" for full information
+• Type "video [skill]" to find demonstrations
 ```
 
 ### Coach Input Required
-- Which drill combinations look good?
-- Any drills from favorites you specifically want to include?
-- Want to search for alternative drills? (specify what you're looking for)
-- Time allocation preferences for each station/drill?
+- Which drills from your favorites do you want to use?
+- Any drills from the library catalog you'd like to explore?
+- Want detailed information on any specific drill? 
+- Need video demonstrations for any skills?
+- Time allocation for each drill/station?
 
-### Optional MCP Search
-If coach requests alternatives, search based on:
-- Skill combinations identified
-- Age group appropriateness
-- Available equipment
-- Time constraints
+### Get Detailed Information (Step 3D)
+When coach requests more information:
 
-**⏸️ CHECKPOINT: Wait for drill selection before proceeding to Step 4**
+```python
+# For specific drill details:
+search_hockey_drills(
+    query="[drill name]",
+    age_group="[age_group]",
+    max_results=1
+)
+
+# For video demonstrations:
+search_hockey_videos(
+    skill_focus="[skill name]",
+    complexity="[beginner/intermediate/advanced]",
+    max_results=3
+)
+
+# Display as:
+"📋 DETAILED DRILL INFORMATION
+[Full drill description, setup, coaching points, variations]
+
+📹 VIDEO DEMONSTRATIONS
+[List of relevant videos with URLs and descriptions]"
+```
+
+### Smart Recommendations
+Based on selected skills and age group, suggest combinations:
+```
+💡 RECOMMENDED COMBINATIONS
+Based on your priority skills, consider these efficient groupings:
+
+Station 1 (15 min): Passing Focus
+  • Combine "Progressive Passing" + "Star Passing"
+  • Works multiple passing skills together
+  
+Station 2 (15 min): Edge Work
+  • Combine "C-Cuts" + "Figure 8s"  
+  • Progressive edge development
+
+Station 3 (10 min): Game Application
+  • "2v2 Small Area Game"
+  • Applies both passing and skating skills
+```
+
+**⏸️ CHECKPOINT: Wait for drill selection and timing before proceeding to Step 4**
 
 ---
 
