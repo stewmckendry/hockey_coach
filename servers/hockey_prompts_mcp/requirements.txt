@@ -1,0 +1,8 @@
+# Hockey Practice Planning Prompts MCP Server Requirements
+# Minimal dependencies - prompts are just markdown files
+
+# MCP SDK for creating the server
+mcp>=0.1.0
+
+# Standard library dependencies only
+# No additional packages needed since we're just loading and returning markdown
