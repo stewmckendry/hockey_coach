@@ -5,11 +5,11 @@
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Find the worktree root
-WORKTREE_ROOT="$SCRIPT_DIR/../.."
+# Find the project root
+PROJECT_ROOT="$SCRIPT_DIR/../.."
 
-# Navigate to parent of all worktrees for virtual environment
-cd "$WORKTREE_ROOT/../.." || exit 1
+# Navigate to parent directory for virtual environment
+cd "$PROJECT_ROOT/.." || exit 1
 
 # Check if virtual environment exists
 if [ -d "spacy_env" ]; then
@@ -26,7 +26,7 @@ cd "$SCRIPT_DIR" || exit 1
 
 # Set environment variables for MCP compatibility
 export MCP_TRANSPORT=stdio
-export PYTHONPATH="$WORKTREE_ROOT:$PYTHONPATH"
+export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
 
 # Start the server using exec to replace the shell process
 exec python "$SCRIPT_DIR/server.py"
