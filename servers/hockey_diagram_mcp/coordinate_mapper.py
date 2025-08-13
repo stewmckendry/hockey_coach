@@ -743,21 +743,34 @@ class HockeyCoordinateMapper:
         """
         Get coordinates for a named rink area.
         
+        Priority order:
+        1. Zone Grid System (MECE, 32 zones)
+        2. Faceoff dots (specific positions)
+        3. Legacy RINK_AREAS (for backward compatibility)
+        4. Center ice fallback
+        
         Args:
             area_name: Name of the rink area
             
         Returns:
             Tuple of (x, y) coordinates
         """
+        # PRIORITY 1: Check Zone Grid System first (MECE compliant)
+        if area_name in zone_grid.zone_lookup:
+            zone = zone_grid.zone_lookup[area_name]
+            return (zone.center_x, zone.center_y)
+        
+        # PRIORITY 2: Check faceoff dots (specific positions)
+        if area_name in self.FACEOFF_DOTS:
+            return self.FACEOFF_DOTS[area_name]
+        
+        # PRIORITY 3: Legacy RINK_AREAS for backward compatibility only
+        # NOTE: These have overlaps and are not MECE - use zone_grid instead
         if area_name in self.RINK_AREAS:
             coord = self.RINK_AREAS[area_name]
             return (coord.x, coord.y)
         
-        # Check faceoff dots
-        if area_name in self.FACEOFF_DOTS:
-            return self.FACEOFF_DOTS[area_name]
-        
-        # Return center ice as fallback
+        # PRIORITY 4: Return center ice as fallback
         return (0, 0)
     
     def get_zone_boundary(self, zone_name: str) -> List[float]:
@@ -817,11 +830,12 @@ class HockeyCoordinateMapper:
             return (base_x + dx, base_y + dy)
         
         # If relative_to is an area name, get its coordinate
-        if relative_to in self.RINK_AREAS:
-            target_coord = self.RINK_AREAS[relative_to]
+        # Use get_area_coordinate which now prioritizes zone_grid
+        target_x, target_y = self.get_area_coordinate(relative_to)
+        if target_x != 0 or target_y != 0:  # Not the fallback center ice
             # Position at specified distance toward the target
-            dx = target_coord.x - base_x
-            dy = target_coord.y - base_y
+            dx = target_x - base_x
+            dy = target_y - base_y
             length = math.sqrt(dx*dx + dy*dy)
             if length > 0:
                 unit_x = dx / length
@@ -1129,6 +1143,7 @@ class HockeyCoordinateMapper:
     def find_nearest_area(self, x: float, y: float) -> str:
         """
         Find the nearest named area to given coordinates.
+        Uses Zone Grid System for accurate zone determination.
         
         Args:
             x: X coordinate
@@ -1137,14 +1152,20 @@ class HockeyCoordinateMapper:
         Returns:
             Name of nearest area
         """
-        min_distance = float('inf')
-        nearest_area = "center_ice"
+        # First try to get exact zone from Zone Grid System
+        zone_name = zone_grid.get_zone_by_position(x, y)
+        if zone_name and zone_name != "neu-left-mid-low":  # Not the fallback
+            return zone_name
         
-        for area_name, coord in self.RINK_AREAS.items():
-            distance = math.sqrt((coord.x - x)**2 + (coord.y - y)**2)
+        # If not in a zone, find nearest zone
+        min_distance = float('inf')
+        nearest_area = "neu-left-mid-low"  # Center ice area
+        
+        for zone_name, zone in zone_grid.zone_lookup.items():
+            distance = math.sqrt((zone.center_x - x)**2 + (zone.center_y - y)**2)
             if distance < min_distance:
                 min_distance = distance
-                nearest_area = area_name
+                nearest_area = zone_name
         
         return nearest_area
     
@@ -1336,8 +1357,23 @@ def list_available_formations() -> List[str]:
 
 
 def list_available_areas() -> List[str]:
-    """Get list of all available area names."""
-    return list(coordinate_mapper.RINK_AREAS.keys())
+    """
+    Get list of all available area names.
+    Returns Zone Grid System zones (MECE compliant) plus legacy areas.
+    """
+    # Start with Zone Grid System zones (32 MECE zones)
+    zones = zone_grid.list_all_zones()
+    
+    # Add faceoff dots
+    zones.extend(coordinate_mapper.FACEOFF_DOTS.keys())
+    
+    # Add legacy areas that aren't duplicates
+    # Only add if not already in zones list to avoid duplicates
+    for area in coordinate_mapper.RINK_AREAS.keys():
+        if area not in zones:
+            zones.append(area)
+    
+    return sorted(list(set(zones)))
 
 
 def list_available_zones() -> List[str]:
