@@ -1,358 +1,495 @@
-# Plan Next Practice - Interactive Workflow
+# Plan Next Practice - Interactive Workflow v3.0
+*Updated: August 12, 2025 - Includes Practice Templates and Hockey Systems integration*
 
 ## Overview
-Generate a comprehensive practice plan based on previous practice feedback, skill coverage analysis, and coach input at each step.
+Generate a comprehensive practice plan using templates, systems focus, and skill coverage analysis. Streamlined workflow with integrated decision points.
 
 ## Parameters
 - **practice_date**: Target date for practice (YYYY-MM-DD format)
-- **duration_minutes**: Practice duration in minutes (default: 60)
-- **age_group**: Age group for practice (e.g., U8, U10, U12)
+- **duration_minutes**: Practice duration in minutes (default: pulled from Team table)
+- **team**: Team name (auto-populated from active teams)
 
 ---
 
-## STEP 1: Review Previous Practice & Get Coach Input
+## STEP 1: Review Previous Practice & Template Selection
 
 ### Tools Required
+- `mcp__airtable__list_records` - Check for Draft Practice Plans
 - `mcp__airtable__list_records` - Query Practice Sessions Log
-- `mcp__airtable__list_records` - Query Practice Plans table
+- `mcp__airtable__list_records` - Query Practice Templates table
+- `mcp__airtable__list_records` - Query Thunder Playbook (Systems)
+- `mcp__airtable__get_record` - Get Team information
+- `mcp__notion__fetch` - Get Notion practice plan for structure reference
 
-### Actions
-1. Query Airtable Practice Sessions Log for most recent entry
-2. Extract and present:
-   - Date and practice name
-   - What worked well
-   - Areas for improvement
-   - Success rating
-   - Next practice focus recommendations
-3. Query Practice Plans table for previous practice structure/timing
+### Part A: Check for Draft Plan & Load Context
+1. **CHECK FOR DRAFT PLAN FIRST**:
+   - Query Practice Plans for Status="Draft" and upcoming date
+   - If found, load blueprint recommendations from Notes field
+   - Show as starting point for planning
+2. **Auto-populate team context** from Teams table:
+   - Team name, age group, level
+   - Default practice duration
+   - Coaching staff
+3. Query Airtable Practice Sessions Log for most recent entry
+4. Extract and present previous practice summary
 
-### Coach Input Required
-Please provide the following information:
-- **Practice Date**: Confirm date for next practice
-- **Duration**: Total available ice time (minutes)
-- **Specific Focus**: Any areas based on recent games or observations?
-- **Expected Attendance**: Number of players (affects station planning)
-- **Available Coaches**: How many coaches and their assignments?
-- **Equipment Constraints**: Any limitations to consider?
+### Part B: Template & Systems Selection
 
-### Output Format
+#### Display Format (with Draft Plan)
 ```
-📋 PREVIOUS PRACTICE SUMMARY
-Date: [date]
-Success Rating: [1-5] ⭐
-What Worked: 
-  • [point 1]
-  • [point 2]
-Areas to Improve:
-  • [improvement 1]
-  • [improvement 2]
-Recommended Focus: [focus areas]
-```
+📢 DRAFT PLAN FOUND!
 
-**⏸️ CHECKPOINT: Wait for coach confirmation before proceeding to Step 2**
+Draft for: [Date]
+Created after: Practice #2 review
+Recommended Focus: Backward Skating, Passing Fundamentals
+Suggested Template: Skill Development (modified)
 
----
+BLUEPRINT RECOMMENDATIONS:
+━━━━━━━━━━━━━━━━━━━━━━━━
+[Display saved blueprint notes]
+━━━━━━━━━━━━━━━━━━━━━━━━
 
-## STEP 2: Analyze Skill Coverage
-
-### Tools Required
-- `mcp__airtable__list_records` - Query Skills Coverage Tracking table
-
-### Actions
-1. Query Skills Coverage Tracking table
-2. Sort all skills by "Last Practiced" date (null first, then oldest to newest)
-3. Group skills into three categories:
-   - **Never Practiced**: Skills with no practice date
-   - **Not Recently** (14+ days): Skills needing attention
-   - **Recently Practiced** (last 7 days): For awareness only
-
-### Display Format
-```
-🎯 SKILL COVERAGE ANALYSIS
-
-NEVER PRACTICED:
-  • Stationary Passing (Passing Skills)
-  • Hockey IQ - Reading the Play (Hockey IQ)
-  • Board Play Fundamentals (Body Contact)
-
-NOT RECENTLY (14+ days ago):
-  • Backward Crossovers - 21 days ago (2 times)
-  • Defensive Positioning - 18 days ago (1 time)
-
-RECENTLY PRACTICED (reference only):
-  • Edge Control - Aug 6 (1 time)
-  • Forward Skating - Aug 6 (1 time)
+USE THIS DRAFT?
+  1. Yes - Continue with draft recommendations
+  2. Modify - Adjust the draft plan
+  3. Start Fresh - Ignore draft, build new plan
 ```
 
-### Coach Input Required
-- Which unpracticed skills are priorities for this practice?
-- Any skills you want to emphasize even if recently practiced?
-- Skills to deliberately skip this time?
-
-**⏸️ CHECKPOINT: Wait for skill selection before proceeding to Step 3**
-
----
-
-## STEP 3: Smart Drill Selection (Enhanced with Resource Browsing)
-
-### Tools Required
-- `mcp__airtable__list_records` - Query Drill Favorites table
-- MCP Resources:
-  - `hockey://drills/categories` - Browse all drill categories
-  - `hockey://drills/by-category/{category}` - Get drills by category
-  - `hockey://videos/categories` - Browse video categories
-- Hockey MCP Search Tools:
-  - `search_hockey_drills` - Get detailed drill information
-  - `search_hockey_videos` - Find video demonstrations
-
-### Actions
-
-#### 3A: Check Your Drill Favorites
-1. Query Drill Favorites table for drills covering priority skills
-2. Identify which favorites match today's skill priorities
-3. Note ratings and previous usage
-
-#### 3B: Browse Drill Library by Category
-1. Query `hockey://drills/categories` to show available categories
-2. For each priority skill from Step 2:
-   - Query `hockey://drills/by-category/{skill}` 
-   - Show count of available drills
-   - List top 3-5 drills by complexity/age appropriateness
-3. Check `hockey://videos/categories` for matching video content
-
-#### 3C: Present Hybrid Selection
-
-### Display Format
+#### Display Format (No Draft)
 ```
-🏒 DRILL SELECTION OPTIONS
+🏒 TEAM: Ted Reeves Thunder (U10 A)
+Coaches: Stewart (Head), Miro, Dan L
 
-━━━ YOUR DRILL FAVORITES ━━━
-Matching Priority Skills:
-✅ "Figure 8 Edge Work"
-  • Skills: Edge Control + Turning/Crossovers
-  • Your Rating: ⭐⭐⭐⭐⭐ (5/5)
-  • Last Used: 7 days ago
-  • Duration: 7 minutes
+📋 LAST PRACTICE: Aug 13 (Success: ⭐⭐⭐⭐)
+What Worked: Progressive drills, high engagement
+To Improve: Transition times, backward skating
+Next Focus: [from session notes]
 
-✅ "3 Station Passing"
-  • Skills: Stationary Passing + Receiving
-  • Your Rating: Not yet rated
-  • Last Used: Never
-  • Duration: 15 minutes
+━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━━ DRILL LIBRARY CATALOG ━━━
-📚 Available Categories (from hockey://drills/categories):
+📘 PRACTICE TEMPLATES AVAILABLE:
 
-PASSING DRILLS (45 total available)
-Top picks for [age_group]:
-  1. "Progressive Passing" - Beginner
-     • Focus: Stationary passing, receiving
-     • Equipment: Pucks, cones
-  2. "Star Passing Drill" - Intermediate  
-     • Focus: Quick release, accuracy
-     • Equipment: Pucks, cones or tires
-  3. "2v0 Give and Go" - Intermediate
-     • Focus: Timing, movement
-     • Equipment: Pucks, nets
-  📹 Videos available: 12 demonstrations
+1️⃣ SKILL DEVELOPMENT (50 min)
+   Focus: Technical Skills, Position-Specific
+   Structure: 18 min skills → 12 min battles → 15 min tactical
+   Best For: Early season, after breaks, fundamental work
+   
+2️⃣ COMPETITIVE SYSTEMS (50 min)
+   Focus: Tactical Systems, Battles/Compete
+   Structure: 15 min positions → 15 min tactical → 15 min scrimmage
+   Best For: Mid-season, game preparation
+   
+3️⃣ INTEGRATED GAME READY (50 min)
+   Focus: Everything in one flow drill
+   Structure: 20 min flow drill → 10 min special teams → 15 min scrimmage
+   Best For: Day before games, limited ice time
 
-SKATING DRILLS (52 total available)
-Top picks for [age_group]:
-  1. "C-Cuts Progression" - Beginner
-     • Focus: Edge control, power
-     • Equipment: None
-  2. "Transition Skating" - Intermediate
-     • Focus: Forward/backward transitions
-     • Equipment: Cones
-  3. "Cross-Ice Edges" - Advanced
-     • Focus: Inside/outside edges
-     • Equipment: Cones or lines
-  📹 Videos available: 18 demonstrations
+4️⃣ CUSTOM (Build Your Own)
+   Define your own segment structure
 
-PUCK HANDLING DRILLS (38 total available)
-[Show if relevant to selected skills]
+━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━━ BROWSE MORE OPTIONS ━━━
-• Type "browse [category]" to see more drills
-• Type "details [drill name]" for full information
-• Type "video [skill]" to find demonstrations
-```
+🎯 HOCKEY SYSTEMS STATUS:
 
-### Coach Input Required
-- Which drills from your favorites do you want to use?
-- Any drills from the library catalog you'd like to explore?
-- Want detailed information on any specific drill? 
-- Need video demonstrations for any skills?
-- Time allocation for each drill/station?
-
-### Get Detailed Information (Step 3D)
-When coach requests more information:
-
-```python
-# For specific drill details:
-search_hockey_drills(
-    query="[drill name]",
-    age_group="[age_group]",
-    max_results=1
-)
-
-# For video demonstrations:
-search_hockey_videos(
-    skill_focus="[skill name]",
-    complexity="[beginner/intermediate/advanced]",
-    max_results=3
-)
-
-# Display as:
-"📋 DETAILED DRILL INFORMATION
-[Full drill description, setup, coaching points, variations]
-
-📹 VIDEO DEMONSTRATIONS
-[List of relevant videos with URLs and descriptions]"
-```
-
-### Smart Recommendations
-Based on selected skills and age group, suggest combinations:
-```
-💡 RECOMMENDED COMBINATIONS
-Based on your priority skills, consider these efficient groupings:
-
-Station 1 (15 min): Passing Focus
-  • Combine "Progressive Passing" + "Star Passing"
-  • Works multiple passing skills together
+BREAKOUTS:
+  ❌ Thunder Strong (Breakout 1) - Not Introduced
+  ❌ Thunder Reverse - Not Introduced
   
-Station 2 (15 min): Edge Work
-  • Combine "C-Cuts" + "Figure 8s"  
-  • Progressive edge development
-
-Station 3 (10 min): Game Application
-  • "2v2 Small Area Game"
-  • Applies both passing and skating skills
+ZONE ENTRIES:
+  ❌ Thunder Speed (Entry 1) - Not Introduced
+  ❌ Thunder Control - Not Introduced
+  
+DEFENSIVE ZONE:
+  ❌ Thunder Box+1 - Not Introduced
+  
+SPECIAL TEAMS:
+  ❌ Thunder PP Setup - Not Introduced
+  ❌ Thunder PK Box - Not Introduced
 ```
 
-**⏸️ CHECKPOINT: Wait for drill selection and timing before proceeding to Step 4**
+### Coach Input Required
+Please provide:
+- **Practice Date**: [Date]
+- **Duration**: [Default 60 min or custom?]
+- **Template Choice**: (1, 2, 3, or 4-Custom)
+  - If Custom: Provide segment breakdown (e.g., "20-15-15-10")
+- **Systems Focus**: Which systems to introduce/practice? (can be none)
+- **Expected Attendance**: [# players, # goalies]
+- **Available Coaches**: [Who and assignments?]
+- **Special Considerations**: [Equipment, specific player needs, etc.]
+
+**⏸️ CHECKPOINT: Wait for template selection and basic inputs**
+
+---
+
+## STEP 2: Skill Analysis & Segment Mapping (Template-Aware)
+
+### Tools Required
+- `mcp__airtable__list_records` - Query Skills Coverage Tracking table (ALL 37 skills)
+- `mcp__airtable__get_record` - Get selected Practice Template details
+
+### Pre-Analysis: Load Complete Skill Inventory
+**CRITICAL**: Query and load ALL 37 skills from Skills Coverage Tracking
+- Store skill names, categories, and Skill Components in memory
+- Note "Last Practiced" dates and "Times Practiced" counts
+- This will be used for comprehensive mapping in Step 5
+
+### Actions
+1. If template selected (1-3), pull template structure and adapt
+2. If custom or systems focus, build appropriate structure
+3. Map skills to segments based on template + coach priorities
+4. Integrate any selected systems into appropriate segments
+5. **Flag overdue skills** (not practiced in 2+ weeks for Critical skills)
+
+### Display Format (Example with Template #2 - Competitive Systems)
+```
+📊 PRACTICE PLAN STRUCTURE - COMPETITIVE SYSTEMS TEMPLATE
+
+━━━ SEGMENT 1: Position Stations (15 min) ━━━
+
+DEFENSE STATION (7.5 min):
+Skills to Cover:
+  • Gap Control ⚠️ (not recent)
+  • Backward Skating ⚠️ (21 days ago)
+  • Angling/Positioning
+  
+FORWARD STATION (7.5 min):
+Skills to Cover:
+  • Attack Moves
+  • Shooting in Stride
+  • 1v1 Dekes
+
+━━━ SEGMENT 2: Tactical Battles (15 min) ━━━
+
+SYSTEM INTEGRATION:
+  ✅ Thunder Strong Breakout (introducing today)
+  - Walk through first
+  - Then apply in 2v2 battles
+  
+Skills Reinforced:
+  • Passing under pressure
+  • Quick decisions
+  • Battle/compete
+
+━━━ SEGMENT 3: Scrimmage (15 min) ━━━
+
+Focus:
+  • Apply Thunder Strong breakout
+  • Stop for teaching moments
+  • Reinforce positioning
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SKILLS COVERAGE SUMMARY:
+✅ Addressing overdue: Backward skating, gap control
+✅ System introduction: Thunder Strong breakout
+✅ Template maintains: Position development + compete
+```
+
+### Coach Input Required
+- Approve this structure OR request modifications
+- Confirm system integration points
+- Any specific skill priorities within template?
+
+**⏸️ CHECKPOINT: Get approval before drill selection**
+
+---
+
+## STEP 3: Smart Drill Selection (Always Research-Based)
+
+### Tools Required
+- `mcp__airtable__list_records` - Query Drill Favorites table (PRIMARY)
+- `search_hockey_drills` - Search drill library (PRIMARY)
+- `search_hockey_videos` - Find video demonstrations
+- `search_hockey_tactics` - Get system-specific drills
+- Template's Sample Drills - For reference only (not prescriptive)
+
+### Actions
+1. **ALWAYS research drills** for each segment's skills:
+   - Query your Drill Favorites for matching skills
+   - Search hockey MCP tools for best options
+   - Use template drill names as search hints only
+2. Present comprehensive options to coach
+3. For systems work, find specific system drills
+4. Let coach select from researched options
+
+### IMPORTANT
+**Template drills are EXAMPLES ONLY.** Always:
+- Search your favorites first
+- Use hockey MCP tools for comprehensive options  
+- Present multiple choices to the coach
+- Template suggestions are just starting points for research
+
+### Display Format
+```
+🏒 DRILL RESEARCH FOR COMPETITIVE SYSTEMS TEMPLATE
+
+━━━ SEGMENT 1: Position Stations (15 min) ━━━
+Target Skills: Gap Control, Backward Skating, Angling
+
+DEFENSE STATION OPTIONS:
+
+YOUR FAVORITES (from Airtable):
+✅ "1v1 Defense vs Forward" 
+  • Rating: ⭐⭐⭐⭐ (4/5) | Used: 5 times
+  • Covers: Gap control, angling
+  • Duration: 7 minutes
+  
+✅ "Backward Power Skating"
+  • Rating: ⭐⭐⭐⭐⭐ (5/5) | Used: 3 times
+  • Covers: Backward skating, transitions
+  • Duration: 8 minutes
+
+LIBRARY RESEARCH (from hockey MCP):
+📚 "Gap Control Progression" 
+  • Source: Hockey Canada Drill Hub
+  • Complexity: Progressive (3 levels)
+  • Perfect for: U10 age group
+  
+📚 "Defensive Skating Circuit"
+  • Source: USA Hockey ADM
+  • Includes: Backward, pivots, gap
+  • Equipment: 6 cones
+
+📚 "Angling Drill - Board Play"
+  • Source: CoachThem Library
+  • Focus: Body position, stick on puck
+  • Pairs well with gap control
+
+(Template mentioned "Gap Control Progression" - found similar options above)
+
+FORWARD STATION OPTIONS:
+[Continue with actual research...]
+
+━━━ SEGMENT 2: Tactical Battles (15 min) ━━━
+
+SYSTEM DRILL RESEARCH:
+📚 Searched for "breakout drills" and "D-to-D passing":
+  • "Progressive Breakout Drill" - 5 phases
+  • "Thunder Strong Specific" - walk through included
+  • "2v2 Breakout Battles" - competitive element
+
+[Continue with all segments...]
+```
+
+### Coach Input Required
+- **Which drills from the research do you prefer?**
+- Want details on any specific drill?
+- Need video demonstrations?
+- Any drills you want to modify or combine?
+
+**⏸️ CHECKPOINT: Coach selects from researched options**
 
 ---
 
 ## STEP 4: Generate Practice Plan
 
 ### Tools Required
-- Previous practice structure as template
-- Claude generation capabilities
+- Selected template structure
+- Approved drills and systems
+- Notion format template
 
 ### Actions
-1. Retrieve previous practice plan structure from Airtable
-2. Use as template, maintaining successful elements
-3. Incorporate today's skill priorities and selected drills
-4. Generate complete practice plan with:
-   - Clear timing for each segment
-   - Setup requirements
-   - Coaching points
-   - Safety considerations
-   - Water break placements
+1. Generate plan following template structure
+2. Include system teaching points prominently
+3. Add progression notes for new systems
+4. Format for both Airtable and Notion
 
-### Practice Plan Template
+### Practice Plan Output
 ```
-🏒 PRACTICE PLAN - [Date]
-Age Group: [U10]
-Duration: [60] minutes
-Focus: [Selected skills]
+🏒 TED REEVES THUNDER - PRACTICE #3
+📅 August 14, 2025 | ⏱️ 50 minutes | 👥 U10 A
+📘 Template: COMPETITIVE SYSTEMS
 
-WARM-UP (10 min)
-0:00-0:05 | Dynamic Stretching
-  • [Specific movements]
-  • Coaching: [Key points]
-  
-0:05-0:10 | Edge Work
-  • [Drill details]
-  • Setup: [Requirements]
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PRACTICE OVERVIEW
+Focus: Position skills + Thunder Strong Breakout
+New System: Thunder Strong (Breakout 1)
+Emphasis: Compete level with tactical execution
+Expected: 12 players, 1 goalie
+Coaches: Stewart (Forwards), Miro (Defense), Dan L (Goalie/Float)
 
-SKILL STATIONS (35 min)
-0:10-0:25 | Station 1: [Drill Name]
-  • Skills: [List]
-  • Setup: [Details]
-  • Coaching Points: [Key focus]
-  
-0:25-0:30 | WATER BREAK
+Equipment Needed:
+• Pucks (lots)
+• 15-20 cones for positioning
+• 2 nets
+• Whiteboard for system diagram
 
-0:30-0:45 | Station 2: [Drill Name]
-  • Skills: [List]
-  • Setup: [Details]
-  • Coaching Points: [Key focus]
+━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 NEW SYSTEM: THUNDER STRONG BREAKOUT
 
-GAME/SCRIMMAGE (10 min)
-0:45-0:55 | [Game type]
-  • Rules: [Modifications]
-  • Focus: [Apply skills from practice]
+[Diagram placeholder]
 
-COOL DOWN (5 min)
-0:55-0:60 | Fun Activity + Stretch
-  • [Activity details]
-  • Team talk points
+Key Points:
+1. D retrieves, looks D-to-D first
+2. Strong-side winger at hash marks on boards
+3. Center swings low for support
+4. Weak-side winger stays high
+5. If covered, use center outlet
 
-EQUIPMENT NEEDED:
-  • [Complete list]
+━━━━━━━━━━━━━━━━━━━━━━━━━
+⏱️ PRACTICE TIMELINE
 
-COACHING NOTES:
-  • [Important reminders]
-  • [Safety considerations]
+[Detailed timeline following template...]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+"Systems create structure, compete creates champions!" ⚡
 ```
 
-### Coach Input Required
-- Review generated plan - any timing adjustments?
-- Want to swap any drills?
-- Add or remove any elements?
-- Confirm plan meets your needs
-
-**⏸️ CHECKPOINT: Wait for plan approval before proceeding to Step 5**
+**⏸️ CHECKPOINT: Final approval before saving**
 
 ---
 
-## STEP 5: Update Records
+## STEP 5: Update Records with Comprehensive Skill Mapping
 
 ### Tools Required
 - `mcp__airtable__create_record` - Create Practice Plans entry
-- `mcp__notion-remote__notion-create-pages` - Export to Notion (optional)
+- `mcp__airtable__update_records` - Batch update Skills Coverage Tracking
+- `mcp__airtable__update_records` - Update system introduction dates
+- `mcp__notion__create_page` - Create formatted practice plan
 
 ### Actions
-1. Create new entry in Airtable Practice Plans table with:
-   - Practice Name
-   - Date
-   - Duration (minutes)
-   - Focus Areas (multi-select)
-   - Skills Focus (multi-select)
-   - Status: "Planned"
-   - Equipment Needed
-   - Link to previous practice
 
-2. If requested, create Notion page with full practice plan
+#### 1. Create Practice Plans Entry
+- Link to Practice Template used
+- Link to Thunder Playbook systems introduced  
+- All standard fields (Team, Drills, etc.)
 
-3. Confirm all updates completed
+#### 2. COMPREHENSIVE SKILL MAPPING (Critical Step)
 
-### Update Confirmation
+**For EACH drill in the practice plan:**
+
+a) **Deep Skill Analysis** - Examine the drill description and identify:
+   - **Primary Skills**: Core focus of the drill (2-3 skills max)
+   - **Secondary Skills**: Supporting skills practiced (3-5 skills)
+   - **Incidental Skills**: Any other skills touched on (2-3 skills)
+
+b) **Component-Level Matching** - For each skill in Skills Coverage Tracking:
+   - Read the "Skill Components" field
+   - Match drill activities to specific components
+   - If 2+ components match, include that skill
+
+c) **Batch Update Process** - Use update_records for efficiency:
+   ```
+   PASS 1: Analyze all drills, create master skill list
+   PASS 2: Update skills 1-10 with batch update_records
+   PASS 3: Update skills 11-20 with batch update_records  
+   PASS 4: Update remaining skills if needed
+   ```
+
+d) **Update Fields for Each Matched Skill**:
+   - Set "Last Practiced" to practice_date
+   - Increment "Times Practiced" by 1
+   - Add drill record ID to "Related Drills" array
+
+**SKILL MAPPING RULES:**
+- Skating drills → Check ALL skating skills + Balance/Agility
+- Passing drills → Check passing skills + Hockey IQ skills + Receiving
+- Shooting drills → Check shooting skills + Puck Control in Motion
+- Battle/compete drills → Check Physical Play + all Defensive skills
+- Systems drills → Check Hockey IQ + Positional Play + relevant technical skills
+- Flow drills → Check 8-12 skills minimum (they touch everything)
+- Small area games → Check 6-10 skills (multiple elements)
+
+**Example Skill Mapping for "2v2 Breakout Battles":**
 ```
-✅ PRACTICE PLAN SAVED
+Primary Skills:
+• Defensive Zone Play (breakout focus)
+• Team Defense Systems (2v2 structure)
+• Moving Passes (outlet passes)
 
-Airtable Record:
-  • ID: [record_id]
-  • Name: Practice - [date]
-  • Status: Planned
-  • Skills: [list of selected skills]
-  • Drills: [list of selected drills]
+Secondary Skills:  
+• 1v1 Defense & Gap Control (defending in 2v2)
+• Puck Control in Motion (carrying puck out)
+• Hockey IQ - Reading the Play (decisions)
+• Communication (calling for puck)
 
-Notion Page (if created):
-  • URL: [page_url]
-  • Title: [practice_name]
+Incidental Skills:
+• Forward Skating & Acceleration (racing for pucks)
+• Backward Skating (defensive tracking)
+• Physical Play Fundamentals (board battles)
+```
+
+#### 3. Update Thunder Playbook Table
+- Mark system as "Introduced" with date
+- Link to practice plan
+
+#### 4. Create Notion Page
+- System diagrams/teaching points
+- Full formatted plan
+
+### Update Confirmation with Full Skill Tracking
+```
+✅ PRACTICE PLAN SAVED WITH COMPREHENSIVE TRACKING
+
+Airtable Updates:
+• Practice Plan: rec_xxxxx
+• Template Used: Competitive Systems
+• System Introduced: Thunder Strong Breakout
+
+SKILLS COVERAGE UPDATED (18 skills mapped):
+
+Segment 1 - Position Stations:
+  Defense Station (6 skills updated):
+  ✓ 1v1 Defense & Gap Control
+  ✓ Backward Skating  
+  ✓ Angling & Body Positioning
+  ✓ Stops, Pivots & Transitions
+  ✓ Edge Control
+  ✓ Hockey IQ - Reading the Play
   
-Ready for Practice! 🏒
-```
+  Forward Station (5 skills updated):
+  ✓ Puck Control in Motion
+  ✓ Deking and Fakes
+  ✓ Fundamental Shots
+  ✓ Forward Skating & Acceleration
+  ✓ Balance and Agility
 
-### Coach Input Required
-- Confirm records created correctly
-- Any additional notes to add?
-- Want to export to Notion now?
+Segment 2 - Tactical Battles (7 skills updated):
+  ✓ Defensive Zone Play
+  ✓ Moving Passes
+  ✓ Team Defense Systems
+  ✓ Hockey IQ - Reading the Play
+  ✓ Physical Play Fundamentals
+  ✓ Communication
+  ✓ Positional Play
+
+Notion Page:
+• URL: https://notion.so/[page_id]
+• Includes: System diagram and skill heat map
+
+🎯 Ready for Practice!
+Next: Run post_practice_review after practice
+```
 
 ---
 
-## Final Output
-Complete practice plan ready for on-ice execution with all tracking systems updated.
+## Workflow Benefits with Templates & Systems
+
+### Templates Provide:
+1. **Proven structures** that work for specific goals
+2. **Time allocation** guidance
+3. **Appropriate drill suggestions**
+4. **Segment flow** that makes sense
+
+### Systems Integration Adds:
+1. **Progressive introduction** of team tactics
+2. **Tracking** of what's been taught
+3. **Consistency** in teaching approach
+4. **Game-ready** preparation
+
+### Time Savings:
+- With templates: **Target <10 minutes** for planning
+- Templates eliminate structure decisions
+- Systems tracking prevents redundancy
+- Drill suggestions reduce search time
+
+### Flexibility Maintained:
+- Can still go full custom (Option 4)
+- Templates are starting points, not rigid rules
+- Systems can be mixed into any template
+- Coach maintains full control
+
+---
+
+*Workflow v3.0 - Enhanced with Practice Templates and Hockey Systems*

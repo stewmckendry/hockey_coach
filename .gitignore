@@ -43,6 +43,13 @@ servers/hockey_diagram_mcp/chroma_diagram_cache/
 servers/hockey_diagram_mcp/api_server.log
 servers/hockey_diagram_mcp/server.log
 
+# Hockey Diagram Test Files and Development Artifacts
+servers/hockey_diagram_mcp/.ipynb_checkpoints/
+servers/hockey_diagram_mcp/test_*.ipynb
+servers/hockey_diagram_mcp/verify_kernel.py
+servers/hockey_diagram_mcp/CACHE_README.md
+servers/hockey_diagram_mcp/populate_cache.py
+
 # Web app logs
 web_app/dev.log
 web_app/web_app.log
