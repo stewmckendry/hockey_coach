@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import Optional, List
 from pydantic import BaseModel
+import warnings
+
+# DEPRECATED: This model is legacy. Use EnrichedOffIceEntry from enriched_off_ice.py instead.
+# This file is maintained for backward compatibility only.
 
 class OffIceEntry(BaseModel):
     title: str

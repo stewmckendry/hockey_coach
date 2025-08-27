@@ -1,9 +1,9 @@
 # Shared Status Dashboard
 ## Multi-Claude Development Coordination
 
-**Last Updated**: 2025-07-29T12:15:00Z
-**Latest Alert**: Task 1.4 archived and cleaned up - ready for Tasks 1.5 & 1.6
-**Update Frequency**: Real-time (as tasks progress)
+**Last Updated**: 2025-08-27T15:30:00Z
+**Latest Alert**: Multi-Claude workflow experiment complete - returning to standard development
+**Update Frequency**: As needed
 
 ---
 
@@ -12,8 +12,8 @@
 | Task | Worker | Status | Progress | Branch | Blockers | ETA |
 |------|--------|--------|----------|--------|----------|-----|
 | 1.4 OpenAI Agents SDK | Worker-1 | **ARCHIVED** | 100% | ~~merged & archived~~ | None | ✅ Complete |
-| 1.5 Team Assessment Tool | Worker-2 | PENDING_ASSIGNMENT | 0% | task-1.5-team-assessment-tool | None | TBD |
-| 1.6 Artifact Generation | Worker-3 | PENDING_ASSIGNMENT | 0% | task-1.6-artifact-generation | None | TBD |
+| 1.5 Team Assessment Tool | N/A | **DISCONTINUED** | 0% | ~~cancelled~~ | Project direction change | N/A |
+| 1.6 Artifact Generation | N/A | **DISCONTINUED** | 0% | ~~cancelled~~ | Project direction change | N/A |
 
 ---
 

@@ -6,13 +6,28 @@ __pycache__/
 .env.production
 .env.development
 .env.local
+
+# OS Files
+.DS_Store
+Thumbs.db
+
 chroma_db/
+chroma_data/
+*.sqlite3
+*.sqlite
+*.db
 *.lock
+*.log
 *.mp4
 *.mp3
 data/generated/images/*
 !data/generated/images/.gitkeep
 *.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webp
 *.html
 node_modules/
 venv/
@@ -32,3 +47,29 @@ servers/hockey_diagram_mcp/server.log
 web_app/dev.log
 web_app/web_app.log
 web_app/web_server.log
+
+# Archive and backup directories
+archive/
+**/archive/
+docs/archive/
+*.bak
+*.backup
+*~
+
+# Temporary files and directories
+temp/
+*.tmp
+*.temp
+.*.swp
+.*.swo
+
+# Generated output files (should not be committed)
+outputs/season_plans/season_plan_*.md
+outputs/practice_plans/practice_plan_*.md
+outputs/diagrams/*.png
+outputs/**/*_20[0-9][0-9][0-1][0-9][0-3][0-9]_*.* 
+
+# N8N generated images and test outputs
+n8n/workflows/drill_images/
+n8n/workflows/test_*.png
+n8n/workflows/drill_diagram_*.png
