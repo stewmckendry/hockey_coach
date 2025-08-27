@@ -162,8 +162,8 @@ class DiagramBuilder:
                 label = player.label or player.position
                 
             elif player.type == "goalie":
-                # Half-filled circle
-                circle = Circle((x, y), 2, facecolor=color, alpha=0.5, edgecolor=color, linewidth=2, zorder=10)
+                # Half-filled circle with higher z-order
+                circle = Circle((x, y), 2, facecolor=color, alpha=0.5, edgecolor=color, linewidth=2, zorder=12)
                 self.ax.add_patch(circle)
                 label = "G"
                 
@@ -173,15 +173,21 @@ class DiagramBuilder:
                 self.ax.add_patch(circle)
                 label = "C"
                 
+            elif player.type == "puck":
+                # Just a black dot for puck
+                self.ax.plot(x, y, 'o', markersize=6, color='black', zorder=10)
+                continue  # No label needed
+                
             else:  # opponent
                 # X marker
                 self.ax.plot(x, y, 'x', markersize=12, markeredgewidth=2, color=color, zorder=10)
                 label = player.position
                 
             # Add label
-            if player.type != "opponent":
+            if player.type not in ["opponent", "puck"]:
+                label_z_order = 13 if player.type == "goalie" else 11
                 self.ax.text(x, y, label, ha='center', va='center', 
-                           fontsize=8, fontweight='bold', color='white' if player.type == "goalie" else color, zorder=11)
+                           fontsize=8, fontweight='bold', color='white' if player.type == "goalie" else color, zorder=label_z_order)
                 
             # Add puck if player has it
             if player.has_puck:
@@ -328,6 +334,10 @@ class DiagramBuilder:
             color = self.HOME_COLOR if zone.team == "home" else self.AWAY_COLOR
             if zone.color:
                 color = zone.color
+            
+            # Higher z-order for cones/pylons
+            z_order = 11 if zone.type == "cone" else 6
+            fill_cone = zone.type == "cone" and zone.opacity >= 1.0
                 
             if zone.shape == "rectangle":
                 rect = Rectangle(
@@ -337,7 +347,8 @@ class DiagramBuilder:
                     facecolor=color,
                     alpha=zone.opacity,
                     edgecolor=color,
-                    linewidth=1
+                    linewidth=1,
+                    zorder=z_order
                 )
                 self.ax.add_patch(rect)
                 
@@ -345,20 +356,37 @@ class DiagramBuilder:
                 circle = Circle(
                     (zone.bounds["x"], zone.bounds["y"]),
                     zone.bounds.get("radius", 10),
-                    facecolor=color,
-                    alpha=zone.opacity,
+                    facecolor=color if fill_cone else color,
+                    alpha=zone.opacity if not fill_cone else 1.0,
                     edgecolor=color,
-                    linewidth=1
+                    linewidth=2 if zone.type == "cone" else 1,
+                    fill=fill_cone or zone.opacity > 0,
+                    zorder=z_order
                 )
                 self.ax.add_patch(circle)
+                
+            elif zone.shape == "polygon":
+                # For triangular pylons
+                vertices = zone.bounds.get("vertices", [])
+                if vertices:
+                    polygon = Polygon(
+                        vertices,
+                        facecolor=color,
+                        alpha=zone.opacity,
+                        edgecolor=color,
+                        linewidth=1,
+                        zorder=z_order
+                    )
+                    self.ax.add_patch(polygon)
                 
             # Add zone label
             if zone.label:
                 cx = zone.bounds["x"] + zone.bounds.get("width", 0) / 2
                 cy = zone.bounds["y"] + zone.bounds.get("height", 0) / 2
+                label_color = 'white' if fill_cone else 'white' if zone.opacity > 0.5 else color
                 self.ax.text(cx, cy, zone.label, 
                            fontsize=10, ha='center', va='center',
-                           color='white', fontweight='bold')
+                           color=label_color, fontweight='bold', zorder=z_order+1)
                 
     def _draw_annotations(self, annotations: List[Annotation]):
         """Draw text annotations."""

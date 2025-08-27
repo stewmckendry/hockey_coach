@@ -133,12 +133,14 @@ This specification will evolve with each diagram iteration:
 
 #### 1. Z-Order Layering
 All elements need explicit z-order values to appear above the sportypy rink surface:
-- Rink surface: z-order 0-7
-- Zones/coverage: z-order 8
-- Movement lines: z-order 9
+- Rink surface: z-order 0-5 (provided by sportypy)
+- Coverage zones: z-order 6 (background areas with low opacity)
+- Movement lines: z-order 8-9
 - Player markers: z-order 10
-- Labels/text: z-order 11
-- Annotations: z-order 12
+- Equipment (cones/pylons): z-order 11 (should be visible above players)
+- Pucks: z-order 10 (rendered as simple black dots)
+- Labels/text: z-order 11 (regular players), z-order 13 (goalie)
+- Goalie: z-order 12 (higher than regular players to ensure visibility on crease)
 
 #### 2. Arc Generation for Circular Movements
 Critical for counterclockwise movement around circles:
@@ -176,6 +178,35 @@ Standard mathematical coordinates used:
 - **Drill Group**: Players marked with 'X' for drill queues (distinct from opponents)
   - Notation: X1, X2 for lead players, X for queue members
 
+### Key Implementation Learnings (Drill 2 - 9 iterations)
+
+#### 7. Equipment Representation
+- **Pylons/Cones**: Use polygon zones with triangle vertices for realistic appearance
+  - Fill with solid color (darkorange) at opacity 1.0
+  - Z-order 11 ensures visibility above players
+  - Example vertices for cone: `[(-15, -12), (-17, -17), (-13, -17)]`
+
+#### 8. Cross-Ice Movement
+- Cross-ice paths require significant Y-axis changes (e.g., from +38 to -22.5)
+- The Y-axis shift creates the visual cross-ice movement pattern
+- X-axis changes alone won't show proper cross-ice movement
+
+#### 9. Puck Representation
+- Use dedicated 'puck' player type rendered as simple black dots
+- No additional circles or decorations needed
+- Place beside player queues for clarity
+
+#### 10. Path Around Obstacles
+- When players go around pylons, create explicit waypoints
+- Use dashed lines for the curved portion around obstacles
+- Label key movements like "Around pylon" at appropriate segments
+
+#### 11. Intercept Points
+- Blue line intercepts occur around x=-45 (outside the "house")
+- Defensive engagement should be clearly marked with pressure lines
+- Final defensive position matters for drill clarity
+
 ## Version History
 - v1.0 (2025-01-27): Initial specification based on Hockey Canada template legend
 - v1.1 (2025-01-27): Added implementation details from Drill 1 development
+- v1.2 (2025-01-27): Added learnings from Drill 2 (equipment, cross-ice movement, pucks)
