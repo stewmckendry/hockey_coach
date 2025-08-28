@@ -1,7 +1,11 @@
-# Hockey Diagram Specification v1.0
+# Hockey Diagram Specification v1.1
 
 ## Overview
 This specification defines the structure and elements used to create hockey tactical diagrams programmatically. The spec evolves with each iteration based on real coaching needs.
+
+### Version History
+- **v1.1 (2025-08-27)**: Added `waypoints` field to Movement objects for smooth curved paths using cubic spline interpolation
+- **v1.0 (2025-08-26)**: Initial specification based on Hockey Canada template
 
 ## Diagram Structure
 
@@ -58,7 +62,13 @@ This specification defines the structure and elements used to create hockey tact
   "to": {"x": 0, "y": 0} | "player_id",
   "style": "solid | dashed | dotted | wavy",
   "with_puck": false,
-  "label": "optional label"
+  "label": "optional label",
+  "waypoints": [  // Optional: for smooth curved paths (v1.1)
+    [x1, y1],     // Start point
+    [x2, y2],     // Control points for curve
+    [x3, y3],     // Additional waypoints
+    [xn, yn]      // End point
+  ]
 }
 ```
 

@@ -128,7 +128,48 @@ This order minimizes rework from z-order issues and ensures core elements work b
 3. **Movement macros** for standard patterns (breakout, forecheck, etc.)
 4. **Smart validation** to catch common errors early
 
-## Final Implementation Stats
-- **Total Iterations**: 31 (Drill 1: 16, Drill 2: 9, Drill 3: 2, Drill 4: 4)
-- **Potential with utilities**: 8-10 iterations (68% reduction)
-- **Key to efficiency**: Start with correct z-order, use utilities, apply lessons learned
+## Drill 3 - Breakout & Forecheck Lessons (2025-08-27)
+
+### Phase-Based Diagrams
+1. **Complex drills need phases**: Break into 2-3 digestible parts
+2. **Each phase focused**: Show only relevant movements per phase
+3. **Clear progression**: Phase 1 → Phase 2 → Phase 3 with logical flow
+
+### Smooth Movement Paths
+1. **Waypoints for curves**: Added `waypoints` field to Movement dataclass
+2. **Cubic spline interpolation**: Use scipy.CubicSpline for natural curves
+3. **100 interpolation points**: Creates ultra-smooth paths
+4. **Preserve momentum**: Curves show how players maintain speed
+
+### Implementation Pattern
+```python
+# Smooth curved movement with waypoints
+Movement(
+    type='skate',
+    from_pos={'x': start_x, 'y': start_y},
+    to_pos={'x': end_x, 'y': end_y},
+    waypoints=[
+        (x1, y1),  # Start
+        (x2, y2),  # Control points
+        (x3, y3),  # More waypoints
+        (xn, yn)   # End
+    ],
+    label='Smooth path'
+)
+```
+
+### Visual Hierarchy for Busy Drills
+- **Primary movements**: Thick solid lines (puck carrier)
+- **Secondary movements**: Normal solid lines (support)
+- **Optional movements**: Dashed lines (alternatives)
+- **Different colors**: Could distinguish roles (not implemented yet)
+
+### Naming Patterns for U11
+- **Batman/Robin/Spider-Man**: Memorable names for forecheck roles
+- **Numbered sequences**: Step 1, 2, 3 for clarity
+- **Simple labels**: "Go wide", "Drive net", "Stay high"
+
+## Updated Implementation Stats
+- **Total Iterations**: 36 (Drill 1: 16, Drill 2: 9, Drill 3: 5, Drill 4: 4, Test: 2)
+- **Drill 3 efficiency**: Only 5 iterations with phase approach
+- **Key improvements**: Waypoints eliminated choppy movements entirely

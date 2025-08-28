@@ -34,6 +34,7 @@ class Movement:
     style: Literal["solid", "dashed", "dotted", "wavy"] = "solid"
     with_puck: bool = False
     label: Optional[str] = None
+    waypoints: Optional[List[Tuple[float, float]]] = None  # For smooth curved paths
 
 @dataclass
 class Zone:
@@ -206,6 +207,12 @@ class DiagramBuilder:
     def _draw_movements(self, movements: List[Movement]):
         """Draw movement arrows and lines."""
         for movement in movements:
+            # Check if this movement has waypoints for smooth curved path
+            if movement.waypoints and len(movement.waypoints) > 2:
+                self._draw_curved_movement(movement)
+                continue
+                
+            # Regular movement handling (straight lines)
             # Resolve positions
             if isinstance(movement.from_pos, str):
                 start = self.player_positions.get(movement.from_pos, (0, 0))
@@ -301,7 +308,42 @@ class DiagramBuilder:
         )
         self.ax.add_patch(arrow)
         
-    def _draw_curved_path(self, points: List[Tuple], style: str = 'solid', color: str = 'gray', label: Optional[str] = None):
+    def _draw_curved_movement(self, movement: Movement):
+        """Draw a curved movement using waypoints."""
+        # Determine color and style based on movement type
+        if movement.type == "carry":
+            color = "black"
+            style = "solid"
+            linewidth = 3
+        elif movement.type == "pass":
+            color = "black"
+            style = "dotted"
+            linewidth = 2
+        elif movement.type == "shot":
+            color = "black"
+            style = "dashed"
+            linewidth = 2.5
+        elif movement.type == "pressure":
+            color = "black"
+            style = "solid"
+            linewidth = 4
+        else:  # skate, backward, lateral
+            color = "gray"
+            style = "solid" if movement.style == "solid" else "dashed"
+            linewidth = 2
+            
+        # Use the existing curved path method
+        self._draw_curved_path(
+            movement.waypoints,
+            style=style,
+            color=color,
+            label=movement.label,
+            linewidth=linewidth,
+            with_puck=movement.with_puck
+        )
+    
+    def _draw_curved_path(self, points: List[Tuple], style: str = 'solid', color: str = 'gray', 
+                         label: Optional[str] = None, linewidth: int = 2, with_puck: bool = False):
         """Draw a smooth curved path through multiple points."""
         if len(points) < 2:
             return
@@ -322,7 +364,14 @@ class DiagramBuilder:
         
         # Draw the curve
         linestyle = '-' if style == 'solid' else '--' if style == 'dashed' else ':'
-        self.ax.plot(x_smooth, y_smooth, linestyle=linestyle, linewidth=2, color=color, alpha=0.8, zorder=8)
+        self.ax.plot(x_smooth, y_smooth, linestyle=linestyle, linewidth=linewidth, color=color, alpha=0.8, zorder=8)
+        
+        # Add puck indicators if carrying puck
+        if with_puck:
+            # Add small puck dots along the path
+            puck_indices = np.linspace(10, len(x_smooth)-10, 4, dtype=int)
+            for idx in puck_indices:
+                self.ax.plot(x_smooth[idx], y_smooth[idx], 'ko', markersize=3, zorder=10)
         
         # Add arrowhead at the end
         if len(x_smooth) > 1:
