@@ -112,3 +112,23 @@ For each new drill:
 6. Add annotations last
 
 This order minimizes rework from z-order issues and ensures core elements work before adding details.
+
+## Drill-Specific Lessons
+
+### Drill 4 - 3v3 Battle Lessons
+1. **Multiple Nets**: Use layered zones (dark red frame, white opening, gray mesh)
+2. **Custom Views**: Support xlim/ylim for offensive+neutral zone view
+3. **Player Queues**: Position at x=10 (neutral zone) with 4-unit vertical spacing
+4. **Simplified Diagrams**: Sometimes better without movement lines - let positioning tell the story
+5. **Coach Positioning**: Inside blue line (x=30) vs on blue line (x=25)
+
+### Key Automation Opportunities
+1. **Auto-layout functions** for common setups (3v3, queues, multiple nets)
+2. **Template drills** with parameterized positions
+3. **Movement macros** for standard patterns (breakout, forecheck, etc.)
+4. **Smart validation** to catch common errors early
+
+## Final Implementation Stats
+- **Total Iterations**: 31 (Drill 1: 16, Drill 2: 9, Drill 3: 2, Drill 4: 4)
+- **Potential with utilities**: 8-10 iterations (68% reduction)
+- **Key to efficiency**: Start with correct z-order, use utilities, apply lessons learned
