@@ -206,7 +206,54 @@ Standard mathematical coordinates used:
 - Defensive engagement should be clearly marked with pressure lines
 - Final defensive position matters for drill clarity
 
+### Key Implementation Learnings (Drill 3 - 2 iterations)
+
+#### 12. Multi-Part Drills
+- Separate diagrams for different phases (e.g., breakout vs break-in)
+- Clear sequential numbering for step-by-step progressions
+- Label movement options with A/B/C for alternative plays
+
+#### 13. Defensive Reactions
+- Show defensive movements with different line styles
+- Use "pressure" movement type for defensive engagement
+- Position defensive players to show coverage concepts
+
+### Key Implementation Learnings (Drill 4 - 4 iterations)
+
+#### 14. Custom View Support
+- Added custom rink view with xlim/ylim parameters:
+```json
+{
+  "view": "custom",
+  "xlim": [0, 100],
+  "ylim": [-42.5, 42.5]
+}
+```
+
+#### 15. Multiple Nets Setup
+- Second net can be represented using zone rectangles
+- Layer multiple zones for realistic net appearance:
+  - Dark red rectangle for frame (opacity 0.9)
+  - White rectangle for opening (opacity 0.8)
+  - Gray rectangle for mesh (opacity 0.3)
+
+#### 16. Player Queues in Neutral Zone
+- Position queues at x=10 (neutral zone)
+- Separate home/away queues on opposite sides
+- 4-unit vertical spacing between queue players
+
+#### 17. Simplified Diagrams
+- Remove movement lines for cleaner setup diagrams
+- Show only positioning and equipment
+- Let drill dynamics be explained verbally
+
+#### 18. Zone-Based Drills
+- Small area games benefit from zone boundaries
+- Use multiple coaches as passing stations
+- Both goalies face same direction (toward offensive end)
+
 ## Version History
 - v1.0 (2025-01-27): Initial specification based on Hockey Canada template legend
 - v1.1 (2025-01-27): Added implementation details from Drill 1 development
 - v1.2 (2025-01-27): Added learnings from Drill 2 (equipment, cross-ice movement, pucks)
+- v1.3 (2025-01-27): Added learnings from Drills 3-4 (multi-part drills, custom views, multiple nets)

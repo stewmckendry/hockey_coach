@@ -95,7 +95,10 @@ class DiagramBuilder:
         self.rink.draw(ax=self.ax)
         
         # Set view based on spec
-        self._set_view(spec.rink.get("view", "full"))
+        if spec.rink.get("view") == "custom":
+            self._set_view(spec.rink)
+        else:
+            self._set_view(spec.rink.get("view", "full"))
         
         # Draw elements in order with higher z-order
         if spec.zones:
@@ -120,9 +123,15 @@ class DiagramBuilder:
         
         return output_path
         
-    def _set_view(self, view: str):
-        """Set the rink view (full, offensive, defensive, neutral, half)."""
-        if view == "offensive":
+    def _set_view(self, view: str | dict):
+        """Set the rink view (full, offensive, defensive, neutral, half, custom)."""
+        if isinstance(view, dict) and view.get('view') == 'custom':
+            # Custom view with specific xlim and ylim
+            if 'xlim' in view:
+                self.ax.set_xlim(view['xlim'])
+            if 'ylim' in view:
+                self.ax.set_ylim(view['ylim'])
+        elif view == "offensive":
             self.ax.set_xlim(25, 100)
             self.ax.set_ylim(-42.5, 42.5)
         elif view == "defensive":
