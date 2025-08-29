@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Hockey Diagram MCP Server v2 - Streamlined 8-tool design.
+Hockey Diagram MCP Server v2 - Enhanced 11-tool design.
 Following n8n pattern for clarity and reduced cognitive load.
+Includes preview capabilities and relative positioning.
 """
 
 from __future__ import annotations
@@ -32,15 +33,65 @@ from hockey_diagram_builder import DiagramBuilder, DiagramSpec
 from spec_converter import dict_to_diagram_spec, validate_spec_dict
 from auto_trace_logger import start_session, complete_session, get_session_for_sheets, add_agent_annotations
 
+# Import modular components
+from diagram_schemas import (
+    NODE_SCHEMAS, DIAGRAM_SPEC_SCHEMA,
+    PLAYER_TYPES, MOVEMENT_TYPES, MOVEMENT_STYLES,
+    RINK_VIEWS, ZONE_TYPES, ZONE_SHAPES, TEXT_ANCHORS
+)
+from position_mapper import (
+    map_position, calculate_waypoints,
+    OFFENSIVE_POSITIONS, DEFENSIVE_POSITIONS, NEUTRAL_POSITIONS,
+    parse_relative_position, enhance_position_with_relative
+)
+from validators import validate_node, validate_spec, check_spatial_conflicts
+from diagram_examples import get_examples_for_node
+
+# Import trace logging
+import functools
+
+def trace_tool(func):
+    """Decorator to automatically log tool calls to trace."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # Extract session_id if present
+        session_id = kwargs.get('session_id')
+        tool_name = func.__name__
+        trace_logger = None
+        
+        # Log the call if session exists
+        if session_id:
+            from auto_trace_logger import get_logger
+            trace_logger = get_logger()
+            # Log args without session_id to avoid clutter
+            log_args = {k: v for k, v in kwargs.items() if k != 'session_id'}
+            trace_logger.log_tool_call(
+                session_id=session_id,
+                tool_name=tool_name,
+                args=log_args,
+                result=None
+            )
+        
+        # Execute the tool
+        result = func(*args, **kwargs)
+        
+        # Update result in trace
+        if session_id and trace_logger:
+            trace_logger.update_last_result(session_id, result)
+        
+        return result
+    return wrapper
+
+# Setup logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # OpenAI for LLM validation (lazy load)
 try:
     from openai import OpenAI
     client = OpenAI()
 except:
     client = None
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Initialize MCP server
 mcp = FastMCP("Hockey Diagram MCP v2", stateless_http=True)
@@ -63,11 +114,14 @@ WORKFLOW_INSTRUCTIONS = """
 3. Use `search_diagram_node` to understand spec structure
 
 ### Phase 3: Build
-1. Build spec using schemas from `search_diagram_node`:
+1. Use mapping tools for natural language positions:
+   - `map_position_to_coordinates` - Convert positions like "left faceoff dot" to {x, y}
+   - `map_movement_to_coordinates` - Generate complete movements with waypoints
+2. Build spec using schemas from `search_diagram_node`:
    - "players" - Player positions and types
    - "movements" - Skating, passing, shooting patterns
    - "rink" - View and zone configuration
-2. Call `validate_diagram_node_minimal` for each section
+3. Call `validate_diagram_node_minimal` for each section
 
 ### Phase 4: Validate
 1. Call `validate_diagram_spec_full` with complete spec
@@ -117,7 +171,9 @@ def initialize_diagram(drill_request: str) -> Dict[str, Any]:
         "workflow_instructions": WORKFLOW_INSTRUCTIONS,
         "tool_sequence": [
             "search_diagram_template → fetch_diagram_template (optional)",
-            "search_diagram_node (for each spec section)",
+            "map_position_to_coordinates (for player positions)",
+            "map_movement_to_coordinates (for movements with waypoints)",
+            "search_diagram_node (for spec schemas)",
             "validate_diagram_node_minimal (as you build)",
             "validate_diagram_spec_full (complete validation)",
             "generate_diagram (create output)"
@@ -135,7 +191,8 @@ def initialize_diagram(drill_request: str) -> Dict[str, Any]:
 # ============================================================================
 
 @mcp.tool("search_diagram_node")
-def search_diagram_node(node_type: str) -> Dict[str, Any]:
+@trace_tool
+def search_diagram_node(node_type: str, session_id: Optional[str] = None) -> Dict[str, Any]:
     """Get schema and instructions for a diagram spec node.
     
     Args:
@@ -146,33 +203,27 @@ def search_diagram_node(node_type: str) -> Dict[str, Any]:
     """
     logger.info(f"📋 [SCHEMA] Getting schema for: {node_type}")
     
+    # Use imported schemas from diagram_schemas module
+    if node_type not in NODE_SCHEMAS:
+        return {
+            "error": f"Unknown node type: {node_type}",
+            "available_types": list(NODE_SCHEMAS.keys())
+        }
+    
+    # Build response with schema and enhanced guidance  
+    base_schema = NODE_SCHEMAS[node_type]
+    
+    # Get examples and patterns
+    examples_data = get_examples_for_node(node_type)
+    
+    # Create node-specific enhanced responses
     schemas = {
         "players": {
             "description": "Player positions and configurations",
-            "schema": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "required": ["type", "position", "team", "has_puck", "coordinates"],
-                    "properties": {
-                        "type": {"enum": ["forward", "defense", "goalie", "coach"]},
-                        "position": {"type": "string", "pattern": "^[FDG][0-9]?$|^COACH$"},
-                        "team": {"enum": ["home", "away"]},
-                        "has_puck": {"type": "boolean"},
-                        "coordinates": {
-                            "type": "object",
-                            "properties": {
-                                "x": {"type": "number", "minimum": -100, "maximum": 100},
-                                "y": {"type": "number", "minimum": -42.5, "maximum": 42.5}
-                            }
-                        },
-                        "label": {"type": "string"}
-                    }
-                }
-            },
+            "schema": base_schema,
             "enums": {
-                "type": ["forward", "defense", "goalie", "coach"],
-                "team": ["home", "away"],
+                "type": PLAYER_TYPES,
+                "team": ["home", "visitor"],
                 "common_positions": ["F1", "F2", "F3", "D1", "D2", "G", "COACH"]
             },
             "examples": [
@@ -185,64 +236,18 @@ def search_diagram_node(node_type: str) -> Dict[str, Any]:
                 "Positions: F1-F3 (forwards), D1-D2 (defense), G (goalie)"
             ],
             "landmark_positions": {
-                "offensive_zone": {
-                    "left_dot": {"x": -69, "y": 22.5},
-                    "right_dot": {"x": -69, "y": -22.5},
-                    "slot": {"x": -69, "y": 0},
-                    "hash_left": {"x": -75, "y": 22.5},
-                    "hash_right": {"x": -75, "y": -22.5},
-                    "net_front": {"x": -86, "y": 0},
-                    "goal_line": {"x": -89, "y": 0},
-                    "left_corner": {"x": -89, "y": 36},
-                    "right_corner": {"x": -89, "y": -36}
-                },
-                "neutral_zone": {
-                    "center_ice": {"x": 0, "y": 0},
-                    "blue_line_offensive": {"x": -25, "y": 0},
-                    "blue_line_defensive": {"x": 25, "y": 0}
-                },
-                "defensive_zone": {
-                    "behind_net": {"x": 89, "y": 0},
-                    "left_post": {"x": 89, "y": 6},
-                    "right_post": {"x": 89, "y": -6},
-                    "left_dot": {"x": 69, "y": 22.5},
-                    "right_dot": {"x": 69, "y": -22.5}
-                }
+                "offensive_zone": dict(OFFENSIVE_POSITIONS),
+                "neutral_zone": dict(NEUTRAL_POSITIONS),
+                "defensive_zone": dict(DEFENSIVE_POSITIONS)
             },
             "standard_positions": STANDARD_POSITIONS
         },
         "movements": {
             "description": "Movement patterns (skating, passing, shooting)",
-            "schema": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "required": ["type", "from_pos", "to_pos", "style"],
-                    "properties": {
-                        "type": {"enum": ["skate", "pass", "shot", "carry", "pressure"]},
-                        "from_pos": {
-                            "type": "object",
-                            "properties": {
-                                "x": {"type": "number"},
-                                "y": {"type": "number"}
-                            }
-                        },
-                        "to_pos": {
-                            "type": "object",
-                            "properties": {
-                                "x": {"type": "number"},
-                                "y": {"type": "number"}
-                            }
-                        },
-                        "style": {"enum": ["solid", "dashed", "dotted", "wavy"]},
-                        "waypoints": {"type": "array", "items": {"type": "object"}},
-                        "label": {"type": "string"}
-                    }
-                }
-            },
+            "schema": base_schema,
             "enums": {
-                "type": ["skate", "pass", "shot", "carry", "pressure"],
-                "style": ["solid", "dashed", "dotted", "wavy"]
+                "type": MOVEMENT_TYPES,
+                "style": MOVEMENT_STYLES
             },
             "style_mapping": {
                 "skate": "solid (continuous movement)",
@@ -287,14 +292,9 @@ def search_diagram_node(node_type: str) -> Dict[str, Any]:
         },
         "rink": {
             "description": "Rink view and configuration",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "view": {"enum": ["full", "half", "offensive", "defensive", "neutral"]}
-                }
-            },
+            "schema": base_schema,
             "enums": {
-                "view": ["full", "half", "offensive", "defensive", "neutral"]
+                "view": RINK_VIEWS
             },
             "view_guidelines": {
                 "full": "Complete rink - use for full-ice drills",
@@ -306,27 +306,17 @@ def search_diagram_node(node_type: str) -> Dict[str, Any]:
         },
         "zones": {
             "description": "Zone markers and boundaries",
-            "schema": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "type": {"enum": ["cone", "pylon", "tire", "net", "line", "area"]},
-                        "coordinates": {"type": "object"},
-                        "size": {"type": "number"},
-                        "label": {"type": "string"}
-                    }
-                }
-            },
+            "schema": base_schema,
             "enums": {
-                "type": ["cone", "pylon", "tire", "net", "line", "area"]
+                "type": ZONE_TYPES,
+                "shape": ZONE_SHAPES
             }
         },
         "annotations": {
             "description": "Text annotations and notes",
-            "schema": {
-                "type": "array",
-                "items": {"type": "string"}
+            "schema": base_schema,
+            "enums": {
+                "anchor": TEXT_ANCHORS
             },
             "examples": [
                 "U12 Give and Go Drill",
@@ -342,14 +332,20 @@ def search_diagram_node(node_type: str) -> Dict[str, Any]:
             "available_types": list(schemas.keys())
         }
     
-    return schemas[node_type]
+    # Add examples and patterns to the response
+    response = schemas[node_type]
+    response["examples"] = examples_data.get("examples", {})
+    response["patterns"] = examples_data.get("patterns", {})
+    
+    return response
 
 # ============================================================================
 # TOOL 3: SEARCH DIAGRAM TEMPLATE
 # ============================================================================
 
 @mcp.tool("search_diagram_template")
-def search_diagram_template(query: str, template_type: Optional[str] = None, limit: int = 3) -> List[Dict[str, Any]]:
+@trace_tool
+def search_diagram_template(query: str, template_type: Optional[str] = None, limit: int = 3, session_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """Search for matching drill templates.
     
     Args:
@@ -395,7 +391,8 @@ def search_diagram_template(query: str, template_type: Optional[str] = None, lim
 # ============================================================================
 
 @mcp.tool("fetch_diagram_template")
-def fetch_diagram_template(template_name: str) -> Dict[str, Any]:
+@trace_tool
+def fetch_diagram_template(template_name: str, session_id: Optional[str] = None) -> Dict[str, Any]:
     """Fetch complete template JSON.
     
     Args:
@@ -448,7 +445,8 @@ def fetch_diagram_template(template_name: str) -> Dict[str, Any]:
 # ============================================================================
 
 @mcp.tool("validate_diagram_node_minimal")
-def validate_diagram_node_minimal(node_type: str, node_data: Any) -> Dict[str, Any]:
+@trace_tool
+def validate_diagram_node_minimal(node_type: str, node_data: Any, session_id: Optional[str] = None) -> Dict[str, Any]:
     """Validate a single node of the diagram spec.
     
     Args:
@@ -460,72 +458,41 @@ def validate_diagram_node_minimal(node_type: str, node_data: Any) -> Dict[str, A
     """
     logger.info(f"✅ [VALIDATE NODE] {node_type}")
     
-    issues = []
+    # Use modular validator for basic schema validation
+    result = validate_node(node_type, node_data)
+    
+    # Add additional hockey-specific warnings
     warnings = []
     fixes = {}
     
-    if node_type == "players":
-        if not isinstance(node_data, list):
-            issues.append("Players must be a list")
-            return {"valid": False, "issues": issues}
-        
-        has_puck_count = 0
-        for i, player in enumerate(node_data):
-            # Check required fields
-            required = ["type", "position", "team", "has_puck", "coordinates"]
-            for field in required:
-                if field not in player:
-                    issues.append(f"Player {i}: missing '{field}'")
-                    fixes[f"player_{i}"] = {field: "default_value"}
-            
-            # Check has_puck
-            if player.get("has_puck", False):
-                has_puck_count += 1
-        
-        if has_puck_count > 1:
-            issues.append("Multiple players have puck (only one allowed)")
-        elif has_puck_count == 0:
+    if node_type == "players" and result["valid"]:
+        has_puck_count = sum(1 for p in node_data if p.get("has_puck", False))
+        if has_puck_count == 0:
             warnings.append("No player has puck - is this intentional?")
             
-    elif node_type == "movements":
-        if not isinstance(node_data, list):
-            issues.append("Movements must be a list")
-            return {"valid": False, "issues": issues}
-        
+    elif node_type == "movements" and result["valid"]:
         for i, movement in enumerate(node_data):
-            # Check required fields
-            required = ["type", "from_pos", "to_pos", "style"]
-            for field in required:
-                if field not in movement:
-                    issues.append(f"Movement {i}: missing '{field}'")
-            
-            # Check cross-ice
+            # Check cross-ice movements
             if movement.get("type") == "skate":
-                from_y = movement.get("from_pos", {}).get("y", 0)
-                to_y = movement.get("to_pos", {}).get("y", 0)
+                from_pos = movement.get("from", {})
+                to_pos = movement.get("to", {})
+                from_y = from_pos.get("y", 0)
+                to_y = to_pos.get("y", 0)
                 if abs(to_y - from_y) > 40:
                     if "waypoints" not in movement:
                         warnings.append(f"Movement {i}: Cross-ice movement should have waypoints for smooth curve")
                         
-    elif node_type == "rink":
-        if not isinstance(node_data, dict):
-            issues.append("Rink must be an object")
-            return {"valid": False, "issues": issues}
-        
+    elif node_type == "rink" and result["valid"]:
         if "view" not in node_data:
             warnings.append("No view specified, will use 'offensive' by default")
             fixes["rink"] = {"view": "offensive"}
-            
-    elif node_type == "annotations":
-        if not isinstance(node_data, list):
-            issues.append("Annotations must be a list")
-            return {"valid": False, "issues": issues}
-            
+    
     return {
-        "valid": len(issues) == 0,
-        "issues": issues,
+        "valid": result["valid"],
+        "issues": result.get("errors", []),
         "warnings": warnings,
-        "fixes": fixes if fixes else None
+        "fixes": fixes if fixes else None,
+        "path": result.get("path")
     }
 
 # ============================================================================
@@ -533,7 +500,8 @@ def validate_diagram_node_minimal(node_type: str, node_data: Any) -> Dict[str, A
 # ============================================================================
 
 @mcp.tool("validate_diagram_spec_full")
-def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[str] = None) -> Dict[str, Any]:
+@trace_tool
+def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[str] = None, session_id: Optional[str] = None) -> Dict[str, Any]:
     """Complete validation of entire diagram specification.
     
     Args:
@@ -545,20 +513,13 @@ def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[
     """
     logger.info(f"🔍 [VALIDATE FULL] Spec with {len(spec.get('players', []))} players")
     
-    # Structure validation
-    structure_issues = validate_spec_dict(spec)
-    structure_valid = len(structure_issues) == 0
+    # Use modular validators
+    validation_result = validate_spec(spec)
+    structure_valid = validation_result["valid"]
+    structure_issues = validation_result.get("errors", [])
     
-    # Spatial validation
-    spatial_issues = []
-    if "players" in spec:
-        for i, p1 in enumerate(spec["players"]):
-            for j, p2 in enumerate(spec["players"][i+1:], i+1):
-                dist = ((p1["coordinates"]["x"] - p2["coordinates"]["x"])**2 + 
-                       (p1["coordinates"]["y"] - p2["coordinates"]["y"])**2)**0.5
-                if dist < 5:
-                    spatial_issues.append(f"Players {p1.get('position', i)} and {p2.get('position', j)} too close ({dist:.1f} units)")
-    
+    # Spatial validation using modular function
+    spatial_issues = check_spatial_conflicts(spec)
     spatial_valid = len(spatial_issues) == 0
     
     # Hockey sense validation (LLM if available)
@@ -613,11 +574,159 @@ def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[
     }
 
 # ============================================================================
-# TOOL 7: GENERATE DIAGRAM
+# TOOL 7: PREVIEW DIAGRAM
+# ============================================================================
+
+@mcp.tool("preview_diagram")
+@trace_tool
+def preview_diagram(spec: Dict[str, Any], format: str = "ascii", session_id: Optional[str] = None) -> Dict[str, Any]:
+    """Preview the diagram as ASCII art or coordinate list.
+    
+    Args:
+        spec: Diagram specification to preview
+        format: "ascii" for ASCII art, "coordinates" for coordinate list
+        
+    Returns:
+        Preview representation of the diagram
+    """
+    logger.info(f"👁️ [PREVIEW] Generating {format} preview")
+    
+    if format == "ascii":
+        # Create simple ASCII representation
+        # Full rink is 200x85, scale down to 40x17 for ASCII
+        ascii_width = 40
+        ascii_height = 17
+        
+        # Initialize ASCII grid
+        grid = [[' ' for _ in range(ascii_width)] for _ in range(ascii_height)]
+        
+        # Draw basic rink outline
+        for x in range(ascii_width):
+            grid[0][x] = '-'
+            grid[ascii_height-1][x] = '-'
+        for y in range(ascii_height):
+            grid[y][0] = '|'
+            grid[y][ascii_width-1] = '|'
+            
+        # Add center line
+        center_x = ascii_width // 2
+        for y in range(1, ascii_height-1):
+            grid[y][center_x] = '|'
+            
+        # Add goals
+        grid[ascii_height//2][1] = 'G'
+        grid[ascii_height//2][ascii_width-2] = 'G'
+        
+        # Plot players
+        players = spec.get("players", [])
+        for player in players:
+            coords = player.get("coordinates", {})
+            x = coords.get("x", 0)
+            y = coords.get("y", 0)
+            
+            # Convert rink coords to ASCII coords
+            ascii_x = int((x + 100) * ascii_width / 200)
+            ascii_y = int((y + 42.5) * ascii_height / 85)
+            
+            # Clamp to grid bounds
+            ascii_x = max(1, min(ascii_width-2, ascii_x))
+            ascii_y = max(1, min(ascii_height-2, ascii_y))
+            
+            # Get player symbol
+            pos = player.get("position", "")
+            if pos.startswith("F"):
+                symbol = 'F'
+            elif pos.startswith("D"):
+                symbol = 'D'
+            elif pos.startswith("G"):
+                symbol = 'G'
+            else:
+                symbol = 'P'
+                
+            grid[ascii_y][ascii_x] = symbol
+            
+        # Convert grid to string
+        ascii_art = '\n'.join([''.join(row) for row in grid])
+        
+        return {
+            "format": "ascii",
+            "preview": ascii_art,
+            "legend": {
+                "F": "Forward",
+                "D": "Defense", 
+                "G": "Goalie",
+                "P": "Player",
+                "|": "Lines",
+                "-": "Boards"
+            }
+        }
+        
+    elif format == "coordinates":
+        # Generate coordinate list
+        coord_list = []
+        
+        # List players
+        players = spec.get("players", [])
+        for player in players:
+            coords = player.get("coordinates", {})
+            coord_list.append({
+                "type": "player",
+                "position": player.get("position"),
+                "team": player.get("team"),
+                "x": coords.get("x"),
+                "y": coords.get("y")
+            })
+            
+        # List movements
+        movements = spec.get("movements", [])
+        for i, movement in enumerate(movements):
+            from_pos = movement.get("from_pos", {})
+            to_pos = movement.get("to_pos", {})
+            coord_list.append({
+                "type": "movement",
+                "movement_type": movement.get("type"),
+                "from": f"({from_pos.get('x')}, {from_pos.get('y')})",
+                "to": f"({to_pos.get('x')}, {to_pos.get('y')})",
+                "waypoints": movement.get("waypoints", [])
+            })
+            
+        # List zones
+        zones = spec.get("zones", [])
+        for zone in zones:
+            pos = zone.get("position", {})
+            coord_list.append({
+                "type": "zone",
+                "zone_type": zone.get("type"),
+                "shape": zone.get("shape"),
+                "position": f"({pos.get('x')}, {pos.get('y')})",
+                "dimensions": zone.get("dimensions", {})
+            })
+            
+        return {
+            "format": "coordinates",
+            "total_elements": {
+                "players": len(players),
+                "movements": len(movements),
+                "zones": len(zones),
+                "annotations": len(spec.get("annotations", []))
+            },
+            "coordinates": coord_list,
+            "rink_view": spec.get("rink", {}).get("view", "full")
+        }
+        
+    else:
+        return {
+            "error": f"Unknown format: {format}",
+            "available_formats": ["ascii", "coordinates"]
+        }
+
+# ============================================================================
+# TOOL 8: GENERATE DIAGRAM
 # ============================================================================
 
 @mcp.tool("generate_diagram")
-def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None) -> Dict[str, Any]:
+@trace_tool
+def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None, session_id: Optional[str] = None) -> Dict[str, Any]:
     """Generate the hockey diagram and save files.
     
     Args:
@@ -634,45 +743,58 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None) ->
     
     # Step 1: Convert spec
     trace.append({"step": 1, "action": "convert_spec", "status": "starting"})
-    diagram_spec = dict_to_diagram_spec(spec)
-    if not diagram_spec:
-        return {
-            "success": False,
-            "error": "Failed to convert spec to diagram",
-            "trace": trace
-        }
-    trace[-1]["status"] = "success"
-    
-    # Step 2: Generate diagram
-    trace.append({"step": 2, "action": "generate_svg", "status": "starting"})
     try:
-        builder = DiagramBuilder()
-        svg_content = builder.build(diagram_spec)
+        diagram_spec = dict_to_diagram_spec(spec)
+        if not diagram_spec:
+            return {
+                "success": False,
+                "error": "Failed to convert spec to diagram - returned None",
+                "trace": trace
+            }
         trace[-1]["status"] = "success"
     except Exception as e:
-        trace[-1]["status"] = "failed"
-        trace[-1]["error"] = str(e)
+        logger.error(f"Error converting spec: {e}")
+        import traceback
+        error_detail = traceback.format_exc()
         return {
             "success": False,
-            "error": f"Failed to generate diagram: {e}",
+            "error": f"Failed to convert spec: {str(e)}",
+            "error_detail": error_detail,
             "trace": trace
         }
     
-    # Step 3: Save files
-    trace.append({"step": 3, "action": "save_files", "status": "starting"})
-    
-    # Generate output name
+    # Step 2: Generate output paths
     if not output_name:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_name = f"diagram_{timestamp}"
     
     output_dir = Path(__file__).parent.parent / "output"
     output_dir.mkdir(exist_ok=True)
-    
-    # Save SVG
     svg_path = output_dir / f"{output_name}.svg"
-    with open(svg_path, 'w') as f:
-        f.write(svg_content)
+    
+    # Step 3: Generate diagram
+    trace.append({"step": 2, "action": "generate_svg", "status": "starting"})
+    try:
+        builder = DiagramBuilder()
+        result_path = builder.build(diagram_spec, str(svg_path))
+        trace[-1]["status"] = "success"
+        trace[-1]["output_path"] = str(result_path)
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"Diagram generation error: {e}\n{tb}")
+        trace[-1]["status"] = "failed"
+        trace[-1]["error"] = str(e)
+        trace[-1]["traceback"] = tb
+        return {
+            "success": False,
+            "error": f"Failed to generate diagram: {e}",
+            "error_detail": tb,
+            "trace": trace
+        }
+    
+    # Step 4: Save spec files
+    trace.append({"step": 3, "action": "save_files", "status": "starting"})
     
     # Save spec JSON
     spec_path = output_dir / f"{output_name}.json"
@@ -682,26 +804,268 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None) ->
     trace[-1]["status"] = "success"
     trace[-1]["files"] = [str(svg_path), str(spec_path)]
     
-    # Complete session
-    session_data = complete_session(success=True, lessons="Diagram generated successfully")
+    # Complete session and get trace file path
+    trace_path = None
+    if session_id:
+        from auto_trace_logger import get_logger
+        trace_logger = get_logger()
+        trace_path = trace_logger.get_session_file_path(session_id)
+        session_data = complete_session(session_id=session_id, success=True, lessons="Diagram generated successfully")
+    else:
+        session_data = {}
+    
+    # Get trace data for sheets if session exists
+    trace_for_sheets = None
+    if session_id:
+        trace_for_sheets = get_session_for_sheets(session_id)
     
     return {
         "success": True,
         "image_path": str(svg_path),
         "spec_path": str(spec_path),
+        "trace_path": str(trace_path) if trace_path else None,
         "trace": trace,
-        "session_id": session_data.get("session_id"),
+        "session_id": session_id,
         "total_tool_calls": len(session_data.get("tool_calls", [])),
-        "upload_instructions": "Use google-sheets MCP tool to upload trace with your reasoning",
-        "trace_data": get_session_for_sheets()
+        "trace_data": trace_for_sheets,
+        "upload_ready": trace_for_sheets is not None
     }
 
 # ============================================================================
-# TOOL 8: HEALTH CHECK
+# TOOL 8: MAP POSITION TO COORDINATES
+# ============================================================================
+
+@mcp.tool("map_position_to_coordinates")
+@trace_tool
+def map_position_to_coordinates(position: str, zone: Optional[str] = "offensive", reference_positions: Optional[Dict[str, List[float]]] = None, session_id: Optional[str] = None) -> Dict[str, Any]:
+    """Map natural language position to exact coordinates.
+    
+    Args:
+        position: Natural language position (e.g., "left faceoff dot", "behind net", "high slot")
+                 or relative position (e.g., "5 units left of F1", "between F1 and F2")
+        zone: Context zone - "offensive", "defensive", or "neutral" (default: offensive)
+        reference_positions: Optional dict of existing positions for relative positioning
+                           Format: {"F1": [x, y], "F2": [x, y]}
+        
+    Returns:
+        Exact coordinates and confidence level
+    """
+    logger.info(f"📍 [MAP POSITION] '{position}' in {zone} zone")
+    
+    # Convert reference positions to tuple format if provided
+    ref_pos_tuples = {}
+    if reference_positions:
+        for name, coords in reference_positions.items():
+            if isinstance(coords, (list, tuple)) and len(coords) >= 2:
+                ref_pos_tuples[name] = (coords[0], coords[1])
+    
+    # Try relative positioning first if references provided
+    if ref_pos_tuples:
+        relative_coords = parse_relative_position(position, ref_pos_tuples)
+        if relative_coords:
+            x, y = relative_coords
+            return {
+                "success": True,
+                "position": position,
+                "zone": zone,
+                "coordinates": {"x": x, "y": y},
+                "positioning_type": "relative",
+                "reference_positions": reference_positions,
+                "suggestions": [
+                    "Relative position successfully calculated",
+                    f"Position: ({x:.1f}, {y:.1f})"
+                ]
+            }
+    
+    # Use standard position mapper
+    try:
+        coords = map_position(position, zone)
+        return {
+            "success": True,
+            "position": position,
+            "zone": zone,
+            "coordinates": coords,
+            "positioning_type": "standard",
+            "confidence": 1.0,
+            "match_type": "exact"
+        }
+    except Exception:
+        # Position not found exactly, try fuzzy matching
+        pass
+    
+    # Try fuzzy matching with LLM if available
+    if client:
+        try:
+            # Get available positions for this zone
+            if zone == "offensive":
+                positions_dict = OFFENSIVE_POSITIONS
+            elif zone == "defensive":
+                positions_dict = DEFENSIVE_POSITIONS
+            else:
+                positions_dict = NEUTRAL_POSITIONS
+            
+            all_positions = [f"{name}: {coords}" for name, coords in positions_dict.items()]
+            
+            prompt = f"""
+            Map this hockey position to coordinates: "{position}"
+            Context zone: {zone}
+            
+            Available positions:
+            {chr(10).join(all_positions[:20])}
+            
+            Return the best matching position name, zone, and coordinates.
+            Format: position_name|zone|x|y
+            """
+            
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=50
+            )
+            
+            result = response.choices[0].message.content.strip()
+            parts = result.split("|")
+            if len(parts) == 4:
+                return {
+                    "success": True,
+                    "position": position,
+                    "zone": parts[1],
+                    "coordinates": {"x": float(parts[2]), "y": float(parts[3])},
+                    "confidence": 0.8,
+                    "match_type": "llm",
+                    "matched_to": parts[0]
+                }
+        except:
+            pass
+    
+    # No match found - return suggestions
+    if zone == "offensive":
+        suggestions = list(OFFENSIVE_POSITIONS.keys())[:10]
+    elif zone == "defensive":
+        suggestions = list(DEFENSIVE_POSITIONS.keys())[:10]
+    else:
+        suggestions = list(NEUTRAL_POSITIONS.keys())[:10]
+    
+    return {
+        "success": False,
+        "position": position,
+        "zone": zone,
+        "error": f"Could not map position '{position}' to coordinates",
+        "suggestions": suggestions
+    }
+
+# ============================================================================
+# TOOL 9: MAP MOVEMENT TO COORDINATES
+# ============================================================================
+
+@mcp.tool("map_movement_to_coordinates")
+@trace_tool
+def map_movement_to_coordinates(
+    from_position: str,
+    to_position: str,
+    movement_type: str = "skate",
+    pattern: Optional[str] = "auto",
+    zone: Optional[str] = "offensive",
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """Generate complete movement specification with waypoints for curves.
+    
+    Args:
+        from_position: Starting position in natural language
+        to_position: Ending position in natural language
+        movement_type: Type of movement - "skate", "pass", "shot", "carry"
+        pattern: Movement pattern - "auto", "drive", "cross_ice", "cycle", "weave", "direct"
+        zone: Context zone for position mapping
+        
+    Returns:
+        Complete movement specification with coordinates and waypoints
+    """
+    logger.info(f"🏒 [MAP MOVEMENT] {movement_type}: '{from_position}' → '{to_position}'")
+    
+    # Map positions to coordinates
+    from_result = map_position_to_coordinates(from_position, zone)
+    to_result = map_position_to_coordinates(to_position, zone)
+    
+    if not from_result["success"] or not to_result["success"]:
+        return {
+            "success": False,
+            "error": "Could not map positions to coordinates",
+            "from_result": from_result,
+            "to_result": to_result
+        }
+    
+    from_coords = from_result["coordinates"]
+    to_coords = to_result["coordinates"]
+    
+    # Calculate movement metrics
+    dx = to_coords["x"] - from_coords["x"]
+    dy = to_coords["y"] - from_coords["y"]
+    distance = (dx**2 + dy**2)**0.5
+    
+    # Auto-detect pattern if needed
+    if pattern == "auto":
+        if abs(dy) > 40:
+            pattern = "cross_ice"
+        elif "corner" in from_position.lower() and "net" in to_position.lower():
+            pattern = "drive"
+        elif "corner" in from_position.lower() and "corner" in to_position.lower():
+            pattern = "cycle"
+        elif distance > 60:
+            pattern = "rush"
+        elif movement_type in ["pass", "shot"]:
+            pattern = "direct"
+        else:
+            pattern = "curve"
+    
+    # Use modular waypoint calculator
+    from_tuple = (from_coords["x"], from_coords["y"])
+    to_tuple = (to_coords["x"], to_coords["y"])
+    waypoints = calculate_waypoints(from_tuple, to_tuple, pattern)
+    
+    # Determine style based on movement type
+    style_map = {
+        "skate": "solid",
+        "pass": "dotted",
+        "shot": "dashed",
+        "carry": "wavy"
+    }
+    
+    movement_spec = {
+        "type": movement_type,
+        "from_pos": from_coords,
+        "to_pos": to_coords,
+        "style": style_map.get(movement_type, "solid"),
+    }
+    
+    # Only add waypoints if they exist
+    if waypoints:
+        movement_spec["waypoints"] = waypoints
+    
+    return {
+        "success": True,
+        "movement_spec": movement_spec,
+        "pattern_used": pattern,
+        "distance": round(distance, 1),
+        "from_position": {
+            "natural": from_position,
+            "coordinates": from_coords,
+            "confidence": from_result["confidence"]
+        },
+        "to_position": {
+            "natural": to_position,
+            "coordinates": to_coords,
+            "confidence": to_result["confidence"]
+        },
+        "usage_hint": "Add this movement_spec directly to your movements array"
+    }
+
+# ============================================================================
+# TOOL 10: HEALTH CHECK
 # ============================================================================
 
 @mcp.tool("tools_health_check")
-def tools_health_check() -> Dict[str, Any]:
+@trace_tool
+def tools_health_check(session_id: Optional[str] = None) -> Dict[str, Any]:
     """Check health and statistics of the MCP server.
     
     Returns:
@@ -723,8 +1087,8 @@ def tools_health_check() -> Dict[str, Any]:
     
     return {
         "status": "healthy",
-        "version": "2.0",
-        "tools_available": 8,
+        "version": "2.1",
+        "tools_available": 10,
         "templates_available": template_count,
         "template_types": list(finder.drill_patterns.keys()),
         "trace_sessions": trace_count,

@@ -144,6 +144,29 @@ class AutoTraceLogger:
         # Save session
         self._save_session(session_id, session_data)
     
+    def update_last_result(self, session_id: str, result: Any):
+        """Update the result of the last tool call in a session.
+        
+        Args:
+            session_id: Session ID
+            result: Result to update
+        """
+        session_data = self._load_session(session_id)
+        if session_data and session_data["tool_calls"]:
+            session_data["tool_calls"][-1]["result_summary"] = self._summarize_result(result)
+            self._save_session(session_id, session_data)
+    
+    def get_session_file_path(self, session_id: str) -> Path:
+        """Get the file path for a session's trace log.
+        
+        Args:
+            session_id: Session ID
+            
+        Returns:
+            Path to the session trace file
+        """
+        return self.log_dir / f"session_{session_id}.json"
+    
     def complete_session(self, session_id: str = None, success: bool = True,
                         lessons: str = None) -> Dict[str, Any]:
         """Complete a trace session.
@@ -436,3 +459,7 @@ def add_agent_annotations(annotations: List[Dict[str, str]], session_id: str = N
 def get_all_sessions() -> List[Dict[str, Any]]:
     """Get all trace sessions."""
     return _logger.get_all_sessions()
+
+def get_logger() -> AutoTraceLogger:
+    """Get the singleton logger instance."""
+    return _logger

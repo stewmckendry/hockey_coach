@@ -67,10 +67,15 @@ def dict_to_player(player_dict: Dict[str, Any]) -> Optional[Player]:
             logger.warning(f"Player missing required fields: {player_dict}")
             return None
         
+        # Convert coordinates from dict to tuple if needed
+        coordinates = player_dict["coordinates"]
+        if isinstance(coordinates, dict):
+            coordinates = (coordinates["x"], coordinates["y"])
+        
         return Player(
             type=player_dict["type"],
             position=player_dict["position"],
-            coordinates=player_dict["coordinates"],
+            coordinates=coordinates,
             team=player_dict.get("team", "home"),
             has_puck=player_dict.get("has_puck", False),
             label=player_dict.get("label", "")
@@ -89,13 +94,34 @@ def dict_to_movement(movement_dict: Dict[str, Any]) -> Optional[Movement]:
             logger.warning(f"Movement missing required fields: {movement_dict}")
             return None
         
+        # Convert positions from dict format to tuple format
+        from_pos = movement_dict["from_pos"]
+        if isinstance(from_pos, dict):
+            from_pos = (from_pos["x"], from_pos["y"])
+        
+        to_pos = movement_dict["to_pos"]
+        if isinstance(to_pos, dict):
+            to_pos = (to_pos["x"], to_pos["y"])
+        
+        # Convert waypoints from dict format to tuple format if present
+        waypoints = None
+        if "waypoints" in movement_dict and movement_dict["waypoints"]:
+            waypoints = []
+            for wp in movement_dict["waypoints"]:
+                if isinstance(wp, dict):
+                    waypoints.append((wp["x"], wp["y"]))
+                elif isinstance(wp, (list, tuple)) and len(wp) >= 2:
+                    waypoints.append((wp[0], wp[1]))
+                else:
+                    waypoints.append(wp)
+        
         return Movement(
             type=movement_dict["type"],
-            from_pos=movement_dict["from_pos"],
-            to_pos=movement_dict["to_pos"],
+            from_pos=from_pos,
+            to_pos=to_pos,
             style=movement_dict.get("style", "solid"),
             label=movement_dict.get("label", ""),
-            waypoints=movement_dict.get("waypoints")
+            waypoints=waypoints
         )
     except Exception as e:
         logger.error(f"Failed to convert movement: {e}")
@@ -170,9 +196,25 @@ def dict_to_diagram_spec(spec_dict: Dict[str, Any]) -> Optional[DiagramSpec]:
         annotations = []
         for a in spec_dict.get("annotations", []):
             if isinstance(a, str):
-                annotations.append(a)
+                # Create a simple Annotation object for string
+                ann = Annotation(text=a, position={"x": 0, "y": -40})
+                annotations.append(ann)
             elif isinstance(a, dict):
-                annotations.append(a.get("text", ""))
+                # Convert position dict coordinates to proper format if needed
+                position = a.get("position", {"x": 0, "y": -40})
+                if isinstance(position, dict) and "x" in position and "y" in position:
+                    # Position is already in correct format
+                    pass
+                else:
+                    position = {"x": 0, "y": -40}
+                
+                ann = Annotation(
+                    text=a.get("text", ""),
+                    position=position,
+                    size=a.get("size", "medium"),
+                    style=a.get("style", "normal")
+                )
+                annotations.append(ann)
         
         # Create DiagramSpec
         return DiagramSpec(
@@ -219,12 +261,26 @@ def validate_spec_dict(spec_dict: Dict[str, Any]) -> List[str]:
             issues.append(f"Player {i} is not a dictionary")
             continue
         
+        player_label = player.get("label", player.get("position", f"Player {i}"))
+        
+        # Check required fields
+        if "type" not in player:
+            issues.append(f"{player_label}: Missing 'type' (forward/defense/goalie)")
+        elif player["type"] not in ["forward", "defense", "goalie", "coach", "puck"]:
+            issues.append(f"{player_label}: Invalid type '{player['type']}' (use: forward/defense/goalie)")
+            
+        if "position" not in player:
+            issues.append(f"{player_label}: Missing 'position' (e.g., F1, D1, G)")
+            
         if "coordinates" not in player:
-            issues.append(f"Player {i} missing coordinates")
+            issues.append(f"{player_label}: Missing 'coordinates'")
         elif not isinstance(player["coordinates"], dict):
-            issues.append(f"Player {i} coordinates must be a dict with x,y")
+            issues.append(f"{player_label}: Coordinates must be a dict with x,y")
         elif "x" not in player["coordinates"] or "y" not in player["coordinates"]:
-            issues.append(f"Player {i} coordinates missing x or y")
+            missing = []
+            if "x" not in player["coordinates"]: missing.append("x")
+            if "y" not in player["coordinates"]: missing.append("y")
+            issues.append(f"{player_label}: Coordinates missing {' and '.join(missing)}")
     
     # Validate movements
     for i, movement in enumerate(spec_dict.get("movements", [])):
@@ -232,7 +288,16 @@ def validate_spec_dict(spec_dict: Dict[str, Any]) -> List[str]:
             issues.append(f"Movement {i} is not a dictionary")
             continue
         
-        if "from_pos" not in movement or "to_pos" not in movement:
-            issues.append(f"Movement {i} missing from_pos or to_pos")
+        movement_label = movement.get("label", f"Movement {i}")
+        
+        if "type" not in movement:
+            issues.append(f"{movement_label}: Missing 'type' (skate/pass/shot/carry)")
+        elif movement["type"] not in ["skate", "pass", "shot", "carry", "pressure"]:
+            issues.append(f"{movement_label}: Invalid type '{movement['type']}' (use: skate/pass/shot/carry)")
+            
+        if "from_pos" not in movement:
+            issues.append(f"{movement_label}: Missing 'from_pos'")
+        if "to_pos" not in movement:
+            issues.append(f"{movement_label}: Missing 'to_pos'")
     
     return issues

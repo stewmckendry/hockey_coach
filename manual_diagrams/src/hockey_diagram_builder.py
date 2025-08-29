@@ -149,7 +149,11 @@ class DiagramBuilder:
     def _draw_players(self, players: List[Player]):
         """Draw players on the rink."""
         for player in players:
-            x, y = player.coordinates["x"], player.coordinates["y"]
+            # Handle both tuple and dict formats for coordinates
+            if isinstance(player.coordinates, tuple):
+                x, y = player.coordinates
+            else:
+                x, y = player.coordinates["x"], player.coordinates["y"]
             color = self.HOME_COLOR if player.team == "home" else self.AWAY_COLOR
             
             # Store position for movement references
@@ -216,11 +220,15 @@ class DiagramBuilder:
             # Resolve positions
             if isinstance(movement.from_pos, str):
                 start = self.player_positions.get(movement.from_pos, (0, 0))
+            elif isinstance(movement.from_pos, tuple):
+                start = movement.from_pos
             else:
                 start = (movement.from_pos["x"], movement.from_pos["y"])
                 
             if isinstance(movement.to_pos, str):
                 end = self.player_positions.get(movement.to_pos, (0, 0))
+            elif isinstance(movement.to_pos, tuple):
+                end = movement.to_pos
             else:
                 end = (movement.to_pos["x"], movement.to_pos["y"])
                 
