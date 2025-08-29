@@ -87,4 +87,21 @@ Modified: `/manual_diagrams/src/hockey_diagram_builder.py`
 - Lines 169-226: Player rendering with labels
 - Lines 253-305: Movement arrow improvements
 
+Modified: `/manual_diagrams/servers/hockey_diagram_mcp_v2.py`
+- Lines 773, 779, 805, 824: Changed from SVG to PNG output
+- Lines 1086-1096: Updated health check for PNG files
+
+## File Size Improvement 🎉
+
+**MASSIVE REDUCTION: 440x smaller files!**
+- **SVG format**: 30MB per diagram
+- **PNG format**: 68KB per diagram
+- **Savings**: 99.8% file size reduction
+
+This means:
+- Faster uploads/downloads
+- Less storage needed
+- Quicker sharing via email
+- Better performance on tablets
+
 The improvements focus on **clarity over complexity** - exactly what youth hockey teams need!
