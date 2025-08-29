@@ -770,13 +770,13 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None, se
     
     output_dir = Path(__file__).parent.parent / "output"
     output_dir.mkdir(exist_ok=True)
-    svg_path = output_dir / f"{output_name}.svg"
+    png_path = output_dir / f"{output_name}.png"
     
     # Step 3: Generate diagram
-    trace.append({"step": 2, "action": "generate_svg", "status": "starting"})
+    trace.append({"step": 2, "action": "generate_png", "status": "starting"})
     try:
         builder = DiagramBuilder()
-        result_path = builder.build(diagram_spec, str(svg_path))
+        result_path = builder.build(diagram_spec, str(png_path))
         trace[-1]["status"] = "success"
         trace[-1]["output_path"] = str(result_path)
     except Exception as e:
@@ -802,7 +802,7 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None, se
         json.dump(spec, f, indent=2)
     
     trace[-1]["status"] = "success"
-    trace[-1]["files"] = [str(svg_path), str(spec_path)]
+    trace[-1]["files"] = [str(png_path), str(spec_path)]
     
     # Complete session and get trace file path
     trace_path = None
@@ -821,7 +821,7 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None, se
     
     return {
         "success": True,
-        "image_path": str(svg_path),
+        "image_path": str(png_path),
         "spec_path": str(spec_path),
         "trace_path": str(trace_path) if trace_path else None,
         "trace": trace,
@@ -1083,7 +1083,8 @@ def tools_health_check(session_id: Optional[str] = None) -> Dict[str, Any]:
     
     # Check output files
     output_dir = Path(__file__).parent.parent / "output"
-    output_count = len(list(output_dir.glob("*.svg"))) if output_dir.exists() else 0
+    png_count = len(list(output_dir.glob("*.png"))) if output_dir.exists() else 0
+    svg_count = len(list(output_dir.glob("*.svg"))) if output_dir.exists() else 0
     
     return {
         "status": "healthy",
@@ -1092,7 +1093,7 @@ def tools_health_check(session_id: Optional[str] = None) -> Dict[str, Any]:
         "templates_available": template_count,
         "template_types": list(finder.drill_patterns.keys()),
         "trace_sessions": trace_count,
-        "diagrams_generated": output_count,
+        "diagrams_generated": {"png": png_count, "svg": svg_count, "total": png_count + svg_count},
         "standard_positions": len(STANDARD_POSITIONS),
         "landmarks": len(LANDMARKS),
         "llm_validation": "available" if client else "unavailable (no OpenAI key)",

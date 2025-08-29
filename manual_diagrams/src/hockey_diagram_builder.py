@@ -69,11 +69,17 @@ class DiagramSpec:
 class DiagramBuilder:
     """Builds hockey diagrams from specifications using sportypy."""
     
-    # Hockey Canada Template Colors
-    HOME_COLOR = "#0066CC"  # Blue
-    AWAY_COLOR = "#CC0000"  # Red
-    PUCK_COLOR = "#000000"  # Black
-    CONE_COLOR = "#FF6600"  # Orange
+    # Youth Hockey Optimized Colors - High visibility for coaching
+    HOME_COLOR = "#003E7E"  # Deeper blue - better on projectors
+    AWAY_COLOR = "#C8102E"  # Hockey red - official color
+    PUCK_COLOR = "#000000"  # Keep black as requested
+    CONE_COLOR = "#FF6600"  # Orange - good visibility
+    
+    # Youth-optimized sizes - bigger for clarity
+    PLAYER_RADIUS = 3.5     # Was 2, now 75% bigger
+    PUCK_RADIUS = 1.5       # Visible puck size
+    ARROW_WIDTH = 3         # Was 1-2, now thicker
+    TEXT_SIZE = 11          # Was 10, better readability
     
     def __init__(self):
         self.fig = None
@@ -161,51 +167,63 @@ class DiagramBuilder:
             
             # Draw player based on type (Hockey Canada symbols)
             if player.type == "forward":
-                # Open circle
-                circle = Circle((x, y), 2, fill=False, edgecolor=color, linewidth=2, zorder=10)
+                # Open circle with youth-optimized size
+                circle = Circle((x, y), self.PLAYER_RADIUS, fill=False, edgecolor=color, linewidth=2.5, zorder=10)
                 self.ax.add_patch(circle)
                 label = player.label or player.position
+                # Add position label for clarity
+                self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE, 
+                           fontweight='bold', color=color, zorder=11)
                 
             elif player.type == "defense":
-                # Triangle
+                # Triangle - scaled up for youth
+                size = self.PLAYER_RADIUS * 1.2
                 triangle = Polygon(
-                    [(x, y+2.5), (x-2, y-2), (x+2, y-2)],
-                    fill=False, edgecolor=color, linewidth=2, zorder=10
+                    [(x, y+size), (x-size*0.8, y-size*0.8), (x+size*0.8, y-size*0.8)],
+                    fill=False, edgecolor=color, linewidth=2.5, zorder=10
                 )
                 self.ax.add_patch(triangle)
                 label = player.label or player.position
+                # Add position label
+                self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE,
+                           fontweight='bold', color=color, zorder=11)
                 
             elif player.type == "goalie":
-                # Half-filled circle with higher z-order
-                circle = Circle((x, y), 2, facecolor=color, alpha=0.5, edgecolor=color, linewidth=2, zorder=12)
+                # Half-filled circle with higher z-order - bigger for goalies
+                circle = Circle((x, y), self.PLAYER_RADIUS * 1.3, facecolor=color, alpha=0.5, 
+                              edgecolor=color, linewidth=2.5, zorder=12)
                 self.ax.add_patch(circle)
                 label = "G"
+                # Add label
+                self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE,
+                           fontweight='bold', color='white', zorder=13)
                 
             elif player.type == "coach":
-                # Circle with C
-                circle = Circle((x, y), 2, fill=False, edgecolor=color, linewidth=2, zorder=10)
+                # Circle with C - coach size
+                circle = Circle((x, y), self.PLAYER_RADIUS, fill=False, edgecolor=color, linewidth=2.5, zorder=10)
                 self.ax.add_patch(circle)
                 label = "C"
+                # Add label
+                self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE,
+                           fontweight='bold', color=color, zorder=11)
                 
             elif player.type == "puck":
-                # Just a black dot for puck
-                self.ax.plot(x, y, 'o', markersize=6, color='black', zorder=10)
+                # Puck - visible size
+                self.ax.plot(x, y, 'o', markersize=8, color=self.PUCK_COLOR, zorder=10)
                 continue  # No label needed
                 
             else:  # opponent
-                # X marker
-                self.ax.plot(x, y, 'x', markersize=12, markeredgewidth=2, color=color, zorder=10)
+                # X marker - bigger
+                self.ax.plot(x, y, 'x', markersize=16, markeredgewidth=3, color=color, zorder=10)
                 label = player.position
-                
-            # Add label
-            if player.type not in ["opponent", "puck"]:
-                label_z_order = 13 if player.type == "goalie" else 11
-                self.ax.text(x, y, label, ha='center', va='center', 
-                           fontsize=8, fontweight='bold', color='white' if player.type == "goalie" else color, zorder=label_z_order)
+                # Add label if needed
+                if label:
+                    self.ax.text(x, y-5, label, ha='center', va='top', fontsize=self.TEXT_SIZE,
+                               fontweight='bold', color=color, zorder=11)
                 
             # Add puck if player has it
             if player.has_puck:
-                puck = Circle((x + 0.5, y + 0.5), 0.8, color=self.PUCK_COLOR, zorder=12)
+                puck = Circle((x + 2, y + 2), self.PUCK_RADIUS, color=self.PUCK_COLOR, zorder=12)
                 self.ax.add_patch(puck)
                 
     def _draw_movements(self, movements: List[Movement]):
@@ -232,30 +250,30 @@ class DiagramBuilder:
             else:
                 end = (movement.to_pos["x"], movement.to_pos["y"])
                 
-            # Style based on movement type (Hockey Canada template)
+            # Style based on movement type - Youth optimized (thicker, clearer)
             if movement.type == "carry":
                 # Solid arrow for puck carrying
                 style = "-"
-                linewidth = 3
-                color = "black"
+                linewidth = self.ARROW_WIDTH + 1  # Extra thick for carrying
+                color = self.PUCK_COLOR
             elif movement.type == "pass":
-                # Dotted arrow for passing
+                # Dotted arrow for passing - very clear dots
                 style = ":"
-                linewidth = 2
-                color = "black"
+                linewidth = self.ARROW_WIDTH
+                color = self.PUCK_COLOR
             elif movement.type == "shot":
-                # Dashed arrow for shooting
+                # Dashed arrow for shooting - bold!
                 style = "--"
-                linewidth = 2.5
-                color = "black"
+                linewidth = self.ARROW_WIDTH + 1.5
+                color = "#FF0000"  # Red for shots - kids remember!
             elif movement.type == "drop_pass":
                 # Solid with hook
                 style = "-"
-                linewidth = 2
-                color = "black"
-                # Add hook indicator
-                self.ax.plot([start[0], start[0]-2], [start[1], start[1]], 
-                           'k-', linewidth=2)
+                linewidth = self.ARROW_WIDTH
+                color = self.PUCK_COLOR
+                # Add hook indicator - bigger
+                self.ax.plot([start[0], start[0]-3], [start[1], start[1]], 
+                           'k-', linewidth=self.ARROW_WIDTH)
             elif movement.type == "backward":
                 # Wavy line for backward skating
                 self._draw_wavy_line(start, end)
@@ -265,23 +283,24 @@ class DiagramBuilder:
                 self._draw_double_arrow(start, end)
                 continue
             elif movement.type == "pressure":
-                # Thick solid line for defensive pressure
+                # Thick solid line for defensive pressure - make it obvious!
                 self.ax.plot([start[0], end[0]], [start[1], end[1]], 
-                           'k-', linewidth=4, alpha=0.7)
+                           'k-', linewidth=self.ARROW_WIDTH + 2, alpha=0.7)
                 continue
-            else:  # Default skating
+            else:  # Default skating (including "skate" type)
                 style = "-" if movement.style == "solid" else "--"
-                linewidth = 2
-                color = "gray"
+                linewidth = self.ARROW_WIDTH
+                # Use team color for skating movements
+                color = self.HOME_COLOR if movement.style == "solid" else "gray"
                 
-            # Draw arrow
+            # Draw arrow - bigger arrow heads for youth
             arrow = FancyArrowPatch(
                 start, end,
-                arrowstyle='->,head_width=0.4,head_length=0.6',
+                arrowstyle='->,head_width=0.6,head_length=0.8',
                 linestyle=style,
                 linewidth=linewidth,
                 color=color,
-                alpha=0.8,
+                alpha=0.9,  # More opaque for clarity
                 zorder=8
             )
             self.ax.add_patch(arrow)
