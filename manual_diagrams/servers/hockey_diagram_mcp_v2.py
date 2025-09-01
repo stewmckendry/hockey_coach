@@ -768,7 +768,7 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None, se
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_name = f"diagram_{timestamp}"
     
-    output_dir = Path(__file__).parent.parent / "output"
+    output_dir = Path(__file__).parent.parent / "outputs"
     output_dir.mkdir(exist_ok=True)
     png_path = output_dir / f"{output_name}.png"
     
@@ -1082,7 +1082,7 @@ def tools_health_check(session_id: Optional[str] = None) -> Dict[str, Any]:
     trace_count = len(list(trace_dir.glob("session_*.json"))) if trace_dir.exists() else 0
     
     # Check output files
-    output_dir = Path(__file__).parent.parent / "output"
+    output_dir = Path(__file__).parent.parent / "outputs"
     png_count = len(list(output_dir.glob("*.png"))) if output_dir.exists() else 0
     svg_count = len(list(output_dir.glob("*.svg"))) if output_dir.exists() else 0
     
