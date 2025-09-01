@@ -70,10 +70,11 @@ class DiagramBuilder:
     """Builds hockey diagrams from specifications using sportypy."""
     
     # Youth Hockey Optimized Colors - High visibility for coaching
-    HOME_COLOR = "#003E7E"  # Deeper blue - better on projectors
-    AWAY_COLOR = "#C8102E"  # Hockey red - official color
+    HOME_COLOR = "#1E88E5"  # Bright blue - matches reference images
+    AWAY_COLOR = "#D32F2F"  # Bright red - matches reference images
     PUCK_COLOR = "#000000"  # Keep black as requested
     CONE_COLOR = "#FF6600"  # Orange - good visibility
+    COACH_COLOR = "#4CAF50"  # Green for coaches - distinct from players
     
     # Youth-optimized sizes - bigger for clarity
     PLAYER_RADIUS = 3.5     # Was 2, now 75% bigger
@@ -167,63 +168,59 @@ class DiagramBuilder:
             
             # Draw player based on type (Hockey Canada symbols)
             if player.type == "forward":
-                # Open circle with youth-optimized size
-                circle = Circle((x, y), self.PLAYER_RADIUS, fill=False, edgecolor=color, linewidth=2.5, zorder=10)
+                # Filled circle with white text - matching reference images
+                circle = Circle((x, y), self.PLAYER_RADIUS, facecolor=color, edgecolor=color, linewidth=1, zorder=100)
                 self.ax.add_patch(circle)
                 label = player.label or player.position
-                # Add position label for clarity
+                # Add position label with white text on colored background
                 self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE, 
-                           fontweight='bold', color=color, zorder=11)
+                           fontweight='bold', color='white', zorder=101)
                 
             elif player.type == "defense":
-                # Triangle - scaled up for youth
-                size = self.PLAYER_RADIUS * 1.2
-                triangle = Polygon(
-                    [(x, y+size), (x-size*0.8, y-size*0.8), (x+size*0.8, y-size*0.8)],
-                    fill=False, edgecolor=color, linewidth=2.5, zorder=10
-                )
-                self.ax.add_patch(triangle)
+                # Filled circle with white text - same as forwards for consistency
+                circle = Circle((x, y), self.PLAYER_RADIUS, facecolor=color, edgecolor=color, linewidth=1, zorder=100)
+                self.ax.add_patch(circle)
                 label = player.label or player.position
-                # Add position label
+                # Add position label with white text
                 self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE,
-                           fontweight='bold', color=color, zorder=11)
+                           fontweight='bold', color='white', zorder=101)
                 
             elif player.type == "goalie":
                 # Half-filled circle with higher z-order - bigger for goalies
                 circle = Circle((x, y), self.PLAYER_RADIUS * 1.3, facecolor=color, alpha=0.5, 
-                              edgecolor=color, linewidth=2.5, zorder=12)
+                              edgecolor=color, linewidth=2.5, zorder=100)
                 self.ax.add_patch(circle)
                 label = "G"
                 # Add label
                 self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE,
-                           fontweight='bold', color='white', zorder=13)
+                           fontweight='bold', color='white', zorder=101)
                 
             elif player.type == "coach":
-                # Circle with C - coach size
-                circle = Circle((x, y), self.PLAYER_RADIUS, fill=False, edgecolor=color, linewidth=2.5, zorder=10)
+                # Filled circle with distinct color for coaches - high z-order to stay on top
+                circle = Circle((x, y), self.PLAYER_RADIUS, facecolor=self.COACH_COLOR, edgecolor=self.COACH_COLOR, linewidth=1, zorder=100)
                 self.ax.add_patch(circle)
-                label = "C"
-                # Add label
+                label = player.label or "C"
+                # Add label with white text
                 self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE,
-                           fontweight='bold', color=color, zorder=11)
+                           fontweight='bold', color='white', zorder=101)
                 
             elif player.type == "puck":
                 # Puck - visible size
-                self.ax.plot(x, y, 'o', markersize=8, color=self.PUCK_COLOR, zorder=10)
+                self.ax.plot(x, y, 'o', markersize=8, color=self.PUCK_COLOR, zorder=100)
                 continue  # No label needed
                 
-            else:  # opponent
-                # X marker - bigger
-                self.ax.plot(x, y, 'x', markersize=16, markeredgewidth=3, color=color, zorder=10)
-                label = player.position
-                # Add label if needed
-                if label:
-                    self.ax.text(x, y-5, label, ha='center', va='top', fontsize=self.TEXT_SIZE,
-                               fontweight='bold', color=color, zorder=11)
+            else:  # opponent - use filled circles with X labels for consistency
+                # Filled circle with X or label text
+                circle = Circle((x, y), self.PLAYER_RADIUS, facecolor=color, edgecolor=color, linewidth=1, zorder=100)
+                self.ax.add_patch(circle)
+                label = player.label or player.position or "X"
+                # Add label with white text
+                self.ax.text(x, y, label, ha='center', va='center', fontsize=self.TEXT_SIZE,
+                           fontweight='bold', color='white', zorder=101)
                 
             # Add puck if player has it
             if player.has_puck:
-                puck = Circle((x + 2, y + 2), self.PUCK_RADIUS, color=self.PUCK_COLOR, zorder=12)
+                puck = Circle((x + 2, y + 2), self.PUCK_RADIUS, color=self.PUCK_COLOR, zorder=102)
                 self.ax.add_patch(puck)
                 
     def _draw_movements(self, movements: List[Movement]):
@@ -283,9 +280,16 @@ class DiagramBuilder:
                 self._draw_double_arrow(start, end)
                 continue
             elif movement.type == "pressure":
-                # Thick solid line for defensive pressure - make it obvious!
-                self.ax.plot([start[0], end[0]], [start[1], end[1]], 
-                           'k-', linewidth=self.ARROW_WIDTH + 2, alpha=0.7)
+                # Thick solid arrow for defensive pressure - make it obvious!
+                arrow = FancyArrowPatch(
+                    start, end,
+                    arrowstyle='->,head_width=1.0,head_length=1.2',
+                    linewidth=self.ARROW_WIDTH + 2,
+                    color='black',
+                    alpha=0.8,
+                    zorder=90
+                )
+                self.ax.add_patch(arrow)
                 continue
             else:  # Default skating (including "skate" type)
                 style = "-" if movement.style == "solid" else "--"
@@ -317,21 +321,27 @@ class DiagramBuilder:
         x = np.linspace(start[0], end[0], 20)
         y = np.linspace(start[1], end[1], 20)
         # Add sine wave perturbation
-        perp_x = -(end[1] - start[1]) / np.linalg.norm([end[0]-start[0], end[1]-start[1]])
-        perp_y = (end[0] - start[0]) / np.linalg.norm([end[0]-start[0], end[1]-start[1]])
-        wave = np.sin(np.linspace(0, 3*np.pi, 20))
-        x += perp_x * wave * 0.5
-        y += perp_y * wave * 0.5
-        self.ax.plot(x, y, 'k-', linewidth=2, alpha=0.7)
+        length = np.linalg.norm([end[0]-start[0], end[1]-start[1]])
+        if length > 0:
+            perp_x = -(end[1] - start[1]) / length
+            perp_y = (end[0] - start[0]) / length
+            wave = np.sin(np.linspace(0, 3*np.pi, 20))
+            x += perp_x * wave * 2  # Increased amplitude for visibility
+            y += perp_y * wave * 2
+        self.ax.plot(x, y, 'k-', linewidth=self.ARROW_WIDTH, alpha=0.9, zorder=90)
+        # Add arrow at the end
+        self.ax.arrow(x[-2], y[-2], x[-1]-x[-2], y[-1]-y[-2],
+                     head_width=2, head_length=1.5, fc='black', ec='black', zorder=91)
         
     def _draw_double_arrow(self, start: Tuple, end: Tuple):
         """Draw a double-headed arrow for lateral movement."""
         arrow = FancyArrowPatch(
             start, end,
-            arrowstyle='<->,head_width=0.4,head_length=0.6',
-            linewidth=2,
+            arrowstyle='<->,head_width=0.8,head_length=1.0',
+            linewidth=self.ARROW_WIDTH,
             color='black',
-            alpha=0.8
+            alpha=0.9,
+            zorder=90
         )
         self.ax.add_patch(arrow)
         
@@ -486,7 +496,11 @@ class DiagramBuilder:
                 fontsize=size_map[ann.size],
                 fontweight=weight,
                 ha='center',
-                va='center'
+                va='center',
+                color='black',
+                zorder=95,  # High z-order for visibility
+                bbox=dict(boxstyle="round,pad=0.3", facecolor='white', 
+                         edgecolor='black', alpha=0.8) if ann.style == "bold" else None
             )
             
     def spec_to_json(self, spec: DiagramSpec) -> str:
