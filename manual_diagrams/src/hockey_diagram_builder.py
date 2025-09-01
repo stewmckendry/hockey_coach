@@ -17,7 +17,7 @@ import os
 @dataclass
 class Player:
     """Player element per specification."""
-    type: Literal["forward", "defense", "goalie", "coach", "opponent"]
+    type: Literal["forward", "defense", "goalie", "coach", "opponent", "puck", "net"]
     position: str  # C, LW, RW, LD, RD, G, X1-X5
     coordinates: Dict[str, float]  # {"x": 0, "y": 0}
     team: Literal["home", "away"] = "home"
@@ -209,6 +209,11 @@ class DiagramBuilder:
                 self.ax.plot(x, y, 'o', markersize=8, color=self.PUCK_COLOR, zorder=100)
                 continue  # No label needed
                 
+            elif player.type == "net":
+                # Draw a realistic net at this position
+                self._draw_net(x, y)
+                continue  # No label needed
+                
             else:  # opponent - use filled circles with X labels for consistency
                 # Filled circle with X or label text
                 circle = Circle((x, y), self.PLAYER_RADIUS, facecolor=color, edgecolor=color, linewidth=1, zorder=100)
@@ -345,6 +350,75 @@ class DiagramBuilder:
         )
         self.ax.add_patch(arrow)
         
+    def _draw_net(self, x: float, y: float):
+        """Draw a realistic hockey net at the specified position."""
+        from matplotlib.patches import Rectangle, Polygon
+        import numpy as np
+        
+        # Net dimensions (scaled appropriately)
+        net_width = 12  # 6 feet scaled
+        net_depth = 8   # 4 feet scaled
+        post_width = 0.8
+        
+        # Draw the back frame (crossbar and posts)
+        # Left post
+        left_post = Rectangle((x - net_width/2, y - post_width/2), 
+                              post_width, net_depth,
+                              facecolor='red', edgecolor='darkred', 
+                              linewidth=1.5, zorder=98)
+        self.ax.add_patch(left_post)
+        
+        # Right post
+        right_post = Rectangle((x + net_width/2 - post_width, y - post_width/2), 
+                               post_width, net_depth,
+                               facecolor='red', edgecolor='darkred', 
+                               linewidth=1.5, zorder=98)
+        self.ax.add_patch(right_post)
+        
+        # Crossbar
+        crossbar = Rectangle((x - net_width/2, y + net_depth - post_width), 
+                            net_width, post_width,
+                            facecolor='red', edgecolor='darkred', 
+                            linewidth=1.5, zorder=98)
+        self.ax.add_patch(crossbar)
+        
+        # Draw the mesh/netting
+        mesh_color = '#666666'
+        mesh_alpha = 0.4
+        
+        # Vertical mesh lines
+        for i in range(5):
+            x_pos = x - net_width/2 + (i+1) * (net_width/6)
+            self.ax.plot([x_pos, x_pos], [y, y + net_depth], 
+                        color=mesh_color, linewidth=0.5, alpha=mesh_alpha, zorder=97)
+        
+        # Horizontal mesh lines
+        for i in range(4):
+            y_pos = y + (i+1) * (net_depth/5)
+            self.ax.plot([x - net_width/2, x + net_width/2], [y_pos, y_pos], 
+                        color=mesh_color, linewidth=0.5, alpha=mesh_alpha, zorder=97)
+        
+        # Draw diagonal mesh for more realism
+        for i in range(3):
+            x_start = x - net_width/2 + (i+1) * (net_width/4)
+            self.ax.plot([x_start, x_start + net_width/4], [y, y + net_depth], 
+                        color=mesh_color, linewidth=0.3, alpha=mesh_alpha/2, zorder=96)
+            self.ax.plot([x_start, x_start - net_width/4], [y, y + net_depth], 
+                        color=mesh_color, linewidth=0.3, alpha=mesh_alpha/2, zorder=96)
+        
+        # Draw the base/bottom frame line
+        self.ax.plot([x - net_width/2, x + net_width/2], [y, y], 
+                    color='darkred', linewidth=2, zorder=99)
+        
+        # Add slight shadow for depth
+        shadow = Polygon([
+            (x - net_width/2 - 1, y - 1),
+            (x + net_width/2 - 1, y - 1),
+            (x + net_width/2 - 1, y + net_depth - 1),
+            (x - net_width/2 - 1, y + net_depth - 1)
+        ], facecolor='gray', alpha=0.1, zorder=95)
+        self.ax.add_patch(shadow)
+    
     def _draw_curved_movement(self, movement: Movement):
         """Draw a curved movement using waypoints."""
         # Determine color and style based on movement type

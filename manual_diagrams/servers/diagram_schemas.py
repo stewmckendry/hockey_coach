@@ -10,8 +10,8 @@ PLAYER_SCHEMA = {
     "type": "object",
     "required": ["type", "position", "team", "coordinates"],
     "properties": {
-        "type": {"type": "string", "enum": ["forward", "defense", "goalie", "coach", "puck"]},
-        "position": {"type": "string", "pattern": "^[FDG][0-9]?$|^COACH$|^P[0-9]+$"},
+        "type": {"type": "string", "enum": ["forward", "defense", "goalie", "coach", "puck", "net"]},
+        "position": {"type": "string", "pattern": "^[FDG][0-9]?$|^COACH$|^P[0-9]+$|^net[0-9]*$"},
         "team": {"type": "string", "enum": ["home", "away", "neutral"]},
         "has_puck": {"type": "boolean"},  # Optional for puck type
         "coordinates": {
@@ -200,7 +200,7 @@ NODE_SCHEMAS = {
 }
 
 # Enum definitions for quick reference
-PLAYER_TYPES = ["forward", "defense", "goalie", "coach", "puck"]
+PLAYER_TYPES = ["forward", "defense", "goalie", "coach", "puck", "net"]
 MOVEMENT_TYPES = ["skate", "pass", "shot", "carry", "pressure"]
 MOVEMENT_STYLES = ["solid", "dashed", "dotted", "wavy"]
 RINK_VIEWS = ["full", "half", "offensive", "defensive", "neutral"]
