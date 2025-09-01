@@ -89,9 +89,20 @@ logger = logging.getLogger(__name__)
 # OpenAI for LLM validation (lazy load)
 try:
     from openai import OpenAI
+    from dotenv import load_dotenv
+    import os
+    
+    # Load .env file from current directory or parent
+    load_dotenv()
+    if not os.getenv("OPENAI_API_KEY"):
+        # Try parent directory
+        load_dotenv(Path(__file__).parent.parent.parent / ".env")
+    
     client = OpenAI()
-except:
+    logger.info("✅ OpenAI client initialized successfully")
+except Exception as e:
     client = None
+    logger.warning(f"⚠️ OpenAI client not available: {e}")
 
 # Initialize MCP server
 mcp = FastMCP("Hockey Diagram MCP v2", stateless_http=True)
@@ -239,8 +250,7 @@ def search_diagram_node(node_type: str, session_id: Optional[str] = None) -> Dic
                 "offensive_zone": dict(OFFENSIVE_POSITIONS),
                 "neutral_zone": dict(NEUTRAL_POSITIONS),
                 "defensive_zone": dict(DEFENSIVE_POSITIONS)
-            },
-            "standard_positions": STANDARD_POSITIONS
+            }
         },
         "movements": {
             "description": "Movement patterns (skating, passing, shooting)",
@@ -852,15 +862,143 @@ def map_position_to_coordinates(position: str, zone: Optional[str] = "offensive"
     """
     logger.info(f"📍 [MAP POSITION] '{position}' in {zone} zone")
     
-    # Convert reference positions to tuple format if provided
-    ref_pos_tuples = {}
+    # Get zone-specific positions
+    if zone == "offensive":
+        zone_positions = OFFENSIVE_POSITIONS
+    elif zone == "defensive":
+        zone_positions = DEFENSIVE_POSITIONS
+    else:
+        zone_positions = NEUTRAL_POSITIONS
+    
+    # 1. Try exact match first (fastest path)
+    position_lower = position.lower().strip()
+    if position_lower in zone_positions:
+        x, y = zone_positions[position_lower]
+        return {
+            "success": True,
+            "position": position,
+            "zone": zone,
+            "coordinates": {"x": x, "y": y},
+            "positioning_type": "exact",
+            "confidence": 1.0,
+            "match_type": "exact"
+        }
+    
+    # 2. Use LLM for intelligent matching (if available)
+    if client and position_lower not in zone_positions:
+        try:
+            # Build comprehensive context
+            import json
+            
+            # Common position aliases
+            aliases = {
+                "c": "center", "rw": "right wing", "lw": "left wing",
+                "rd": "right defense", "ld": "left defense", "g": "goalie",
+                "rhd": "right defense", "lhd": "left defense",
+                "center ice": "center", "centre": "center"
+            }
+            
+            # Format reference positions if provided
+            ref_pos_tuples = {}
+            if reference_positions:
+                for name, coords in reference_positions.items():
+                    if isinstance(coords, (list, tuple)) and len(coords) >= 2:
+                        ref_pos_tuples[name] = (coords[0], coords[1])
+            
+            # Build prompt with context - organize positions by category
+            positions_list = [f"{k}: ({v[0]}, {v[1]})" for k, v in zone_positions.items()]
+            
+            # Categorize and prioritize positions for LLM
+            # Priority 1: Non-faceoff positions (most commonly used)
+            priority_positions = {
+                "Slot (all)": [p for p in positions_list if "slot" in p.lower()],  # ~13 positions
+                "Point (all)": [p for p in positions_list if "point" in p.lower()],  # ~6 positions
+                "Net/Crease": [p for p in positions_list if any(x in p.lower() for x in ["net", "crease", "goalie", "post"])],  # ~8 positions
+                "Corners/Walls": [p for p in positions_list if any(x in p.lower() for x in ["corner", "wall"])],  # ~7 positions
+                "Key Spots": [p for p in positions_list if any(x in p.lower() for x in ["hash", "dot", "blue line"]) and "faceoff" not in p.lower()],  # ~6 positions
+            }
+            
+            # Priority 2: Key faceoff positions only (not all 22)
+            faceoff_positions = [p for p in positions_list if "faceoff" in p.lower()]
+            key_faceoffs = [p for p in faceoff_positions if any(x in p for x in ["center", "left wing", "right wing"]) and not "defense" in p][:10]
+            if key_faceoffs:
+                priority_positions["Faceoff (key)"] = key_faceoffs
+            
+            # Build position list - should total ~50-55 positions, all important ones
+            positions_display = []
+            for category, positions in priority_positions.items():
+                if positions:
+                    positions_display.append(f"\n{category}:")
+                    positions_display.extend(positions)  # Show ALL in priority categories
+            
+            prompt = f"""You are a hockey positioning expert. Map this position request to exact coordinates.
+
+Position request: "{position}"
+Current zone: {zone.upper()} ZONE
+Reference positions: {json.dumps(ref_pos_tuples) if ref_pos_tuples else "none"}
+
+{zone.upper()} ZONE positions (showing {len([p for cat in priority_positions.values() for p in cat])} of {len(zone_positions)} total):{''.join(positions_display)}
+
+Note: These are {zone} zone coordinates. Offensive zone is positive x (right side), defensive zone is negative x (left side).
+Full position list has {len(zone_positions)} positions including all faceoff formations and variations.
+
+Common aliases: {json.dumps(aliases)}
+
+Handle these cases:
+1. Position aliases (RW→right wing, C→center)
+2. Relative positions ("5 units left of F1", "between F1 and F2")
+3. Face-off positions ("center ice faceoff right wing")
+4. Contextual descriptions ("weak side winger", "strong side D")
+
+If relative position, calculate exact coordinates.
+If unknown position, find closest match.
+
+Output ONLY in format: x|y|confidence|reasoning
+Example: -69|22.5|0.95|Matched "left dot" to left faceoff dot"""
+            
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a hockey positioning expert. Be precise with coordinates."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.1,
+                max_tokens=100
+            )
+            
+            result = response.choices[0].message.content.strip()
+            parts = result.split("|")
+            
+            if len(parts) >= 3:
+                try:
+                    x = float(parts[0])
+                    y = float(parts[1])
+                    confidence = float(parts[2]) if len(parts) > 2 else 0.8
+                    reasoning = parts[3] if len(parts) > 3 else "LLM match"
+                    
+                    return {
+                        "success": True,
+                        "position": position,
+                        "zone": zone,
+                        "coordinates": {"x": x, "y": y},
+                        "positioning_type": "llm",
+                        "confidence": confidence,
+                        "match_type": "llm",
+                        "reasoning": reasoning
+                    }
+                except (ValueError, IndexError):
+                    logger.warning(f"Failed to parse LLM response: {result}")
+                    
+        except Exception as e:
+            logger.warning(f"LLM position mapping failed: {e}")
+    
+    # 3. Try relative positioning without LLM
     if reference_positions:
+        ref_pos_tuples = {}
         for name, coords in reference_positions.items():
             if isinstance(coords, (list, tuple)) and len(coords) >= 2:
                 ref_pos_tuples[name] = (coords[0], coords[1])
-    
-    # Try relative positioning first if references provided
-    if ref_pos_tuples:
+        
         relative_coords = parse_relative_position(position, ref_pos_tuples)
         if relative_coords:
             x, y = relative_coords
@@ -871,80 +1009,31 @@ def map_position_to_coordinates(position: str, zone: Optional[str] = "offensive"
                 "coordinates": {"x": x, "y": y},
                 "positioning_type": "relative",
                 "reference_positions": reference_positions,
-                "suggestions": [
-                    "Relative position successfully calculated",
-                    f"Position: ({x:.1f}, {y:.1f})"
-                ]
+                "confidence": 0.9,
+                "match_type": "relative"
             }
     
-    # Use standard position mapper
-    try:
-        coords = map_position(position, zone)
-        return {
-            "success": True,
-            "position": position,
-            "zone": zone,
-            "coordinates": coords,
-            "positioning_type": "standard",
-            "confidence": 1.0,
-            "match_type": "exact"
-        }
-    except Exception:
-        # Position not found exactly, try fuzzy matching
-        pass
+    # 4. Try fuzzy substring matching as last resort
+    for key, (x, y) in zone_positions.items():
+        if position_lower in key or key in position_lower:
+            return {
+                "success": True,
+                "position": position,
+                "zone": zone,
+                "coordinates": {"x": x, "y": y},
+                "positioning_type": "fuzzy",
+                "confidence": 0.7,
+                "match_type": "fuzzy",
+                "matched_to": key
+            }
     
-    # Try fuzzy matching with LLM if available
-    if client:
-        try:
-            # Get available positions for this zone
-            if zone == "offensive":
-                positions_dict = OFFENSIVE_POSITIONS
-            elif zone == "defensive":
-                positions_dict = DEFENSIVE_POSITIONS
-            else:
-                positions_dict = NEUTRAL_POSITIONS
-            
-            all_positions = [f"{name}: {coords}" for name, coords in positions_dict.items()]
-            
-            prompt = f"""
-            Map this hockey position to coordinates: "{position}"
-            Context zone: {zone}
-            
-            Available positions:
-            {chr(10).join(all_positions[:20])}
-            
-            Return the best matching position name, zone, and coordinates.
-            Format: position_name|zone|x|y
-            """
-            
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=50
-            )
-            
-            result = response.choices[0].message.content.strip()
-            parts = result.split("|")
-            if len(parts) == 4:
-                return {
-                    "success": True,
-                    "position": position,
-                    "zone": parts[1],
-                    "coordinates": {"x": float(parts[2]), "y": float(parts[3])},
-                    "confidence": 0.8,
-                    "match_type": "llm",
-                    "matched_to": parts[0]
-                }
-        except:
-            pass
+    # 5. No match found - return helpful error with suggestions
+    suggestions = list(zone_positions.keys())[:15]
     
-    # No match found - return suggestions
-    if zone == "offensive":
-        suggestions = list(OFFENSIVE_POSITIONS.keys())[:10]
-    elif zone == "defensive":
-        suggestions = list(DEFENSIVE_POSITIONS.keys())[:10]
-    else:
-        suggestions = list(NEUTRAL_POSITIONS.keys())[:10]
+    # Add specific faceoff suggestions if that's what they're looking for
+    if "faceoff" in position_lower or "face-off" in position_lower:
+        faceoff_positions = [k for k in zone_positions.keys() if "faceoff" in k]
+        suggestions = faceoff_positions[:5] + suggestions[:10]
     
     return {
         "success": False,
@@ -982,6 +1071,30 @@ def map_movement_to_coordinates(
     """
     logger.info(f"🏒 [MAP MOVEMENT] {movement_type}: '{from_position}' → '{to_position}'")
     
+    # Normalize pattern descriptions to standard names
+    pattern_aliases = {
+        "rim the puck": "rim",
+        "dump and chase": "dump", 
+        "dump in": "dump",
+        "sauce pass": "sauce",
+        "saucer pass": "sauce",
+        "chip and chase": "chip",
+        "wrap around": "wrap",
+        "wraparound": "wrap",
+        "bank pass": "bank",
+        "stretch pass": "stretch",
+        "outlet pass": "stretch",
+        "button hook": "button_hook",
+        "curl back": "button_hook",
+        "cross-ice": "cross_ice",
+        "cross ice": "cross_ice"
+    }
+    
+    # Check if pattern matches any alias
+    if pattern and pattern.lower() in pattern_aliases:
+        pattern = pattern_aliases[pattern.lower()]
+        logger.info(f"📝 Normalized pattern to: {pattern}")
+    
     # Map positions to coordinates
     from_result = map_position_to_coordinates(from_position, zone)
     to_result = map_position_to_coordinates(to_position, zone)
@@ -1002,7 +1115,106 @@ def map_movement_to_coordinates(
     dy = to_coords["y"] - from_coords["y"]
     distance = (dx**2 + dy**2)**0.5
     
-    # Auto-detect pattern if needed
+    # Try LLM interpretation ONLY for auto pattern detection
+    # If user specified a pattern, respect it and skip LLM
+    llm_waypoints = None
+    if pattern == "auto" and client:
+            try:
+                # Build context for LLM
+                movement_context = f"{movement_type} from {from_position} to {to_position}"
+                
+                prompt = f"""You are a hockey tactics expert. Analyze this movement and suggest the best pattern.
+
+Movement: {movement_context}
+Type: {movement_type}
+Zone: {zone.upper()} ZONE
+From: {from_coords} 
+To: {to_coords}
+Distance: {round(distance, 1)} units
+
+HOCKEY MOVEMENT PATTERNS:
+- direct: Straight line (passes, shots)
+- curve: Gentle curve (standard skating)
+- cross_ice: S-curve across ice (40+ Y-axis change)
+- drive: Drive to net with curve around defenders
+- cycle: Along boards, corner work
+- rush: Long fast movement (60+ units)
+- rim: Along boards behind net (puck movement)
+- dump: High off glass/boards (dump and chase)
+- chip: Quick advance past defender (small arc)
+- sauce: Over obstacle (elevated pass)
+- wrap: Behind net to opposite side
+- bank: Off boards to teammate
+- stretch: Long outlet pass through zones
+- button_hook: Curl back to maintain possession
+- weave: Serpentine through traffic
+
+Special considerations:
+- "rim the puck" = rim pattern along boards
+- "dump it in" = dump pattern from neutral zone
+- "sauce pass" = sauce pattern with arc
+- "chip and chase" = chip pattern
+- "wrap around" = wrap pattern behind net
+- "bank pass" = bank pattern off boards
+- "stretch pass" = stretch pattern (long distance)
+- "button hook" = button_hook pattern (curl back)
+
+Based on the movement description and context, determine:
+1. The most appropriate pattern
+2. Any special waypoints needed
+
+Output ONLY in format: pattern|waypoint1_x,waypoint1_y|waypoint2_x,waypoint2_y
+If no special waypoints needed beyond standard pattern, just output: pattern|standard
+Example: rim|89,-20|89,0|89,20
+Example: sauce|50,10|standard
+Example: drive|standard"""
+
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a hockey movement pattern expert. Be precise and concise."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.1,
+                    max_tokens=100
+                )
+                
+                result = response.choices[0].message.content.strip()
+                parts = result.split("|")
+                
+                if parts:
+                    llm_pattern = parts[0].strip()
+                    
+                    # Validate pattern name
+                    valid_patterns = ["direct", "curve", "cross_ice", "drive", "cycle", "rush", 
+                                    "rim", "dump", "chip", "sauce", "wrap", "bank", "stretch", 
+                                    "button_hook", "weave"]
+                    
+                    if llm_pattern in valid_patterns:
+                        pattern = llm_pattern
+                        logger.info(f"🤖 LLM suggested pattern: {pattern}")
+                        
+                        # Check for custom waypoints from LLM
+                        if len(parts) > 1 and parts[1] != "standard":
+                            custom_waypoints = []
+                            for waypoint_str in parts[1:]:
+                                if "," in waypoint_str:
+                                    try:
+                                        wx, wy = waypoint_str.split(",")
+                                        custom_waypoints.append([float(wx), float(wy)])
+                                    except:
+                                        pass
+                            
+                            if custom_waypoints:
+                                # Store LLM waypoints to use later
+                                llm_waypoints = custom_waypoints
+                                logger.info(f"🤖 Using LLM waypoints: {llm_waypoints}")
+                    
+            except Exception as e:
+                logger.warning(f"LLM movement pattern suggestion failed: {e}")
+                # Fall back to rule-based detection
+        
+    # Rule-based pattern detection if LLM didn't set it
     if pattern == "auto":
         if abs(dy) > 40:
             pattern = "cross_ice"
@@ -1017,10 +1229,15 @@ def map_movement_to_coordinates(
         else:
             pattern = "curve"
     
-    # Use modular waypoint calculator
+    # Use modular waypoint calculator (unless LLM already provided waypoints)
     from_tuple = (from_coords["x"], from_coords["y"])
     to_tuple = (to_coords["x"], to_coords["y"])
-    waypoints = calculate_waypoints(from_tuple, to_tuple, pattern)
+    
+    # Use LLM waypoints if provided, otherwise calculate based on pattern
+    if llm_waypoints:
+        waypoints = llm_waypoints
+    else:
+        waypoints = calculate_waypoints(from_tuple, to_tuple, pattern)
     
     # Determine style based on movement type
     style_map = {
@@ -1094,7 +1311,6 @@ def tools_health_check(session_id: Optional[str] = None) -> Dict[str, Any]:
         "template_types": list(finder.drill_patterns.keys()),
         "trace_sessions": trace_count,
         "diagrams_generated": {"png": png_count, "svg": svg_count, "total": png_count + svg_count},
-        "standard_positions": len(STANDARD_POSITIONS),
         "landmarks": len(LANDMARKS),
         "llm_validation": "available" if client else "unavailable (no OpenAI key)",
         "paths": {

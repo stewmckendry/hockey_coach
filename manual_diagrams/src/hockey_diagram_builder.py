@@ -232,7 +232,7 @@ class DiagramBuilder:
         """Draw movement arrows and lines."""
         for movement in movements:
             # Check if this movement has waypoints for smooth curved path
-            if movement.waypoints and len(movement.waypoints) > 2:
+            if movement.waypoints and len(movement.waypoints) > 0:
                 self._draw_curved_movement(movement)
                 continue
                 
@@ -421,6 +421,30 @@ class DiagramBuilder:
     
     def _draw_curved_movement(self, movement: Movement):
         """Draw a curved movement using waypoints."""
+        # Resolve start and end positions
+        if isinstance(movement.from_pos, str):
+            start = self.player_positions.get(movement.from_pos, (0, 0))
+        elif isinstance(movement.from_pos, dict):
+            start = (movement.from_pos["x"], movement.from_pos["y"])
+        else:
+            start = movement.from_pos
+            
+        if isinstance(movement.to_pos, str):
+            end = self.player_positions.get(movement.to_pos, (0, 0))
+        elif isinstance(movement.to_pos, dict):
+            end = (movement.to_pos["x"], movement.to_pos["y"])
+        else:
+            end = movement.to_pos
+        
+        # Build complete path: start -> waypoints -> end
+        path_points = [start]
+        if movement.waypoints:
+            # Convert waypoint format if needed
+            for wp in movement.waypoints:
+                if isinstance(wp, (list, tuple)) and len(wp) >= 2:
+                    path_points.append((wp[0], wp[1]))
+        path_points.append(end)
+        
         # Determine color and style based on movement type
         if movement.type == "carry":
             color = "black"
@@ -445,7 +469,7 @@ class DiagramBuilder:
             
         # Use the existing curved path method
         self._draw_curved_path(
-            movement.waypoints,
+            path_points,
             style=style,
             color=color,
             label=movement.label,

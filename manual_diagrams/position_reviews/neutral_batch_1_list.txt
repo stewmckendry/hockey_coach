@@ -1,0 +1,9 @@
+NEUTRAL ZONE - Batch 1
+==================================================
+
+ 1. center ice                          (   0.0,    0.0)
+ 2. center                              (   0.0,    0.0)
+ 3. red line                            (   0.0,    0.0)
+ 4. left boards                         (   0.0,   42.5)
+ 5. right boards                        (   0.0,  -42.5)
+ 6. neutral queue left                  (  10.0,   38.0)

@@ -94,7 +94,7 @@ RINK_SCHEMA = {
 # Zone schema
 ZONE_SCHEMA = {
     "type": "object",
-    "required": ["id", "type"],
+    "required": ["type"],  # id is optional, auto-generated if missing
     "properties": {
         "id": {"type": "string"},
         "type": {"type": "string", "enum": ["highlight", "boundary", "area"]},
@@ -147,7 +147,7 @@ ZONES_SCHEMA = {
 # Annotation schema
 ANNOTATION_SCHEMA = {
     "type": "object",
-    "required": ["id", "text", "position"],
+    "required": ["text", "position"],  # id is optional, auto-generated if missing
     "properties": {
         "id": {"type": "string"},
         "text": {"type": "string"},

@@ -106,6 +106,12 @@ mcp__hockey_diagram__map_position_to_coordinates(
 // - "halfway between F1 and D1"
 // - "2/3 of the way from F1 to F2"
 // - "near F1" or "close to D1"
+
+// Position Mapping Confidence Levels:
+// - Direct matches: confidence = 1.0 (exact position found)
+// - LLM matches: confidence = 0.8-0.95 (interpreted position)
+// - Fuzzy matches: confidence = 0.7-0.85 (partial match)
+// - If confidence < 0.8, verify the position is correct
 ```
   
 **For Movements with Auto-Waypoints:**
@@ -115,9 +121,31 @@ mcp__hockey_diagram__map_movement_to_coordinates(
   from_position="left corner",
   to_position="net front", 
   movement_type="skate",
-  pattern="drive"  // auto|direct|drive|cross_ice|cycle|rush|weave
+  pattern="drive"  // See enhanced patterns below
 )
 // Returns complete movement_spec with waypoints in [[x,y]] format
+
+// Enhanced Pattern Options:
+// - "auto" - LLM determines best pattern based on context
+// - "direct" - Straight line (passes/shots)
+// - "curve" - Gentle curve (standard skating)
+// - "cross_ice" - S-curve across ice (40+ Y-axis change)
+// - "drive" - Drive to net with defender avoidance
+// - "cycle" - Along boards cycling
+// - "rush" - Fast through neutral zone (60+ units)
+// - "rim" - Along boards behind net (puck movement)
+// - "dump" - High and deep into corner (dump and chase)
+// - "chip" - Quick advance past defender (small arc)
+// - "sauce" - Elevated pass over obstacle (saucer pass)
+// - "wrap" - Around the net (wraparound)
+// - "bank" - Off the boards (bank pass)
+// - "stretch" - Long outlet pass through zones
+// - "button_hook" - Curl back to maintain possession
+
+// Pattern Aliases Automatically Recognized:
+// "wrap around" → wrap, "dump and chase" → dump
+// "sauce pass" → sauce, "chip and chase" → chip
+// "bank pass" → bank, "stretch pass" → stretch
 ```
 
 #### Zone Shapes for Equipment (Pylons, Cones):
@@ -151,24 +179,28 @@ mcp__hockey_diagram__map_movement_to_coordinates(
 
 #### Key Positioning Guidelines (CRITICAL - PREVENTS ZONE ERRORS)
 
-**ZONE VALIDATION RULE**: 
-- Offensive zone: x < -25 (left of offensive blue line)
+**ZONE VALIDATION RULE** (CRITICAL - x-axis orientation): 
+- Offensive zone: x > 25 (RIGHT side of rink, positive x values)
 - Neutral zone: -25 <= x <= 25 (between blue lines)
-- Defensive zone: x > 25 (right of defensive blue line)
+- Defensive zone: x < -25 (LEFT side of rink, negative x values)
 
-**HIGH SLOT IS NOT MID-ICE!**
-- ❌ WRONG: High slot at x=-50 (that's between circles)
-- ✅ RIGHT: High slot at x=-69 (top of circles, prime shooting area)
+**SLOT POSITIONING IS CRITICAL!**
+- ❌ WRONG: High slot at x=69 (that's AT the circles/faceoff dots - too low)
+- ✅ RIGHT: High slot at x=47 (ABOVE circles, prime shooting area)
+- ✅ RIGHT: Mid slot at x=69 (AT circle hashmarks)
+- ✅ RIGHT: Low slot at x=79 (BELOW circles, near crease)
 
 **Use Landmark References** - MEMORIZE THESE:
-- Faceoff dots: `{"x": -69, "y": ±22.5}` (offensive), `{"x": 69, "y": ±22.5}` (defensive)
-- Hash marks: `{"x": -75, "y": ±22.5}` (offensive zone marks)
-- Goal line: `{"x": -89, "y": 0}` (offensive), `{"x": 89, "y": 0}` (defensive)
-- Blue lines: `{"x": -25, "y": 0}` (offensive), `{"x": 25, "y": 0}` (defensive)
-- Slot/High slot: `{"x": -69, "y": 0}` (TOP OF CIRCLES - prime scoring area)
-- Points: `{"x": -25, "y": ±20}` (blue line offensive positions)
-- Corners: `{"x": -89, "y": ±36}` (board corners)
-- Net front/Crease: `{"x": -86, "y": 0}` (directly in front of goalie)
+- Faceoff dots: `{"x": ±69, "y": ±22.5}` (offensive zone: +69, defensive zone: -69)
+- Hash marks (circle edge): `{"x": ±69, "y": ±7.5}` (at faceoff circle perimeter)
+- Goal line: `{"x": ±89, "y": 0}` (offensive zone: +89, defensive zone: -89)
+- Blue lines: `{"x": ±25, "y": 0}` (offensive zone: +25, defensive zone: -25)
+- **Points (5 variations)**: `{"x": ±30, "y": 0/±20/±38}` (just inside blue line, not on it)
+- **High slot**: `{"x": ±47, "y": 0/±20}` (top of circles, between circles and blue line)
+- **Mid slot**: `{"x": ±69, "y": 0/±20}` (at circle hashmarks/faceoff dots)
+- **Low slot**: `{"x": ±79, "y": 0/±20}` (between circles and crease)
+- Corners: `{"x": ±89, "y": ±36}` (board corners)
+- Net front/Crease: `{"x": ±86, "y": 0}` (directly in front of goalie)
 
 **OBSTACLE PLACEMENT RULES**:
 - For "in front of player": Place at player's x-coordinate ± 3-5 units
@@ -176,6 +208,8 @@ mcp__hockey_diagram__map_movement_to_coordinates(
 - Example: Player at (-69, 0), cone at (-73, 0)
   
 **Movement Best Practices** (CRITICAL):
+- **Waypoints now automatically create smooth curves** (even 1 waypoint triggers CubicSpline)
+- **LLM suggests waypoints for complex patterns** when pattern="auto"
 - **Always use waypoints for realistic paths**:
   ```json
   {
@@ -420,8 +454,9 @@ For drills with distinct phases, label movements clearly:
 ## Error Prevention Checklist
 Before building, confirm you know:
 - [ ] Exact landmark positions for players (USE REFERENCE TABLE!)
-- [ ] Zone validation (offensive x<-25, neutral -25 to 25, defensive x>25)
-- [ ] High slot is x=-69, NOT x=-50
+- [ ] Zone validation (offensive x>25, neutral -25 to 25, defensive x<-25)
+- [ ] High slot is x=47, mid slot is x=69, low slot is x=79
+- [ ] Points are at x=30 (inside blue line), NOT on blue line
 - [ ] Obstacles positioned relative to players (±3-5 units)
 - [ ] Waypoints for curved movements
 - [ ] Proper view to show action

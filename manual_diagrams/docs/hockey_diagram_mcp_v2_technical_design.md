@@ -1,352 +1,486 @@
-# Hockey Diagram MCP v2 - Technical Design Document
+# Hockey Diagram MCP v2 Technical Design
 
 ## Overview
-
-The Hockey Diagram MCP v2 is an enhanced Model Context Protocol server that provides 11 focused tools for generating programmatic hockey tactical diagrams. Built following the n8n pattern for clarity and reduced cognitive load, it transforms natural language drill descriptions into precise SVG/PNG diagrams. Version 2.2 adds preview capabilities and relative positioning support.
+Version 2.0 represents a major evolution of the hockey diagram MCP server, with comprehensive position mapping, enhanced movement patterns, and smooth curve rendering.
 
 ## Architecture
 
 ### Core Components
 
+#### 1. MCP Server (`hockey_diagram_mcp_v2.py`)
+- FastMCP-based server with 10 specialized tools
+- Session management for trace logging
+- Integration with OpenAI for LLM-based interpretation
+- Google Sheets integration for trace upload
+
+#### 2. Position Mapper (`position_mapper.py`)
+- 80+ positions per zone (offensive, defensive, neutral)
+- Faceoff formations with proper team orientations
+- Slot positioning (high/mid/low with left/middle/right)
+- Point positions (5 variations inside blue line)
+- Relative positioning support
+- LLM fallback for complex descriptions
+
+#### 3. Movement Pattern System
+- 15 distinct movement patterns
+- Automatic waypoint generation
+- Pattern aliases (e.g., "wrap around" → "wrap")
+- LLM-based pattern detection
+- Zone-aware adjustments
+
+#### 4. Diagram Builder (`hockey_diagram_builder.py`)
+- CubicSpline interpolation for smooth curves
+- Proper z-ordering for visual hierarchy
+- Support for equipment (cones, pylons)
+- Net element with realistic 3D appearance
+
+## MCP Tool Workflow
+
+### Typical Tool Flow
 ```
-hockey_diagram_mcp_v2.py (~1050 lines) - Main MCP server with preview
-├── diagram_schemas.py (209 lines) - Schema definitions and enums
-├── diagram_examples.py (330 lines) - Examples and patterns for each node type
-├── position_mapper.py (334 lines) - Enhanced with relative positioning
-├── validators.py (91 lines) - Validation logic
-└── src/
-    ├── drill_utilities.py - Core drill utilities
-    ├── drill_template_finder.py - Template matching
-    ├── hockey_diagram_builder.py - SVG generation
-    ├── spec_converter.py - Spec conversion
-    └── auto_trace_logger.py - Session tracking
-```
-
-### Coordinate System
-
-- **X-axis**: -100 (left) to 100 (right)
-- **Y-axis**: -42.5 (bottom) to 42.5 (top)
-- **Origin**: Center ice (0, 0)
-- **Zones**:
-  - Offensive: x < -25
-  - Neutral: -25 ≤ x ≤ 25
-  - Defensive: x > 25
-
-## Tool Inventory
-
-### 1. initialize_diagram
-**Purpose**: Start a new diagram generation session  
-**Input**: `drill_request` (string) - Natural language drill description  
-**Output**: Session ID, workflow instructions, tool sequence  
-**Usage**: Always call first to establish context
-
-### 2. search_diagram_node
-**Purpose**: Get schema, examples, and patterns for spec nodes  
-**Input**: `node_type` (string) - players|movements|rink|zones|annotations  
-**Output**: Schema, enums, comprehensive examples, common patterns  
-**Enhanced**: Now includes real-world examples and coordinate references  
-**Usage**: Reference during spec building
-
-### 3. search_diagram_template
-**Purpose**: Find matching drill templates  
-**Input**: `query` (string), `template_type` (optional), `limit` (int)  
-**Output**: Matching templates with confidence scores  
-**Usage**: Discovery phase to find patterns
-
-### 4. fetch_diagram_template
-**Purpose**: Get complete template JSON  
-**Input**: `template_name` (string)  
-**Output**: Full template specification  
-**Usage**: Load template as starting point
-
-### 5. validate_diagram_node_minimal
-**Purpose**: Validate single spec node  
-**Input**: `node_type` (string), `node_data` (object)  
-**Output**: Validation results with issues and fixes  
-**Usage**: Validate as you build
-
-### 6. validate_diagram_spec_full
-**Purpose**: Complete spec validation  
-**Input**: `spec` (object), `original_request` (string)  
-**Output**: Structure, spatial, and hockey sense validation  
-**Usage**: Final validation before generation
-
-### 7. preview_diagram
-**Purpose**: Preview diagram as ASCII art or coordinate list  
-**Input**: `spec` (object), `format` (string: "ascii"|"coordinates")  
-**Output**: ASCII representation or structured coordinate list  
-**NEW**: Added in v2.2 for quick validation before generation  
-**Usage**: Check positioning before final generation
-
-### 8. generate_diagram
-**Purpose**: Create SVG/PNG output  
-**Input**: `spec` (object), `output_name` (string)  
-**Output**: File paths, execution trace  
-**Usage**: Final step to produce diagram
-
-### 9. map_position_to_coordinates
-**Purpose**: Convert natural language or relative positions to coordinates  
-**Input**: `position` (string), `zone` (string), `reference_positions` (dict)  
-**Output**: Exact coordinates with positioning type  
-**Enhanced**: Now supports relative positioning like "5 units left of F1"  
-**Usage**: Player placement with relative positioning
-
-### 10. map_movement_to_coordinates
-**Purpose**: Generate movement specs with waypoints  
-**Input**: `from_position`, `to_position`, `movement_type`, `pattern`, `zone`  
-**Output**: Complete movement specification  
-**Usage**: Create realistic movement paths
-
-### 11. tools_health_check
-**Purpose**: System status and statistics  
-**Output**: Health status, available resources  
-**Usage**: Debugging and monitoring
-
-## Workflow Pattern
-
-```mermaid
-graph TD
-    A[Initialize] --> B[Discovery]
-    B --> C[Build Spec]
-    C --> D[Validate]
-    D --> E[Generate]
-    
-    B --> B1[search_diagram_template]
-    B --> B2[fetch_diagram_template]
-    
-    C --> C1[map_position_to_coordinates]
-    C --> C2[map_movement_to_coordinates]
-    C --> C3[search_diagram_node]
-    C --> C4[validate_diagram_node_minimal]
-    
-    D --> D1[validate_diagram_spec_full]
-    
-    E --> E1[generate_diagram]
+1. initialize_diagram → Start session, get instructions
+2. search_diagram_template → Find similar drills
+3. map_position_to_coordinates → Convert positions to coords
+4. map_movement_to_coordinates → Generate movement paths
+5. validate_diagram_node_minimal → Quick validation
+6. validate_diagram_spec_full → Complete validation
+7. preview_diagram → ASCII/coordinate preview
+8. generate_diagram → Create final PNG/SVG
 ```
 
-## Data Structures
+## Tool Implementations
 
-### Player Specification
-```json
+### 1. `initialize_diagram`
+**Purpose**: Start a new diagram session and provide workflow guidance  
+**Input**: `drill_request` - Natural language drill description  
+**Output**: Session ID, workflow instructions, available tools
+
+```python
+def initialize_diagram(drill_request: str) -> Dict[str, Any]:
+    # Creates unique session ID for trace logging
+    # Returns step-by-step workflow instructions
+    # Lists available tools and their sequence
+    # Example: "2v1 rush drill" → session_123, instructions
+```
+
+### 2. `search_diagram_node`
+**Purpose**: Get schema and instructions for diagram spec nodes  
+**Input**: `node_type` - Type of node (players|movements|rink|zones|annotations)  
+**Output**: Schema, enums, examples, and constraints
+
+```python
+def search_diagram_node(node_type: str) -> Dict[str, Any]:
+    # Returns JSON schema for the node type
+    # Includes valid enums (e.g., player types)
+    # Provides examples and validation rules
+    # Example: "players" → player schema with types, positions
+```
+
+### 3. `search_diagram_template`
+**Purpose**: Find existing drill templates matching query  
+**Input**: `query` - Search terms, `template_type` - Filter, `limit` - Max results  
+**Output**: List of matching templates with previews
+
+```python
+def search_diagram_template(query: str, template_type: str = None) -> List:
+    # Searches template library (40+ drills)
+    # Returns matches with confidence scores
+    # Includes preview of each template
+    # Example: "2v1" → rush template, give_and_go template
+```
+
+### 4. `fetch_diagram_template`
+**Purpose**: Get complete template specification  
+**Input**: `template_name` - Name of template  
+**Output**: Full JSON specification ready to use
+
+```python
+def fetch_diagram_template(template_name: str) -> Dict:
+    # Loads complete template from library
+    # Returns ready-to-use diagram spec
+    # Can be modified or used as-is
+    # Example: "rush" → full 2v1 rush drill spec
+```
+
+### 5. `map_position_to_coordinates`
+**Purpose**: Convert natural language positions to exact coordinates  
+**Input**: `position` - Natural language, `zone` - Context zone, `reference_positions` - For relative  
+**Output**: Exact [x, y] coordinates with confidence
+
+Enhanced with:
+- **Direct Matching**: 250+ predefined positions
+- **LLM Interpretation**: GPT-3.5 for complex descriptions
+- **Relative Positioning**: "5 units left of F1"
+- **Fuzzy Matching**: Partial string matches
+- **Confidence Scoring**: 0.7-1.0 scale
+
+```python
+# Processing hierarchy:
+1. Check direct position match (confidence=1.0)
+2. Try LLM interpretation (confidence=0.8-0.95)
+3. Parse relative positions (confidence=0.9)
+4. Fuzzy substring matching (confidence=0.7-0.85)
+
+# Example: "high slot left" → {"x": 47, "y": 20, "confidence": 1.0}
+```
+
+### 6. `map_movement_to_coordinates`
+**Purpose**: Generate complete movement with waypoints  
+**Input**: `from_position`, `to_position` - Start/end positions, `movement_type`, `pattern`  
+**Output**: Movement spec with coordinates and waypoints
+
+Enhanced with:
+- **Pattern Detection**: LLM determines best pattern when auto
+- **15 Movement Patterns**: rim, dump, sauce, wrap, etc.
+- **Custom Waypoints**: LLM can suggest specific waypoints
+- **Pattern Aliases**: Natural language support
+
+```python
+# Pattern selection:
+if pattern == "auto" and client:
+    # LLM analyzes movement context
+    # Suggests pattern and waypoints
+else:
+    # Use specified pattern
+    # Calculate waypoints via calculate_waypoints()
+
+# Example: "slot to corner", pattern="dump" → waypoints for dump-in
+```
+
+### 7. `validate_diagram_node_minimal`
+**Purpose**: Quick validation of single node  
+**Input**: `node_type`, `node_data` - Node to validate  
+**Output**: Validation results with issues and fixes
+
+```python
+def validate_diagram_node_minimal(node_type: str, node_data: dict):
+    # Checks required fields present
+    # Validates data types
+    # Returns specific issues and fixes
+    # Example: missing "team" field → add "team": "home"
+```
+
+### 8. `validate_diagram_spec_full`
+**Purpose**: Comprehensive validation of complete diagram  
+**Input**: `spec` - Complete diagram, `original_request` - For context  
+**Output**: Valid flag, issues, suggestions, warnings
+
+Comprehensive validation:
+- **Structure Check**: Required fields present
+- **Spatial Validation**: No overlapping players
+- **Hockey Rules**: Max 6 players per team
+- **Movement Logic**: Cross-ice needs waypoints
+- **Zone Validation**: Players in correct zones
+
+```python
+# Example validation output:
 {
-  "type": "forward|defense|goalie|coach",
-  "position": "F1|F2|F3|D1|D2|G",
-  "team": "home|away",
-  "has_puck": true|false,
-  "coordinates": {"x": -50, "y": 0},
-  "label": "optional label"
+    "valid": False,
+    "issues": ["Player F1 outside rink bounds"],
+    "suggestions": ["Move F1 to slot position"],
+    "warnings": ["Cross-ice pass may need waypoints"]
 }
 ```
 
-### Movement Specification
-```json
+### 9. `preview_diagram`
+**Purpose**: Preview diagram before generation  
+**Input**: `spec` - Diagram spec, `format` - "ascii" or "coordinates"  
+**Output**: Text-based preview of diagram
+
+```python
+def preview_diagram(spec: dict, format: str = "ascii"):
+    # ASCII art shows rough player positions
+    # Coordinate list shows exact positions
+    # Helps verify before final generation
+    # Example: ASCII art with F1, F2, D1 positions
+```
+
+### 10. `generate_diagram`
+**Purpose**: Create final diagram files  
+**Input**: `spec` - Validated diagram spec, `output_name` - Optional filename  
+**Output**: File paths to PNG/SVG, trace data
+
+- Creates PNG/SVG output files
+- Returns trace data for Google Sheets
+- Handles session logging
+- Provides file paths
+
+```python
+# Example output:
 {
-  "type": "skate|pass|shot|carry|pressure",
-  "from_pos": {"x": -50, "y": 0},
-  "to_pos": {"x": -69, "y": 22.5},
-  "style": "solid|dashed|dotted|wavy",
-  "waypoints": [{"x": -60, "y": 10}],
-  "label": "optional label"
+    "png_path": "outputs/rush_drill_2025-09-01.png",
+    "svg_path": "outputs/rush_drill_2025-09-01.svg",
+    "trace_data": {...},
+    "session_id": "session_123"
 }
 ```
 
-### Complete Diagram Spec
-```json
-{
-  "players": [...],
-  "movements": [...],
-  "rink": {"view": "offensive"},
-  "zones": [...],
-  "annotations": [...]
+### 11. `tools_health_check`
+**Purpose**: Verify MCP server status  
+**Output**: Server health, available resources, debug info
+
+```python
+def tools_health_check():
+    # Checks server status
+    # Lists available tools
+    # Shows resource counts
+    # Returns debug information
+```
+
+## Key Enhancements in v2.0
+
+### Position System Overhaul
+```python
+OFFENSIVE_POSITIONS = {
+    # Faceoff formations (22 positions)
+    "offensive left faceoff home center": (67, 22.5),
+    # ... proper team orientations
+    
+    # Slot positions (13 variations)
+    "high slot": (47, 0),  # x=47, not 69!
+    "mid slot": (69, 0),   # At hashmarks
+    "low slot": (79, 0),   # Near crease
+    
+    # Point positions (5 variations)
+    "point": (30, 0),  # Inside blue line, not on it
+    # ... with boards variations
 }
 ```
 
-## Position Mapping
+### Movement Pattern Library
+```python
+def calculate_waypoints(from_pos, to_pos, pattern):
+    if pattern == "rim":
+        # Along boards behind net
+        waypoints = [
+            [from_x, 38],      # To boards
+            [89, 38],          # Along to corner
+            [89, 0],           # Behind net
+            [89, -38],         # Other corner
+            [to_x, to_y]       # Final
+        ]
+    elif pattern == "dump":
+        # High and deep
+        waypoints = [
+            [from_x + dx * 0.3, from_y + dy * 0.2],
+            [85, 35]  # High into corner
+        ]
+    # ... 13 more patterns
+```
 
-### Offensive Zone Landmarks
-- Faceoff dots: (-69, ±22.5)
-- Net front: (-86, 0)
-- Slot: (-69, 0)
-- High slot: (-50, 0)
-- Corners: (-89, ±36)
-- Points: (-25, ±20)
+### Rendering Improvements
+```python
+def _draw_curved_movement(self, movement):
+    # Build complete path
+    path_points = [start] + waypoints + [end]
+    
+    # CubicSpline interpolation
+    cs_x = CubicSpline(t, points[:, 0])
+    cs_y = CubicSpline(t, points[:, 1])
+    
+    # 100 smooth points
+    t_smooth = np.linspace(0, len(points)-1, 100)
+```
 
-### Movement Patterns
-- **direct**: Straight line, no waypoints
-- **cross_ice**: S-curve with 2 waypoints
-- **drive**: Curve to net avoiding defenders
-- **cycle**: Follow boards
-- **rush**: Speed through neutral zone
-- **weave**: Agility pattern with lateral movement
+## LLM Integration
 
-## Validation Layers
+### Position Mapping Prompt
+```python
+prompt = f"""
+Position request: "{position}"
+Zone: {zone} ZONE
+Reference positions: {reference_positions}
 
-### 1. Schema Validation
-- JSON schema compliance
-- Required fields presence
-- Type checking
-- Range validation
+{zone} ZONE positions (showing 60 of {total}):
+[Categorized position list]
 
-### 2. Spatial Validation
-- Player overlap detection (min 5 units)
-- Boundary checking
-- Zone placement
+Handle:
+1. Position aliases (RW→right wing)
+2. Relative positions ("5 units left of F1")
+3. Face-off positions
+4. Contextual descriptions
 
-### 3. Hockey Sense Validation
-- Max 6 players per team
-- Single puck possession
-- Realistic positioning
-- Movement patterns
+Output: x|y|confidence|reasoning
+"""
+```
 
-## Error Handling
+### Movement Pattern Prompt
+```python
+prompt = f"""
+Movement: {movement_type} from {from_position} to {to_position}
+Zone: {zone} ZONE
+Distance: {distance} units
 
-### Common Issues
-1. **Missing coordinates**: Returns position suggestions
-2. **Player overlap**: Reports distance and positions
-3. **Invalid movement**: Suggests waypoints for cross-ice
-4. **No puck holder**: Warning (may be intentional)
+HOCKEY MOVEMENT PATTERNS:
+[15 patterns with descriptions]
 
-### Recovery Strategies
-- Fuzzy position matching with LLM fallback
-- Auto-pattern detection for movements
-- Default zone centers for unknown positions
-- Suggested fixes in validation responses
+Determine:
+1. Most appropriate pattern
+2. Special waypoints needed
+
+Output: pattern|waypoint1_x,waypoint1_y|waypoint2_x,waypoint2_y
+"""
+```
 
 ## Performance Optimizations
 
-### Modular Design
-- Separated schemas (208 lines)
-- Extracted position mapping (192 lines)
-- Isolated validation logic (91 lines)
-- Reduced main file by ~200 lines
+### Caching Strategy
+- Position mappings cached in dictionaries
+- Template patterns pre-loaded
+- LLM responses not cached (context-dependent)
 
-### Lazy Loading
-- OpenAI client loaded on demand
-- Templates loaded when needed
-- Session tracking optional
+### Efficient Lookups
+```python
+# O(1) direct position lookup
+if position_lower in zone_positions:
+    return zone_positions[position_lower]
 
-### Caching
-- Position mappings in dictionaries
-- Template patterns pre-indexed
-- Standard positions constant
+# Short-circuit on high confidence
+if confidence >= 0.95:
+    return early
+```
+
+## Error Handling
+
+### Graceful Fallbacks
+1. LLM fails → Fall back to fuzzy matching
+2. No position match → Return closest landmark
+3. Invalid pattern → Default to "curve"
+4. Waypoint calculation fails → Use direct line
+
+### Validation Feedback
+```python
+{
+    "valid": False,
+    "issues": ["High slot at wrong x-coordinate"],
+    "suggestions": ["Change x from 69 to 47"],
+    "warnings": ["Cross-ice movement needs waypoints"]
+}
+```
+
+## Testing Coverage
+
+### Position Testing
+- `test_offensive_positions.py`: All offensive positions
+- `test_defensive_positions.py`: All defensive positions  
+- `test_neutral_positions.py`: Neutral zone positions
+- Validates coordinates and orientations
+
+### Movement Testing
+- `test_movement_patterns.py`: All 15 patterns
+- Verifies waypoint generation
+- Checks curve rendering
 
 ## Integration Points
 
-### MCP Protocol
-- FastMCP framework
-- Stateless HTTP support
-- SSE/stdio transport options
-
-### External Dependencies
-- OpenAI API (optional LLM validation)
-- Google Sheets (trace upload)
-- Hockey knowledge base (research)
-
-### Output Formats
-- SVG (vector graphics)
-- PNG (raster images)
-- JSON (diagram specification)
-- Trace logs (session data)
-
-## Testing Strategy
-
-### Unit Tests
+### Google Sheets
 ```python
-# Test position mapping
-pos = map_position('left faceoff dot', 'offensive')
-assert pos == (-69, 22.5)
-
-# Test waypoint calculation
-waypoints = calculate_waypoints(from_pos, to_pos, 'cross_ice')
-assert len(waypoints) == 2
-
-# Test validation
-result = validate_node('players', player_data)
-assert result['valid'] == True
+# Trace data upload
+trace_data = {
+    "rows": [
+        [timestamp, session_id, drill, step, phase, 
+         action, thought, input, output, issues, 
+         success, lessons]
+    ]
+}
 ```
 
-### Integration Tests
-- Full workflow from request to diagram
-- Template matching accuracy
-- Validation chain completeness
-- File generation success
+### External Tools
+- `mcp__hockey_kb__*`: Hockey knowledge base
+- `mcp__exa__*`: Web search
+- `mcp__google-sheets__*`: Data upload
 
-## New Features in v2.2
+## Configuration
 
-### Enhanced Examples & Patterns
-- `search_diagram_node` now returns comprehensive examples
-- Common patterns for each node type
-- Real-world coordinate references
-- Best practice tips
+### Environment Variables
+```python
+OPENAI_API_KEY  # For LLM interpretation
+ANTHROPIC_API_KEY  # Optional
+MCP_SERVER_NAME = "hockey-diagram"
+```
 
-### Preview Capabilities
-- ASCII art preview for quick visual check
-- Coordinate list for detailed review
-- Helps validate before generation
-- Reduces iteration cycles
+### Default Settings
+```python
+# Confidence thresholds
+MIN_CONFIDENCE = 0.7
+LLM_CONFIDENCE = 0.85
 
-### Relative Positioning
-- Support for "X units left/right/above/below of REF"
-- "between REF1 and REF2" positioning
-- Fractional positioning ("2/3 of the way from...")
-- "near/close to" fuzzy positioning
-- Enables dynamic layouts
+# Rendering
+INTERPOLATION_POINTS = 100
+DEFAULT_Z_ORDER = {
+    'rink': 0,
+    'zones': 6,
+    'movements': 8,
+    'players': 10,
+    'equipment': 11,
+    'goalie': 12
+}
+```
 
 ## Future Enhancements
 
 ### Planned Features
-1. Multi-phase drill support
-2. Animation sequences
-3. Coaching notes overlay
-4. Formation presets
-5. Drill progression tracking
+1. **Multi-phase drill support**: Separate diagrams per phase
+2. **Animation export**: Sequence of movements
+3. **3D visualization**: Perspective view option
+4. **Team system templates**: PP, PK, breakout systems
 
-### Extensibility Points
-- New movement patterns in position_mapper
-- Additional schemas in diagram_schemas
-- Custom validators in validators.py
-- Template expansion in drill_template_finder
+### Optimization Opportunities
+1. **Batch LLM calls**: Multiple positions in one request
+2. **Template caching**: Store generated specs
+3. **Parallel rendering**: Multi-threaded diagram generation
+4. **CDN for assets**: Host rink backgrounds
 
 ## Deployment
 
-### Requirements
-- Python 3.8+
-- Virtual environment (spacy_env)
-- MCP server infrastructure
-- Optional: OpenAI API key
-
-### Configuration
+### Local Development
 ```bash
-# Standalone
-python hockey_diagram_mcp_v2.py --transport stdio
-
-# SSE Server
-python hockey_diagram_mcp_v2.py --transport sse --port 8001
+python servers/hockey_diagram_mcp_v2.py
 ```
 
-### Monitoring
-- Health check endpoint
-- Session tracking
-- Error logging
-- Performance metrics
+### Production Considerations
+- Use connection pooling for LLM clients
+- Implement rate limiting for API calls
+- Add monitoring for tool usage
+- Set up error alerting
 
 ## Maintenance
 
-### Code Organization
-- Clear separation of concerns
-- Modular components
-- Consistent naming
-- Comprehensive logging
+### Adding New Positions
+```python
+# In position_mapper.py
+OFFENSIVE_POSITIONS["new_position"] = (x, y)
+```
 
-### Documentation
-- Inline docstrings
-- Schema examples
-- Workflow instructions
-- Error messages
+### Adding New Patterns
+```python
+# In calculate_waypoints()
+elif pattern == "new_pattern":
+    waypoints = [
+        # Define waypoint calculation
+    ]
+```
 
-### Version Management
-- v2.2: Enhanced with preview and relative positioning
-- v2.1: Added trace logging and modular design
-- v2.0: Streamlined 8-tool design
-- v1: Legacy monolithic version (archived)
-- Semantic versioning for updates
+### Updating LLM Prompts
+- Keep position list under 60 for token limits
+- Prioritize commonly used positions
+- Include clear examples in prompts
+
+## Version History
+
+### v2.0 (2025-09-01)
+- Complete position system overhaul (250+ positions)
+- 15 movement patterns with LLM detection
+- Smooth curve rendering with CubicSpline
+- Enhanced validation and error handling
+- Agent instruction updates
+
+### v1.1 (2025-08-27)
+- Added waypoint support for movements
+- Basic curve rendering
+- Initial position mappings
+
+### v1.0 (2025-08-26)
+- Initial MCP server implementation
+- 10 core tools
+- Basic validation
