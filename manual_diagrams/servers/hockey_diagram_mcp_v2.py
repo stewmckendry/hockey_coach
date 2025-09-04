@@ -511,12 +511,13 @@ def validate_diagram_node_minimal(node_type: str, node_data: Any, session_id: Op
 
 @mcp.tool("validate_diagram_spec_full")
 @trace_tool
-def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[str] = None, session_id: Optional[str] = None) -> Dict[str, Any]:
+def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[str] = None, session_id: Optional[str] = None, use_llm: bool = True) -> Dict[str, Any]:
     """Complete validation of entire diagram specification.
     
     Args:
         spec: Complete diagram specification
         original_request: Original drill description for context
+        use_llm: Whether to use LLM for semantic validation (default: True)
         
     Returns:
         Comprehensive validation with structure, spatial, and hockey sense checks
@@ -532,46 +533,141 @@ def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[
     spatial_issues = check_spatial_conflicts(spec)
     spatial_valid = len(spatial_issues) == 0
     
-    # Hockey sense validation (LLM if available)
+    # Hockey sense validation (LLM if available and enabled)
     hockey_sense_valid = True
     llm_feedback = None
+    llm_warnings = []
+    llm_issues = []
     
-    if original_request and client:
+    if original_request and client and use_llm:
         try:
+            # Build detailed spec summary for LLM
+            players = spec.get('players', [])
+            movements = spec.get('movements', [])
+            
+            # Count offensive and defensive players
+            home_players = [p for p in players if p.get('team') == 'home']
+            away_players = [p for p in players if p.get('team') == 'away']
+            
+            # Summarize player positions
+            player_summary = []
+            for p in players:
+                pos = p.get('position', 'Unknown')
+                coords = p.get('coordinates', {})
+                team = p.get('team', 'unknown')
+                player_summary.append(f"{pos} at ({coords.get('x', 0)}, {coords.get('y', 0)}) [{team}]")
+            
+            # Summarize movements
+            movement_summary = []
+            for m in movements:
+                m_type = m.get('type', 'unknown')
+                from_pos = m.get('from_pos', {})
+                to_pos = m.get('to_pos', {})
+                movement_summary.append(f"{m_type}: ({from_pos.get('x', 0)}, {from_pos.get('y', 0)}) → ({to_pos.get('x', 0)}, {to_pos.get('y', 0)})")
+            
             prompt = f"""
-            Drill request: {original_request}
+            Analyze if this hockey diagram matches the drill request.
             
-            Spec has:
-            - {len(spec.get('players', []))} players
-            - {len(spec.get('movements', []))} movements
-            - View: {spec.get('rink', {}).get('view', 'unknown')}
+            DRILL REQUEST: "{original_request}"
             
-            Does this match the drill request? Respond with:
-            1. YES/NO
-            2. Brief issue if NO (one line)
+            GENERATED DIAGRAM:
+            Players ({len(players)} total - {len(home_players)} home/offensive, {len(away_players)} away/defensive):
+            {chr(10).join(player_summary[:10]) if player_summary else "None"}
+            
+            Movements ({len(movements)}):
+            {chr(10).join(movement_summary[:10]) if movement_summary else "None"}
+            
+            Zones: {len(spec.get('zones', []))} zones
+            Rink view: {spec.get('rink', {}).get('view', 'full')}
+            
+            HOCKEY DRILL NOTATION:
+            - "2v1" means 2 offensive players vs 1 defensive player (3 total)
+            - "3v2" means 3 offensive players vs 2 defensive players (5 total)
+            - "5v4" means 5 offensive vs 4 defensive (power play, often just show offensive 5)
+            - Home team is typically offensive, away team is defensive
+            - Count forwards/defense by position (F1, F2, F3 = forwards; D1, D2 = defense)
+            
+            CRITICAL CHECKS:
+            1. PLAYER COUNT for drill notation - BE VERY STRICT:
+               - "2v1" → EXACTLY 2 home players AND EXACTLY 1 away player (total=3)
+               - "3v2" → EXACTLY 3 home players AND EXACTLY 2 away players (total=5)
+               - If counts don't match, MATCH MUST BE "NO"
+               
+            2. MOVEMENT REQUIREMENTS - BE STRICT:
+               - "pass" in request → MUST have pass movement
+               - "shot" in request → MUST have shot movement
+               - Missing required movements = MATCH: NO
+            
+            3. Positioning - BE LENIENT (minor variations OK)
+            
+            DECISION RULE: Wrong player count = ALWAYS NO. Missing key movements = ALWAYS NO.
+            
+            OUTPUT FORMAT (use | as separator):
+            MATCH: YES or NO
+            ISSUES: List only CRITICAL mismatches (semicolon separated) or "none"
+            WARNINGS: List minor concerns (semicolon separated) or "none"
+            MISSING: List only ESSENTIAL missing elements or "none"
+            
+            Example for correct 2v1:
+            MATCH: YES
+            ISSUES: none
+            WARNINGS: none
+            MISSING: none
             """
             
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=100
+                max_tokens=200,
+                temperature=0.3  # Lower temperature for more consistent analysis
             )
             
             llm_response = response.choices[0].message.content.strip()
-            if llm_response.startswith("NO"):
-                hockey_sense_valid = False
-                llm_feedback = llm_response.split("\n")[1] if "\n" in llm_response else "Doesn't match drill description"
-        except:
+            logger.info(f"LLM validation response: {llm_response}")
+            
+            # Parse LLM response
+            lines = llm_response.split('\n')
+            for line in lines:
+                if '|' in line or ':' in line:
+                    sep = '|' if '|' in line else ':'
+                    parts = line.split(sep, 1)
+                    if len(parts) == 2:
+                        key = parts[0].strip().upper()
+                        value = parts[1].strip()
+                        
+                        if key == "MATCH" and value.upper() == "NO":
+                            hockey_sense_valid = False
+                        elif key == "ISSUES" and value.lower() != "none":
+                            issues = [i.strip() for i in value.split(';') if i.strip()]
+                            llm_issues.extend(issues)
+                        elif key == "WARNINGS" and value.lower() != "none":
+                            warnings = [w.strip() for w in value.split(';') if w.strip()]
+                            llm_warnings.extend(warnings)
+                        elif key == "MISSING" and value.lower() != "none":
+                            missing = [m.strip() for m in value.split(';') if m.strip()]
+                            for item in missing:
+                                llm_issues.append(f"Missing: {item}")
+            
+            # Create consolidated feedback
+            if llm_issues or llm_warnings:
+                llm_feedback = "LLM Analysis: " + "; ".join(llm_issues[:2]) if llm_issues else None
+                
+        except Exception as e:
+            logger.warning(f"LLM validation failed: {e}")
             pass
     
     # Compile results
-    all_issues = structure_issues + spatial_issues
-    if llm_feedback:
-        all_issues.append(llm_feedback)
+    all_issues = structure_issues + spatial_issues + llm_issues
+    all_warnings = llm_warnings
     
     suggestions = []
     if "players" in spec and len(spec["players"]) == 1 and "give" in str(original_request).lower():
         suggestions.append("Give-and-go requires 2+ players")
+    
+    # Add any LLM suggestions to suggestions list
+    for warning in llm_warnings:
+        if warning not in suggestions:
+            suggestions.append(warning)
     
     return {
         "valid": structure_valid and spatial_valid and hockey_sense_valid,
@@ -579,8 +675,15 @@ def validate_diagram_spec_full(spec: Dict[str, Any], original_request: Optional[
         "spatial_valid": spatial_valid, 
         "hockey_sense_valid": hockey_sense_valid,
         "issues": all_issues,
+        "warnings": all_warnings,
         "suggestions": suggestions,
-        "llm_feedback": llm_feedback
+        "llm_analysis": {
+            "performed": original_request is not None and client is not None and use_llm,
+            "match": hockey_sense_valid,
+            "feedback": llm_feedback,
+            "issues": llm_issues,
+            "warnings": llm_warnings
+        }
     }
 
 # ============================================================================
@@ -1319,6 +1422,385 @@ def tools_health_check(session_id: Optional[str] = None) -> Dict[str, Any]:
             "traces": str(trace_dir)
         }
     }
+
+# ============================================================================
+# ATOMIC PIPELINE TOOLS - STAGE 1: QUERY ANALYSIS
+# ============================================================================
+
+@mcp.tool("analyze_hockey_query")
+@trace_tool
+def analyze_hockey_query(query: str, clarifications: Optional[Dict[str, Any]] = None, session_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Analyzes a hockey drill query and extracts/enriches components needed for diagram spec.
+    Uses LLM with hockey intelligence to fill gaps with educated assumptions.
+    
+    Args:
+        query: Natural language drill/play description
+        clarifications: Optional user answers to questions (e.g., {"faceoff_location": "right dot"})
+        session_id: Optional session ID for tracing
+        
+    Returns:
+        Analysis with explicit info, assumptions, and components aligned to spec sections
+    """
+    
+    # Prepare clarifications text
+    clarifications_text = ""
+    if clarifications:
+        clarifications_text = "\nUser clarifications provided:\n"
+        for key, value in clarifications.items():
+            clarifications_text += f"- {key}: {value}\n"
+    
+    # Create the analysis prompt
+    prompt = f"""Analyze this hockey drill/play query and extract components needed for a diagram.
+    
+QUERY: "{query}"
+{clarifications_text}
+
+Your task is to analyze this query with hockey expertise and provide a structured JSON response.
+
+For ANY hockey situation, you MUST:
+1. Identify what's explicitly stated vs what needs to be assumed
+2. Apply hockey knowledge to fill gaps (e.g., faceoffs need 11 players total)
+3. Make educated assumptions with confidence levels
+4. Generate questions for critical unknowns
+
+Output a JSON object with this EXACT structure:
+{{
+    "original_query": "the original query",
+    "explicit_info": {{
+        "situation": "faceoff/drill/play/etc",
+        "zone": "offensive/defensive/neutral if mentioned",
+        "key_actions": ["list of mentioned actions"],
+        // other explicitly mentioned details
+    }},
+    "components_with_assumptions": {{
+        "rink": {{
+            "view": "offensive/defensive/full",
+            "assumption": "reasoning for this choice",
+            "confidence": 0.0-1.0
+        }},
+        "players": [
+            {{
+                "id": "C/LW/RW/LD/RD/OC/etc",
+                "type": "center/winger/defense/goalie",
+                "team": "home/away",
+                "position_desc": "natural language position description",
+                "assumption": "why this player is needed",
+                "confidence": 0.0-1.0
+            }}
+            // Include ALL players needed for the situation
+        ],
+        "movements": [
+            {{
+                "id": "m1/m2/etc",
+                "type": "pass/shot/skate/carry",
+                "desc": "movement description",
+                "from_player": "player ID",
+                "to_area": "target area description",
+                "assumption": "reasoning for this movement",
+                "confidence": 0.0-1.0
+            }}
+        ],
+        "zones": [],
+        "annotations": [
+            {{
+                "text": "title or label text",
+                "position_desc": "where to place it",
+                "assumption": "why this annotation",
+                "confidence": 0.0-1.0
+            }}
+        ],
+        "equipment": []
+    }},
+    "questions_for_user": [
+        {{
+            "question": "question text",
+            "key": "parameter_key",
+            "options": ["option1", "option2"],
+            "critical": true/false,
+            "confidence": 0.0-1.0
+        }}
+    ],
+    "metadata": {{
+        "type": "drill/play",
+        "phase": "offensive/defensive/neutral/transition",
+        "key_players": ["list of key player IDs"]
+    }}
+}}
+
+IMPORTANT HOCKEY KNOWLEDGE:
+- Faceoffs require both teams: 5v5 plus goalie (11 total) for zone faceoffs
+- "Weak side" for right dot = left wing, for left dot = right wing
+- "Bump back" = faceoff win technique sending puck backward
+- Offensive zone faceoffs: attacking team at points, defending team protecting net
+- Always include goalie if there's a shot
+- Standard positions: C, LW, RW, LD, RD for home; OC, OW1, OW2, OD1, OD2, G for away
+
+Apply your hockey expertise to provide a complete, realistic analysis."""
+    
+    # Use LLM to analyze
+    if not client:
+        logger.warning("OpenAI client not available, returning basic analysis")
+        return {
+            "error": "OpenAI client not configured",
+            "original_query": query,
+            "suggestion": "Configure OPENAI_API_KEY to enable LLM analysis"
+        }
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Use gpt-4o-mini for better hockey understanding
+            messages=[
+                {"role": "system", "content": "You are a hockey coach and diagram expert. Analyze drills and plays with deep hockey knowledge."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=2000,
+            temperature=0.3,  # Lower temperature for consistent analysis
+            response_format={"type": "json_object"}  # Ensure JSON response
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        
+        # Apply any clarifications that weren't processed by LLM
+        if clarifications:
+            result["user_clarifications"] = clarifications
+        
+        # Log summary
+        player_count = len(result.get("components_with_assumptions", {}).get("players", []))
+        movement_count = len(result.get("components_with_assumptions", {}).get("movements", []))
+        logger.info(f"🔍 Query analysis complete: {player_count} players, {movement_count} movements")
+        
+        return result
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse LLM response as JSON: {e}")
+        return {
+            "error": "Failed to parse analysis response",
+            "original_query": query,
+            "raw_response": response.choices[0].message.content if response else None
+        }
+    except Exception as e:
+        logger.error(f"Query analysis failed: {e}")
+        return {
+            "error": f"Analysis failed: {str(e)}",
+            "original_query": query
+        }
+
+# ============================================================================
+        if zone == "offensive":
+            result["components_with_assumptions"]["rink"] = {
+                "view": "offensive",
+                "assumption": "Focus on offensive zone for offensive zone faceoff",
+                "confidence": 0.95
+            }
+            
+            # Build player list for offensive zone faceoff
+            is_right_dot = dot_location == "right dot"
+            
+            # Home team (offensive)
+            players = [
+                {
+                    "id": "C",
+                    "type": "center",
+                    "team": "home",
+                    "position_desc": f"at {dot_location or 'faceoff dot'} (taking draw)",
+                    "assumption": "Center takes the faceoff",
+                    "confidence": 1.0
+                },
+                {
+                    "id": "LW",
+                    "type": "winger",
+                    "team": "home",
+                    "position_desc": f"left wing position on circle {'(weak side)' if is_right_dot else '(strong side)'}",
+                    "assumption": "Standard offensive zone faceoff formation",
+                    "confidence": 0.9
+                },
+                {
+                    "id": "RW",
+                    "type": "winger",
+                    "team": "home",
+                    "position_desc": f"right wing position on circle {'(strong side)' if is_right_dot else '(weak side)'}",
+                    "assumption": "Standard offensive zone faceoff formation",
+                    "confidence": 0.9
+                },
+                {
+                    "id": "LD",
+                    "type": "defense",
+                    "team": "home",
+                    "position_desc": "left point position",
+                    "assumption": "Left D at point for offensive zone faceoff",
+                    "confidence": 0.9
+                },
+                {
+                    "id": "RD",
+                    "type": "defense",
+                    "team": "home",
+                    "position_desc": "right point position",
+                    "assumption": "Right D at point for offensive zone faceoff",
+                    "confidence": 0.9
+                }
+            ]
+            
+            # Away team (defensive)
+            if not clarifications or clarifications.get("show_opposing", "all") == "all":
+                players.extend([
+                    {
+                        "id": "OC",
+                        "type": "center",
+                        "team": "away",
+                        "position_desc": f"opposing center at {dot_location or 'faceoff dot'}",
+                        "assumption": "Opposing center for faceoff",
+                        "confidence": 1.0
+                    },
+                    {
+                        "id": "OW1",
+                        "type": "winger",
+                        "team": "away",
+                        "position_desc": "opposing winger on strong side",
+                        "assumption": "Defensive faceoff formation",
+                        "confidence": 0.8
+                    },
+                    {
+                        "id": "OW2",
+                        "type": "winger",
+                        "team": "away",
+                        "position_desc": "opposing winger on weak side",
+                        "assumption": "Defensive faceoff formation",
+                        "confidence": 0.8
+                    },
+                    {
+                        "id": "OD1",
+                        "type": "defense",
+                        "team": "away",
+                        "position_desc": "opposing defense protecting net (strong side)",
+                        "assumption": "Defensive positioning",
+                        "confidence": 0.85
+                    },
+                    {
+                        "id": "OD2",
+                        "type": "defense",
+                        "team": "away",
+                        "position_desc": "opposing defense protecting net (weak side)",
+                        "assumption": "Defensive positioning",
+                        "confidence": 0.85
+                    }
+                ])
+            
+            # Add goalie if shot is mentioned
+            if "shot" in query.lower() or "shoot" in query.lower():
+                players.append({
+                    "id": "G",
+                    "type": "goalie",
+                    "team": "away",
+                    "position_desc": "in net",
+                    "assumption": "Goalie present for shot scenario",
+                    "confidence": 1.0
+                })
+            
+            result["components_with_assumptions"]["players"] = players
+    
+    # Parse movements from query
+    movements = []
+    
+    # Look for bump/win back
+    if "bump" in query.lower() and "back" in query.lower():
+        movements.append({
+            "id": "m1",
+            "type": "pass",
+            "desc": "Center bumps puck back",
+            "from_player": "C",
+            "to_area": "behind faceoff circle",
+            "assumption": "Bump back is a faceoff win technique",
+            "confidence": 0.95
+        })
+    
+    # Look for swing/move over
+    if "swing" in query.lower() or "swings over" in query.lower():
+        # Determine which winger based on weak/strong side
+        winger = None
+        if "weak side" in query.lower():
+            if result["explicit_info"].get("faceoff_location") == "right dot":
+                winger = "LW"  # Left wing is weak side for right dot
+            elif result["explicit_info"].get("faceoff_location") == "left dot":
+                winger = "RW"  # Right wing is weak side for left dot
+        
+        if winger:
+            movements.append({
+                "id": "m2",
+                "type": "skate",
+                "desc": f"{winger} swings over to get puck",
+                "from_player": winger,
+                "to_area": "behind faceoff circle",
+                "assumption": "Winger retrieves bumped puck",
+                "confidence": 0.9
+            })
+            
+            # Add carry to shooting position
+            shot_location = clarifications.get("shot_location", "shooting position") if clarifications else "shooting position"
+            if "slot" in shot_location:
+                movements.append({
+                    "id": "m3",
+                    "type": "carry",
+                    "desc": f"{winger} carries puck to slot",
+                    "from_player": winger,
+                    "to_area": "slot",
+                    "assumption": "Move to slot for shot",
+                    "confidence": 0.95
+                })
+    
+    # Look for shot
+    if "shot" in query.lower() or "shoot" in query.lower():
+        shooter = None
+        for m in movements:
+            if "carry" in m.get("type", "") or "skate" in m.get("type", ""):
+                shooter = m.get("from_player")
+        
+        if shooter:
+            movements.append({
+                "id": f"m{len(movements)+1}",
+                "type": "shot",
+                "desc": f"{shooter} shoots on net",
+                "from_player": shooter,
+                "to_area": "net",
+                "assumption": "Final play action is shot",
+                "confidence": 1.0
+            })
+    
+    result["components_with_assumptions"]["movements"] = movements
+    
+    # Add annotations
+    result["components_with_assumptions"]["annotations"] = [
+        {
+            "text": "Offensive Zone Faceoff Play",
+            "position_desc": "title",
+            "assumption": "Title describes the play",
+            "confidence": 0.9
+        }
+    ]
+    
+    # Detect drill vs play
+    if any(word in query.lower() for word in ["drill", "practice", "exercise"]):
+        result["metadata"]["type"] = "drill"
+    else:
+        result["metadata"]["type"] = "play"
+    
+    # Generate questions for unclear elements
+    if "faceoff_location" not in result["explicit_info"] and not clarifications:
+        result["questions_for_user"].append({
+            "question": "Which faceoff dot - left or right?",
+            "key": "faceoff_location",
+            "options": ["left dot", "right dot"],
+            "critical": True,
+            "confidence": 0.5
+        })
+    
+    # Add metadata
+    result["metadata"]["phase"] = result["explicit_info"].get("faceoff_zone", "unknown")
+    result["metadata"]["key_players"] = list(set([m.get("from_player") for m in movements if m.get("from_player")]))
+    
+    logger.info(f"🔍 Query analysis complete: {len(result['components_with_assumptions']['players'])} players, {len(movements)} movements")
+    
+    return result
 
 # ============================================================================
 # SERVER INITIALIZATION

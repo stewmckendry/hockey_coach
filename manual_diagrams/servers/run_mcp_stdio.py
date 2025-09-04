@@ -21,7 +21,7 @@ if env_file.exists():
                 os.environ[key.strip()] = value.strip().strip('"')
 
 # Import the MCP server after paths are set
-from hockey_diagram_mcp_v2 import mcp
+from hockey_diagram_mcp_v3 import mcp
 
 # Run in stdio mode
 if __name__ == "__main__":

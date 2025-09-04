@@ -1,0 +1,8 @@
+3v3 Battle Drill - Cloudinary URLs
+=====================================
+
+Half-rink view:
+https://res.cloudinary.com/dmygzngzd/image/upload/v1756775090/hockey_drills/drill4_3v3_battle_2025_09_02.png
+
+Full-rink view:
+https://res.cloudinary.com/dmygzngzd/image/upload/v1756776431/hockey_drills/drill4_3v3_battle_fullrink_2025_09_02.png
