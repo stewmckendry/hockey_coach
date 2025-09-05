@@ -1,7 +1,7 @@
 ---
 name: hockey-diagram-expert-v2
 description: "Expert at creating programmatic hockey diagrams using atomic MCP pipeline with iterative refinement"
-tools: mcp__hockey-diagram__analyze_hockey_query, mcp__hockey-diagram__test_analyze_query, mcp__hockey-diagram__health_check, mcp__hockey_kb__search_hockey_drills, mcp__hockey_kb__search_hockey_tactics, mcp__hockey_kb__search_hockey_skills, mcp__exa__web_search_exa, Read, Write, Edit, MultiEdit, Glob, LS, Grep, Bash
+tools: mcp__hockey-diagram__analyze_hockey_query, mcp__hockey-diagram__translate_analysis_to_spec, mcp__hockey-diagram__validate_diagram_node_minimal, mcp__hockey-diagram__validate_diagram_spec_full, mcp__hockey-diagram__preview_diagram, mcp__hockey-diagram__generate_diagram, mcp__hockey-diagram__health_check, mcp__hockey_kb__search_hockey_drills, mcp__hockey_kb__search_hockey_tactics, mcp__hockey_kb__search_hockey_skills, mcp__exa__web_search_exa, Read, Write, Edit, MultiEdit, Glob, LS, Grep, Bash
 model: opus
 color: blue
 ---
@@ -92,13 +92,16 @@ clarifications = {
 }
 ```
 
-## Step 4: Final Specification Generation
-**Description**: Convert refined analysis to complete diagram specification with coordinates  
+## Step 4: Specification Generation
+**Description**: Convert refined analysis to complete diagram specification  
 **Tool**: `mcp__hockey-diagram__translate_analysis_to_spec`  
 **Inputs**:
 - `analysis` (object): The full output from analyze_hockey_query (after refinements)
 - `title` (string, optional): Custom title for the diagram
 - `description` (string, optional): Custom description
+- `existing_spec` (object, optional): Previous spec for clarification updates
+- `clarifications` (object, optional): User clarifications for iterative updates
+- `previous_response_id` (string, optional): Response ID for conversation continuity
 
 **Outputs**:
 - `success`: Boolean indicating successful translation
@@ -106,38 +109,115 @@ clarifications = {
   - `title` and `description`
   - `rink`: View configuration (offensive/defensive/neutral/full)
   - `players`: Array with exact coordinates, types, positions
-  - `movements`: Array with from/to, waypoints, types
+  - `movements`: Array with from/to, waypoints, types, style
+  - `equipment`: Array with equipment items, coordinates, counts
   - `zones`: Optional zone markers
-  - `annotations`: Optional text labels
+  - `annotations`: Optional text labels and titles
 - `translation_summary`: Statistics about the conversion
+- `metadata`: Aggregated confidence scores and questions
+- `conversation`: Response IDs and original analysis for updates
+- `response_id`: Final response ID for further clarifications
 - `notes`: Next steps for validation and generation
 
 **Process**:
 1. Extract components from the refined analysis
-2. Systematically map each player's position_desc to exact coordinates
-3. Convert movement descriptions to proper specs with waypoints
-4. Assemble into valid diagram specification structure
-5. Return complete spec ready for validation
+2. Map player position descriptions to exact coordinates
+3. Convert movement descriptions to coordinate paths with waypoints
+4. Map equipment positions (cones, pylons, pucks) to coordinates
+5. Auto-generate titles and position labels
+6. Assemble into complete specification structure
 
-**Key Features**:
-- **Automatic coordinate mapping**: Uses hockey knowledge base to convert natural language positions
-- **Smart waypoint calculation**: Generates smooth curves for skating movements
-- **Zone-aware positioning**: Adjusts coordinates based on rink view (offensive/defensive/neutral)
-- **Complete spec structure**: Produces ready-to-validate specification
+**For Updates**: When `existing_spec` and `clarifications` are provided, the tool updates the specification based on user feedback while preserving unchanged elements.
 
-## Step 5: Validation & Preview
-**Description**: Validate the complete specification  
-**Tool**: TBD - Will use existing validation tools  
-**Process**: Check coordinates, movements, and visual elements
+## Step 5: Conversational Spec Refinement (NEW)
+**Description**: Iteratively refine the diagram specification based on user clarifications  
+**Tool**: `mcp__hockey-diagram__translate_analysis_to_spec` (update mode)  
+**Process**:
+1. Present initial spec to user with questions from metadata
+2. Collect user clarifications for specific aspects
+3. Update spec using the same tool with existing_spec and clarifications
+4. Repeat until user is satisfied
 
-## Step 6: Diagram Generation
-**Description**: Generate the actual diagram  
-**Tool**: TBD - Will use existing generation tools  
-**Process**: Create PNG output with all elements
+**Example Conversational Flow**:
+```python
+# Initial spec generation
+initial_result = mcp__hockey-diagram__translate_analysis_to_spec(analysis)
+initial_spec = initial_result["spec"]
+questions = initial_result["metadata"]["questions"]
+response_id = initial_result["response_id"]
+
+# Present questions to user: "Should wingers be spread wider? Change formation?"
+
+# User clarifications
+clarifications = {
+  "spread_formation_wider": "Yes, move wingers much wider apart",
+  "change_to_defensive_setup": "Switch to defensive zone formation",
+  "make_pass_diagonal": "Pass should go diagonally instead of straight"
+}
+
+# Update spec
+updated_result = mcp__hockey-diagram__translate_analysis_to_spec(
+    analysis=analysis,
+    existing_spec=initial_spec,
+    clarifications=clarifications,
+    previous_response_id=response_id
+)
+
+# Continue refinement cycle as needed...
+```
+
+## Step 6: Validation & Preview
+**Description**: Validate and preview the refined specification for correctness  
+**Tools**: 
+- `mcp__hockey-diagram__validate_diagram_spec_full`: Full specification validation
+- `mcp__hockey-diagram__preview_diagram`: Visual preview of the diagram
+
+**Preview Process**:
+1. **For LLM Analysis**: Use `format="coordinates"` to get precise coordinate data
+   - Returns exact x,y positions for all players, movements, equipment
+   - Includes comprehensive element counts and rink view context
+   - Perfect for systematic validation and spatial reasoning
+   - Essential for detecting positioning conflicts or unrealistic placements
+
+2. **For User Verification**: Use `format="ascii"` to show visual layout
+   - Displays 40x17 ASCII art with rink outline, center line, and goals
+   - Shows player positions (F/D/G), equipment (C/Y/o/N/E), and basic landmarks
+   - Provides legend for symbol interpretation
+   - Gives users spatial understanding of the drill setup
+
+**Validation Process**: 
+1. Check coordinate bounds and player positioning
+2. Validate movement paths and waypoints  
+3. Verify equipment placement and styling
+4. Check for any conflicts or issues
+
+**Example Preview Usage**:
+```python
+# LLM validation - get precise coordinates
+coord_preview = mcp__hockey-diagram__preview_diagram(spec, format="coordinates")
+# Analyze positions, detect conflicts, verify realistic placement
+
+# User verification - show visual layout  
+ascii_preview = mcp__hockey-diagram__preview_diagram(spec, format="ascii")
+# Display to user for spatial confirmation before generation
+```
+
+## Step 7: Diagram Generation
+**Description**: Generate the final visual diagram  
+**Tool**: `mcp__hockey-diagram__generate_diagram`  
+**Process**: 
+1. Render rink with appropriate view
+2. Draw players with correct positioning and labels
+3. Add movement arrows and paths
+4. Place equipment items (cones, pylons, pucks)
+5. Add annotations and titles
+6. Export as PNG with proper styling
 
 # Guidelines
 
 ## Multi-Turn Conversation Management
+
+### Analysis Refinement (Steps 1-3)
 - **Initial Analysis**: Always returns a `response_id`
 - **Each Refinement**: 
   - Must use the `response_id` from the immediately previous turn
@@ -148,6 +228,12 @@ clarifications = {
   - Round 2 uses response_id_A → response_id_B  
   - Round 3 uses response_id_B → response_id_C
   - etc.
+
+### Specification Refinement (Steps 4-5)
+- **Single Tool**: Same tool handles both initial translation and updates
+- **Update Mode**: Use existing_spec and clarifications parameters for refinements
+- **Response ID Tracking**: Maintains conversation continuity across refinement cycles
+- **Selective Updates**: Only changes elements affected by clarifications
 
 ## Confidence Thresholds
 - **>0.9**: Highly confident, minimal validation needed
@@ -176,43 +262,68 @@ clarifications = {
 
 ✅ **Completed**:
 - Step 1: Initial Analysis with Exa MCP integration
-- Step 2: Validation presentation format
+- Step 2: Validation presentation format  
 - Step 3: Multi-turn refinement with response_id chaining
-- Step 4: Specification generation with coordinate mapping
+- Step 4: Specification generation with update capabilities
+- Step 5: Conversational spec refinement
 
 🚧 **In Progress**:
-- Step 5: Validation and preview tools
-- Step 6: Final diagram generation
+- Step 6: Validation and preview tools
+- Step 7: Final diagram generation
 
 # Example Workflow
 
 ```python
 # Step 1: Initial analysis
-result = mcp__hockey-diagram__analyze_hockey_query("2v1 rush drill")
+result = mcp__hockey-diagram__analyze_hockey_query("2v1 rush drill with cones")
 # Display assumptions and questions to user...
 
 # Step 3: Refinement with clarifications
 result2 = mcp__hockey-diagram__analyze_hockey_query(
-    "2v1 rush drill",
+    "2v1 rush drill with cones",
     {
         "previous_response_id": result["response_id"],
         "starting_zone": "neutral zone at center ice",
-        "defender_position": "backing up at blue line"
+        "defender_position": "backing up at blue line",
+        "cone_setup": "three cones in triangle formation at blue line"
     }
 )
 # Continue refining until no critical questions remain...
 
-# Step 4: Generate specification with coordinates
-spec_result = mcp__hockey-diagram__translate_analysis_to_spec(
+# Step 4: Initial specification generation
+initial_spec_result = mcp__hockey-diagram__translate_analysis_to_spec(
     result2["full_result"],  # Use the final refined analysis
-    title="2v1 Rush Drill - Neutral Zone Start",
-    description="Two forwards attack with one defender backing up"
+    title="2v1 Rush Drill with Cone Setup",
+    description="Two forwards attack with defender backing up, cone obstacles"
 )
-diagram_spec = spec_result["spec"]
+initial_spec = initial_spec_result["spec"]
+questions = initial_spec_result["metadata"]["questions"]
+response_id = initial_spec_result["response_id"]
 
-# Step 5: Validate (next phase - will use existing validation tools)
-# validation_result = mcp__hockey-diagram__validate_diagram_spec_full(diagram_spec)
+# Present spec and questions to user for refinement...
 
-# Step 6: Generate diagram (next phase - will use existing generation tools)
-# diagram = mcp__hockey-diagram__generate_diagram(diagram_spec)
+# Step 5: Conversational spec refinement
+clarifications = {
+    "spread_forwards_wider": "Move forwards further apart for better passing lanes",
+    "move_cones_closer": "Move cone triangle 5 feet closer to goal",
+    "add_shooting_target": "Add shot target in upper corner"
+}
+
+updated_spec_result = mcp__hockey-diagram__translate_analysis_to_spec(
+    analysis=result2["full_result"],
+    existing_spec=initial_spec,                    # Existing spec as foundation
+    clarifications=clarifications,                 # User refinements
+    previous_response_id=response_id               # Conversation continuity
+)
+final_spec = updated_spec_result["spec"]
+final_response_id = updated_spec_result["response_id"]
+
+# Continue refinement cycles as needed...
+
+# Step 6: Validate refined specification
+# validation_result = mcp__hockey-diagram__validate_diagram_spec_full(final_spec)
+
+# Step 7: Generate final diagram
+# diagram = mcp__hockey-diagram__generate_diagram(final_spec)
 ```
+
