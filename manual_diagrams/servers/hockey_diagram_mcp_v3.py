@@ -224,10 +224,10 @@ def analyze_hockey_query(
                                 "explicit_info": {
                                     "type": "object",
                                     "properties": {
-                                        "situation": {"type": "string"},
-                                        "zone": {"type": "string"},
+                                        "situation": {"type": ["string", "null"]},
+                                        "zone": {"type": ["string", "null"]},
                                         "key_actions": {"type": "array", "items": {"type": "string"}},
-                                        "faceoff_location": {"type": "string"}
+                                        "faceoff_location": {"type": ["string", "null"]}
                                     },
                                     "required": ["situation", "zone", "key_actions", "faceoff_location"],
                                     "additionalProperties": False
@@ -348,11 +348,19 @@ def analyze_hockey_query(
             output_text = ""
             
             # The SDK provides an output_text helper that extracts the text
-            if hasattr(response, 'output_text') and response.output_text:
+            # After MCP tool calls complete, this should contain the final answer
+            if hasattr(response, 'output_text'):
                 output_text = response.output_text
-                logger.info(f"SDK output_text: {output_text[:200] if output_text else 'None/Empty'}")
+                if output_text:
+                    logger.info(f"✅ SDK provided output_text: {len(output_text)} chars")
+                    logger.info(f"First 200 chars: {output_text[:200]}")
+                else:
+                    logger.info("⚠️ SDK has output_text attribute but it's empty/None")
             else:
-                # Fallback: manually extract from output array
+                logger.info("⚠️ Response has no output_text attribute")
+            
+            # If no output_text, manually extract from output array
+            if not output_text:
                 logger.info("Manually extracting from output array")
                 if hasattr(response, 'output') and isinstance(response.output, list):
                     # Log all items for debugging
@@ -393,13 +401,23 @@ def analyze_hockey_query(
             
             # Check if MCP tools were called - if so, we need to continue the conversation
             if not output_text and hasattr(response, 'output') and response.output:
-                # Check for MCP tool calls
+                # Check for MCP tool calls and track them
                 has_mcp_tools = False
+                mcp_tool_calls = []
                 for item in response.output:
-                    if hasattr(item, 'type') and item.type == 'mcp_list_tools':
-                        has_mcp_tools = True
-                        logger.info("🔧 MCP tools were listed, need to continue conversation")
-                        break
+                    if hasattr(item, 'type'):
+                        if item.type == 'mcp_list_tools':
+                            has_mcp_tools = True
+                            logger.info("🔧 MCP tools were listed, need to continue conversation")
+                        elif item.type == 'mcp_call':
+                            # Track the actual MCP calls
+                            tool_info = {
+                                "type": "mcp_call",
+                                "name": getattr(item, 'name', 'unknown'),
+                                "arguments": str(getattr(item, 'arguments', ''))[:200]
+                            }
+                            mcp_tool_calls.append(tool_info)
+                            logger.info(f"📞 MCP tool called: {tool_info['name']}")
                 
                 if has_mcp_tools:
                     # Continue conversation to get final answer after MCP tool execution
@@ -454,28 +472,31 @@ def analyze_hockey_query(
                     "original_query": query
                 }
             
-            # Log MCP tool calls if any were made
-            mcp_calls = []
-            # Check in the output message content for tool calls
-            if hasattr(response, 'output') and response.output:
-                for message in response.output:
-                    if hasattr(message, 'content') and message.content:
-                        for content_item in message.content:
-                            if hasattr(content_item, 'type') and 'tool' in content_item.type.lower():
-                                mcp_call_info = {
-                                    "type": content_item.type,
-                                    "details": str(content_item)[:200]  # First 200 chars
-                                }
-                                mcp_calls.append(mcp_call_info)
-                                logger.info(f"🔍 Tool call detected: {content_item.type}")
+            # Initialize MCP calls tracking (may have been populated from continuation logic above)
+            if 'mcp_tool_calls' not in locals():
+                mcp_tool_calls = []
             
-            if mcp_calls:
-                logger.info(f"✅ Made {len(mcp_calls)} MCP tool calls")
+            # Also check in the final response output for any additional tool calls
+            if hasattr(response, 'output') and response.output:
+                for item in response.output:
+                    if hasattr(item, 'type') and item.type == 'mcp_call':
+                        # Only add if not already tracked
+                        tool_name = getattr(item, 'name', 'unknown')
+                        if not any(tc.get('name') == tool_name for tc in mcp_tool_calls):
+                            mcp_tool_calls.append({
+                                "type": "mcp_call",
+                                "name": tool_name,
+                                "arguments": str(getattr(item, 'arguments', ''))[:200]
+                            })
+                            logger.info(f"🔍 Additional tool call detected: {tool_name}")
+            
+            if mcp_tool_calls:
+                logger.info(f"✅ Made {len(mcp_tool_calls)} MCP tool calls")
             else:
                 logger.info("ℹ️ No MCP tools were called")
             
             # Parse JSON from the output
-            # The output should be JSON based on our prompt instructions
+            # The output may be markdown with embedded JSON or pure JSON
             import re
             
             # Log the raw output for debugging
@@ -483,17 +504,31 @@ def analyze_hockey_query(
             if len(output_text) < 500:
                 logger.info(f"Raw output: {output_text}")
             
-            json_match = re.search(r'\{.*\}', output_text, re.DOTALL)
-            if json_match:
+            # Try to extract JSON from markdown code block first
+            json_block_match = re.search(r'```json\s*(.*?)\s*```', output_text, re.DOTALL)
+            if json_block_match:
+                json_text = json_block_match.group(1).strip()
+                logger.info("Found JSON in markdown code block")
+            else:
+                # Fallback to finding raw JSON
+                json_match = re.search(r'\{.*\}', output_text, re.DOTALL)
+                json_text = json_match.group() if json_match else None
+                if json_text:
+                    logger.info("Found raw JSON in output")
+            
+            if json_text:
                 try:
-                    result = json.loads(json_match.group())
+                    result = json.loads(json_text)
+                    logger.info("Successfully parsed JSON from output")
                 except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse JSON: {e}")
                     result = {
                         "raw_output": output_text[:1000], 
                         "parse_error": f"JSON decode error: {str(e)}",
-                        "json_attempt": json_match.group()[:500]
+                        "json_attempt": json_text[:500]
                     }
             else:
+                logger.warning("Could not find JSON in response")
                 result = {
                     "raw_output": output_text[:1000], 
                     "parse_error": "Could not extract JSON from response"
@@ -501,7 +536,7 @@ def analyze_hockey_query(
             
             result["api_used"] = "responses"
             result["exa_available"] = True
-            result["mcp_calls"] = mcp_calls
+            result["mcp_calls"] = mcp_tool_calls
             result["mcp_tools_configured"] = ["web_search_exa"] if use_exa_mcp and exa_api_key else []
             result["api_mode"] = "responses"
             result["response_id"] = response_id  # For multi-turn conversations
