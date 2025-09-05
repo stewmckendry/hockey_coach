@@ -29,6 +29,10 @@ from validators import validate_node, validate_spec, check_spatial_conflicts
 from spec_converter import dict_to_diagram_spec, validate_spec_dict
 from hockey_diagram_builder import DiagramBuilder, DiagramSpec
 
+# Additional imports for template management
+from difflib import SequenceMatcher
+import hashlib
+
 # Setup logging with both file and console output
 from pathlib import Path
 from datetime import datetime
@@ -3737,6 +3741,317 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None, se
 # HEALTH CHECK
 # ============================================================================
 
+# ============================================================================
+# TEMPLATE MANAGEMENT TOOLS
+# ============================================================================
+
+# Template storage directory
+TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+TEMPLATES_DIR.mkdir(exist_ok=True)
+
+@mcp.tool("save_diagram_template")
+def save_diagram_template(
+    spec: Dict[str, Any],
+    name: str,
+    description: str,
+    tags: Optional[List[str]] = None,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Save a diagram spec as a reusable template.
+    
+    Args:
+        spec: The validated diagram specification to save
+        name: Unique name for the template (e.g., "2-1-2_forecheck")
+        description: Human-readable description of what the diagram shows
+        tags: Optional list of tags for searchability (e.g., ["forecheck", "defensive", "neutral_zone"])
+        session_id: Optional session ID for logging context
+        
+    Returns:
+        Dictionary containing:
+        - template_id: Unique ID for the saved template
+        - filepath: Path where the template was saved
+        - name: Template name
+        - description: Template description
+        - status: Success message
+    """
+    session_tag = f"[Session {session_id}] " if session_id else ""
+    
+    try:
+        # Generate template ID from name
+        template_id = name.lower().replace(" ", "_").replace("-", "_")
+        
+        # Create template metadata
+        template_data = {
+            "id": template_id,
+            "name": name,
+            "description": description,
+            "tags": tags or [],
+            "created_at": datetime.now().isoformat(),
+            "spec": spec,
+            "metadata": {
+                "players_count": len(spec.get("players", [])),
+                "movements_count": len(spec.get("movements", [])),
+                "has_zones": bool(spec.get("zones", [])),
+                "has_annotations": bool(spec.get("annotations", []))
+            }
+        }
+        
+        # Save to JSON file
+        template_path = TEMPLATES_DIR / f"{template_id}.json"
+        
+        # Check if template already exists
+        if template_path.exists():
+            # Create versioned backup
+            backup_path = TEMPLATES_DIR / f"{template_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            template_path.rename(backup_path)
+            logger.info(f"{session_tag}📦 Backed up existing template to {backup_path}")
+        
+        # Save the new template
+        with open(template_path, 'w', encoding='utf-8') as f:
+            json.dump(template_data, f, indent=2)
+        
+        # Log the save operation
+        logger.info(f"{session_tag}✅ Saved template '{name}' to {template_path}")
+        logger.info(f"{session_tag}   ID: {template_id}")
+        logger.info(f"{session_tag}   Description: {description}")
+        if tags:
+            logger.info(f"{session_tag}   Tags: {', '.join(tags)}")
+        
+        # Update session tracking
+        if session_id and session_id in active_sessions:
+            active_sessions[session_id]["steps_completed"].append(f"saved_template:{template_id}")
+        
+        return {
+            "template_id": template_id,
+            "filepath": str(template_path),
+            "name": name,
+            "description": description,
+            "tags": tags or [],
+            "status": f"Successfully saved template '{name}' with ID '{template_id}'"
+        }
+        
+    except Exception as e:
+        logger.error(f"{session_tag}❌ Failed to save template: {e}")
+        return {
+            "error": f"Failed to save template: {str(e)}",
+            "status": "failed"
+        }
+
+
+@mcp.tool("search_diagram_templates")
+def search_diagram_templates(
+    query: str,
+    tags: Optional[List[str]] = None,
+    top_k: int = 5,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Search for existing diagram templates using fuzzy matching.
+    
+    Args:
+        query: Search query to match against template names and descriptions
+        tags: Optional list of tags to filter by
+        top_k: Number of top results to return (default: 5)
+        session_id: Optional session ID for logging context
+        
+    Returns:
+        Dictionary containing:
+        - templates: List of matching templates with id, name, description, and similarity score
+        - total_found: Total number of templates found
+        - query: The original search query
+    """
+    session_tag = f"[Session {session_id}] " if session_id else ""
+    
+    try:
+        logger.info(f"{session_tag}🔍 Searching templates with query: '{query}'")
+        if tags:
+            logger.info(f"{session_tag}   Filtering by tags: {', '.join(tags)}")
+        
+        # Load all templates
+        template_files = list(TEMPLATES_DIR.glob("*.json"))
+        
+        if not template_files:
+            logger.info(f"{session_tag}📭 No templates found in library")
+            return {
+                "templates": [],
+                "total_found": 0,
+                "query": query,
+                "message": "No templates found. Start by generating and saving some templates."
+            }
+        
+        # Process each template
+        results = []
+        for template_file in template_files:
+            # Skip backup files (with timestamp)
+            if "_20" in template_file.stem:  # Assuming backups have _YYYYMMDD format
+                continue
+                
+            try:
+                with open(template_file, 'r', encoding='utf-8') as f:
+                    template_data = json.load(f)
+                
+                # Filter by tags if specified
+                if tags:
+                    template_tags = template_data.get("tags", [])
+                    if not any(tag in template_tags for tag in tags):
+                        continue
+                
+                # Calculate similarity scores
+                name = template_data.get("name", "")
+                description = template_data.get("description", "")
+                template_tags = template_data.get("tags", [])
+                
+                # Combine text for matching
+                combined_text = f"{name} {description} {' '.join(template_tags)}".lower()
+                query_lower = query.lower()
+                
+                # Calculate similarity using SequenceMatcher
+                similarity = SequenceMatcher(None, query_lower, combined_text).ratio()
+                
+                # Boost score if query words appear in the text
+                query_words = query_lower.split()
+                word_matches = sum(1 for word in query_words if word in combined_text)
+                word_boost = word_matches / len(query_words) if query_words else 0
+                
+                # Combined score
+                final_score = (similarity * 0.7) + (word_boost * 0.3)
+                
+                results.append({
+                    "id": template_data.get("id"),
+                    "name": name,
+                    "description": description,
+                    "tags": template_tags,
+                    "similarity": round(final_score, 3),
+                    "metadata": template_data.get("metadata", {}),
+                    "created_at": template_data.get("created_at", "")
+                })
+                
+            except Exception as e:
+                logger.warning(f"{session_tag}⚠️ Failed to process template {template_file}: {e}")
+                continue
+        
+        # Sort by similarity score
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        
+        # Get top k results
+        top_results = results[:top_k]
+        
+        # Log search results
+        logger.info(f"{session_tag}📊 Found {len(results)} templates, returning top {min(top_k, len(results))}")
+        for i, result in enumerate(top_results, 1):
+            logger.info(f"{session_tag}   {i}. {result['name']} (score: {result['similarity']})")
+        
+        # Update session tracking
+        if session_id and session_id in active_sessions:
+            active_sessions[session_id]["steps_completed"].append(f"searched_templates:{query}")
+        
+        return {
+            "templates": top_results,
+            "total_found": len(results),
+            "query": query,
+            "tags_filter": tags,
+            "status": f"Found {len(results)} templates matching '{query}'"
+        }
+        
+    except Exception as e:
+        logger.error(f"{session_tag}❌ Failed to search templates: {e}")
+        return {
+            "error": f"Failed to search templates: {str(e)}",
+            "templates": [],
+            "total_found": 0,
+            "query": query
+        }
+
+
+@mcp.tool("fetch_diagram_template") 
+def fetch_diagram_template(
+    template_id: str,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Retrieve a saved diagram template by ID.
+    
+    Args:
+        template_id: The template ID to fetch
+        session_id: Optional session ID for logging context
+        
+    Returns:
+        Dictionary containing:
+        - template_id: The template ID
+        - name: Template name
+        - description: Template description
+        - spec: The complete diagram specification
+        - tags: Template tags
+        - metadata: Template metadata
+        - created_at: When the template was created
+        - status: Success/error message
+    """
+    session_tag = f"[Session {session_id}] " if session_id else ""
+    
+    try:
+        logger.info(f"{session_tag}📥 Fetching template: {template_id}")
+        
+        # Build template path
+        template_path = TEMPLATES_DIR / f"{template_id}.json"
+        
+        if not template_path.exists():
+            # Try case-insensitive search
+            for template_file in TEMPLATES_DIR.glob("*.json"):
+                if template_file.stem.lower() == template_id.lower():
+                    template_path = template_file
+                    break
+            else:
+                logger.warning(f"{session_tag}❌ Template not found: {template_id}")
+                return {
+                    "error": f"Template '{template_id}' not found",
+                    "suggestion": "Use search_diagram_templates to find available templates",
+                    "status": "not_found"
+                }
+        
+        # Load the template
+        with open(template_path, 'r', encoding='utf-8') as f:
+            template_data = json.load(f)
+        
+        # Log retrieval
+        logger.info(f"{session_tag}✅ Retrieved template: {template_data.get('name', template_id)}")
+        logger.info(f"{session_tag}   Description: {template_data.get('description', 'N/A')}")
+        metadata = template_data.get('metadata', {})
+        logger.info(f"{session_tag}   Players: {metadata.get('players_count', 0)}")
+        logger.info(f"{session_tag}   Movements: {metadata.get('movements_count', 0)}")
+        
+        # Update session tracking
+        if session_id and session_id in active_sessions:
+            active_sessions[session_id]["steps_completed"].append(f"fetched_template:{template_id}")
+            active_sessions[session_id]["template_used"] = template_id
+        
+        return {
+            "template_id": template_data.get("id", template_id),
+            "name": template_data.get("name"),
+            "description": template_data.get("description"),
+            "spec": template_data.get("spec"),
+            "tags": template_data.get("tags", []),
+            "metadata": metadata,
+            "created_at": template_data.get("created_at"),
+            "status": f"Successfully retrieved template '{template_data.get('name', template_id)}'"
+        }
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"{session_tag}❌ Invalid template JSON in {template_path}: {e}")
+        return {
+            "error": f"Template file is corrupted: {str(e)}",
+            "template_id": template_id,
+            "status": "corrupted"
+        }
+    except Exception as e:
+        logger.error(f"{session_tag}❌ Failed to fetch template: {e}")
+        return {
+            "error": f"Failed to fetch template: {str(e)}",
+            "template_id": template_id,
+            "status": "failed"
+        }
+
+
 @mcp.tool("health_check")
 def health_check() -> Dict[str, Any]:
     """
@@ -3745,16 +4060,36 @@ def health_check() -> Dict[str, Any]:
     Returns:
         Server health status and configuration
     """
+    # Check templates directory status
+    template_count = 0
+    if TEMPLATES_DIR.exists():
+        template_files = list(TEMPLATES_DIR.glob("*.json"))
+        # Exclude backup files
+        template_count = len([f for f in template_files if "_20" not in f.stem])
+    
     return {
         "status": "healthy",
         "server": "hockey-diagram-v3",
-        "version": "3.0.2",
+        "version": "3.0.3",
         "openai_configured": client is not None,
         "tools_available": [
+            "initialize_diagram",
             "analyze_hockey_query",
             "translate_analysis_to_spec",
+            "validate_diagram_node_minimal",
+            "validate_diagram_spec_full",
+            "preview_diagram",
+            "generate_diagram",
+            "save_diagram_template",
+            "search_diagram_templates",
+            "fetch_diagram_template",
             "health_check"
         ],
+        "template_library": {
+            "templates_dir": str(TEMPLATES_DIR),
+            "template_count": template_count,
+            "status": "Ready for template management"
+        },
         "responses_api_info": {
             "status": "Ready for Responses API",
             "mcp_integration": "Exa MCP configured",
