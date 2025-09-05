@@ -55,10 +55,11 @@ class HockeyDiagramGenerator:
         "X4": "X4", "X5": "X5", "XG": "XG"
     }
     
-    # Team colors
-    HOME_COLOR = "#1E40AF"  # Blue
-    AWAY_COLOR = "#DC2626"  # Red
+    # Team colors - matching reference images
+    HOME_COLOR = "#1E88E5"  # Bright blue - matches reference images
+    AWAY_COLOR = "#D32F2F"  # Bright red - matches reference images
     PUCK_COLOR = "#000000"  # Black
+    COACH_COLOR = "#4CAF50"  # Green for coaches
     
     def __init__(self, rink_config: Optional[Dict] = None):
         """Initialize generator with optional rink configuration."""
@@ -157,44 +158,38 @@ class HockeyDiagramGenerator:
                 logging.warning(f"Skipping player {player.position} with None coordinates")
                 continue
                 
-            # Determine color
-            if player.team == "home":
+            # Determine color - check for coach position
+            if player.position in ['COACH', 'C', 'Coach']:
+                color = self.COACH_COLOR
+                position_label = 'C'
+            elif player.team == "home":
                 color = self.HOME_COLOR
                 position_label = self.HOME_POSITIONS.get(player.position, player.position)
             else:
                 color = self.AWAY_COLOR
                 position_label = self.AWAY_POSITIONS.get(player.position, player.position)
             
-            # Create combined label (position + zone/custom label)
-            if player.label:
-                # Use custom label if provided
-                display_label = f"{position_label}\n({player.label})"
-            elif player.zone:
-                # Use zone name if provided
-                display_label = f"{position_label}\n{player.zone}"
-            else:
-                # Just show position
-                display_label = position_label
+            # Use simple label (just position)
+            display_label = player.label if player.label else position_label
                 
-            # Draw player circle
+            # Draw filled player circle with white text - matching reference images
             circle = Circle(
                 (player.x, player.y), 
-                radius=3,
-                facecolor='white',
+                radius=3.5,  # Slightly bigger for better visibility
+                facecolor=color,  # Filled with team color
                 edgecolor=color,
-                linewidth=2,
+                linewidth=1,
                 zorder=100  # High zorder to ensure players are on top of rink lines
             )
             ax.add_patch(circle)
             
-            # Add combined label (position + zone)
+            # Add label inside circle with white text
             ax.text(
-                player.x, player.y - 5, display_label,  # Offset below circle
-                ha='center', va='top',
-                fontsize=8, fontweight='bold',
-                color=color,
-                zorder=101,  # Higher than player circle
-                bbox=dict(boxstyle="round,pad=0.2", facecolor='white', edgecolor=color, alpha=0.8)
+                player.x, player.y, display_label,  # Centered in circle
+                ha='center', va='center',
+                fontsize=10, fontweight='bold',
+                color='white',  # White text on colored background
+                zorder=101  # Higher than player circle
             )
             
             # Add puck indicator if player has puck

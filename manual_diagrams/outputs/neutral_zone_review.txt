@@ -1,0 +1,80 @@
+================================================================================
+                        NEUTRAL ZONE POSITION REVIEW
+================================================================================
+
+REFERENCE LANDMARKS (Fixed Positions)
+----------------------------------------
+RED LINE (Center Ice):              (  0.0,   0.0)
+OFFENSIVE BLUE LINE:                (-25.0,   0.0)  [Attacking left]
+DEFENSIVE BLUE LINE:                ( 25.0,   0.0)  [Defending right]
+TOP BOARDS:                         (  0.0,  42.5)
+BOTTOM BOARDS:                      (  0.0, -42.5)
+
+NEUTRAL ZONE FACE-OFF CIRCLE:       ~15 unit radius from center
+
+
+CURRENT NEUTRAL ZONE POSITIONS (Sorted by X, then Y)
+================================================================================
+
+NEUTRAL ZONE DOTS (For icing/offside face-offs)
+----------------------------------------
+neutral right dot                   (-20.0, -22.5)  ✓ Good - near offensive blue line
+neutral left dot                    (-20.0,  22.5)  ✓ Good - near offensive blue line
+neutral right dot far               ( 20.0, -22.5)  ✓ Good - near defensive blue line
+neutral left dot far                ( 20.0,  22.5)  ✓ Good - near defensive blue line
+
+
+CENTER ICE FACE-OFF POSITIONS
+----------------------------------------
+center faceoff center               ( -1.0,   0.0)  ✓ Good - slight left offset
+center faceoff right wing           ( -1.0, -12.0)  ✓ Good - outside circle
+center faceoff left wing            ( -1.0,  12.0)  ✓ Good - outside circle
+center faceoff right defense        (-10.5,  -7.5)  ✓ Good - on circle edge
+center faceoff left defense         (-10.5,   7.5)  ✓ Good - on circle edge
+
+
+CENTER ICE ALIASES (DUPLICATES - Need cleanup)
+----------------------------------------
+center ice                          (  0.0,   0.0)  ⚠️  Duplicate
+center                              (  0.0,   0.0)  ⚠️  Duplicate
+red line                            (  0.0,   0.0)  ⚠️  Duplicate
+center ice faceoff                  (  0.0,   0.0)  ⚠️  Duplicate
+center faceoff                      (  0.0,   0.0)  ⚠️  Duplicate
+
+
+BOARD POSITIONS
+----------------------------------------
+left boards                         (  0.0,  42.5)  ✓ Good - top of rink
+right boards                        (  0.0, -42.5)  ✓ Good - bottom of rink
+
+
+QUEUE/WAITING POSITIONS (Off-ice)
+----------------------------------------
+neutral queue left                  ( 10.0,  38.0)  ✓ Good - near boards
+neutral queue right                 ( 10.0, -38.0)  ✓ Good - near boards
+
+
+================================================================================
+REVIEW SUMMARY
+================================================================================
+
+✅ CORRECT POSITIONS (13):
+- All 4 neutral zone dots properly positioned
+- All 5 face-off positions have proper offsets
+- Both board positions correct
+- Both queue positions reasonable
+
+⚠️  ISSUES TO FIX (5):
+- 5 duplicate center ice positions all at (0,0)
+  Recommend keeping only:
+  * "center ice" for general reference
+  * "center faceoff" for face-off scenarios
+  Delete: "center", "red line", "center ice faceoff"
+
+📝 SUGGESTED ADDITIONS:
+- "neutral zone left wall" at approximately (-12, 38)
+- "neutral zone right wall" at approximately (-12, -38)
+- "offensive blue line center" at (-25, 0) [explicit neutral zone reference]
+- "defensive blue line center" at (25, 0) [explicit neutral zone reference]
+
+================================================================================

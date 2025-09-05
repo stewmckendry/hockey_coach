@@ -1,0 +1,9 @@
+NEUTRAL ZONE - Batch 2
+==================================================
+
+ 1. neutral queue right                 (  10.0,  -38.0)
+ 2. center ice faceoff                  (   0.0,    0.0)
+ 3. center faceoff                      (   0.0,    0.0)
+ 4. center faceoff center               (  -1.0,    0.0)
+ 5. center faceoff right wing           (  -1.0,  -12.0)
+ 6. center faceoff left wing            (  -1.0,   12.0)

@@ -1,0 +1,9 @@
+NEUTRAL ZONE - Batch 3
+==================================================
+
+ 1. center faceoff right defense        ( -10.5,   -7.5)
+ 2. center faceoff left defense         ( -10.5,    7.5)
+ 3. neutral left dot                    ( -20.0,   22.5)
+ 4. neutral right dot                   ( -20.0,  -22.5)
+ 5. neutral left dot far                (  20.0,   22.5)
+ 6. neutral right dot far               (  20.0,  -22.5)
