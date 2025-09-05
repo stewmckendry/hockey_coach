@@ -195,7 +195,8 @@ def analyze_hockey_query(
                     "server_label": "exa",
                     "server_description": "Exa web search for hockey terminology and tactics",
                     "server_url": f"https://mcp.exa.ai/mcp?exaApiKey={exa_api_key}",
-                    "require_approval": "never"
+                    "require_approval": "never",  # Skip approval for automatic execution
+                    "allowed_tools": ["web_search_exa"]  # Only use the web search tool
                 })
             
             # Prepare the Responses API request with proper attributes
@@ -203,8 +204,8 @@ def analyze_hockey_query(
                 "model": model_config.get("model", "gpt-4o-mini"),
                 "tools": tools,
                 "input": prompt,  # User message/prompt
-                "instructions": system_prompt,  # System-level instructions (separate from user prompt)
-                "max_output_tokens": model_config.get("max_tokens", 2000),
+                "instructions": system_prompt + "\n\nCRITICAL: After any MCP tool calls complete, you MUST provide the final JSON analysis incorporating the search results. Do not stop after tool calls - always conclude with the complete JSON response.",  # Enhanced instructions
+                "max_output_tokens": model_config.get("max_tokens", 4000),  # Increased for search-enriched responses
                 "max_tool_calls": 3,  # Limit tool calls to avoid excessive API usage
                 "parallel_tool_calls": False,  # Disable for structured outputs compatibility
             }
@@ -347,7 +348,7 @@ def analyze_hockey_query(
             output_text = ""
             
             # The SDK provides an output_text helper that extracts the text
-            if hasattr(response, 'output_text'):
+            if hasattr(response, 'output_text') and response.output_text:
                 output_text = response.output_text
                 logger.info(f"SDK output_text: {output_text[:200] if output_text else 'None/Empty'}")
             else:
@@ -373,16 +374,22 @@ def analyze_hockey_query(
                             if output_text:
                                 break
                     
-                    # If still no text, check the last item
+                    # If still no text, check the last item (but NOT if it's an mcp_call)
                     if not output_text and response.output:
                         last_item = response.output[-1]
-                        logger.info(f"Checking last item: {getattr(last_item, 'type', type(last_item).__name__)}")
-                        if hasattr(last_item, 'output'):
-                            output_text = str(last_item.output)
-                            logger.info(f"Found output in last item: {output_text[:100]}")
-                        elif hasattr(last_item, 'result'):
-                            output_text = str(last_item.result)
-                            logger.info(f"Found result in last item: {output_text[:100]}")
+                        item_type = getattr(last_item, 'type', type(last_item).__name__)
+                        logger.info(f"Checking last item: {item_type}")
+                        
+                        # Don't extract from mcp_call items - that's tool output, not the final answer
+                        if item_type != 'mcp_call':
+                            if hasattr(last_item, 'output'):
+                                output_text = str(last_item.output)
+                                logger.info(f"Found output in last item: {output_text[:100]}")
+                            elif hasattr(last_item, 'result'):
+                                output_text = str(last_item.result)
+                                logger.info(f"Found result in last item: {output_text[:100]}")
+                        else:
+                            logger.info("Last item is mcp_call - need to continue conversation for final answer")
             
             # Check if MCP tools were called - if so, we need to continue the conversation
             if not output_text and hasattr(response, 'output') and response.output:
