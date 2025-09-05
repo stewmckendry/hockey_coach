@@ -384,6 +384,38 @@ def analyze_hockey_query(
                             output_text = str(last_item.result)
                             logger.info(f"Found result in last item: {output_text[:100]}")
             
+            # Check if MCP tools were called - if so, we need to continue the conversation
+            if not output_text and hasattr(response, 'output') and response.output:
+                # Check for MCP tool calls
+                has_mcp_tools = False
+                for item in response.output:
+                    if hasattr(item, 'type') and item.type == 'mcp_list_tools':
+                        has_mcp_tools = True
+                        logger.info("🔧 MCP tools were listed, need to continue conversation")
+                        break
+                
+                if has_mcp_tools:
+                    # Continue conversation to get final answer after MCP tool execution
+                    logger.info("📞 Continuing conversation after MCP tool calls...")
+                    try:
+                        # Make a follow-up call with previous_response_id to get the final answer
+                        followup_response = client.responses.create(
+                            model=model_config.get("model", "gpt-4o-mini"),
+                            instructions="Based on the search results, provide the final JSON analysis as requested.",
+                            previous_response_id=response_id,
+                            max_output_tokens=model_config.get("max_tokens", 4000),
+                            temperature=model_config.get("temperature", 0.2)
+                        )
+                        
+                        # Extract text from follow-up response
+                        if hasattr(followup_response, 'output_text'):
+                            output_text = followup_response.output_text
+                            logger.info(f"✅ Got final answer after MCP: {len(output_text)} chars")
+                        else:
+                            logger.error("Failed to get text even after follow-up")
+                    except Exception as e:
+                        logger.error(f"Failed to continue after MCP: {e}")
+            
             if not output_text:
                 logger.error(f"Could not extract text. Response type: {type(response)}")
                 logger.error(f"Response has output_text: {hasattr(response, 'output_text')}")
@@ -2505,10 +2537,31 @@ def map_movements_with_llm(
                 if not result_text and hasattr(final_response, 'output'):
                     logger.debug(f"Round {round_num} - output items: {len(final_response.output)}")
                     
+                    # First check for duplicate IDs before processing
+                    existing_ids = set()
+                    skipped_call_ids = set()
+                    for hist_item in input_list:
+                        if hasattr(hist_item, 'call_id'):
+                            existing_ids.add(hist_item.call_id)
+                        elif isinstance(hist_item, dict) and hist_item.get('call_id'):
+                            existing_ids.add(hist_item['call_id'])
+                    
+                    # Identify which calls to skip
+                    for item in final_response.output:
+                        if hasattr(item, 'type') and item.type == "function_call":
+                            if hasattr(item, 'call_id') and item.call_id in existing_ids:
+                                logger.warning(f"  Round {round_num}: Marking duplicate call_id to skip: {item.call_id}")
+                                skipped_call_ids.add(item.call_id)
+                    
                     for i, item in enumerate(final_response.output):
                         logger.debug(f"  Item {i}: type={item.type}")
                         
                         if item.type == "function_call":
+                            # Skip if duplicate
+                            if hasattr(item, 'call_id') and item.call_id in skipped_call_ids:
+                                logger.warning(f"  Round {round_num}: Skipping duplicate function call: {item.call_id}")
+                                continue
+                                
                             has_more_calls = True
                             # Process any additional function calls
                             logger.info(f"Round {round_num}: Additional function call to {item.name}")
@@ -2555,18 +2608,18 @@ def map_movements_with_llm(
                             result_text = content
                             break
                     
-                    # Add response to input list, checking for duplicates
-                    existing_ids = set()
-                    for hist_item in input_list:
-                        if hasattr(hist_item, 'call_id'):
-                            existing_ids.add(hist_item.call_id)
-                        elif isinstance(hist_item, dict) and hist_item.get('call_id'):
-                            existing_ids.add(hist_item['call_id'])
-                    
+                    # Add response to input list, using the skipped_call_ids we already identified
                     for item in final_response.output:
-                        if hasattr(item, 'call_id') and item.call_id in existing_ids:
-                            logger.warning(f"  Round {round_num}: Skipping duplicate movement call_id: {item.call_id}")
-                            continue
+                        # Skip duplicate function calls
+                        if hasattr(item, 'type') and item.type == "function_call":
+                            if hasattr(item, 'call_id') and item.call_id in skipped_call_ids:
+                                # Already logged above, just skip
+                                continue
+                        # Skip outputs for skipped function calls 
+                        elif hasattr(item, 'type') and item.type == "function_call_output":
+                            if hasattr(item, 'call_id') and item.call_id in skipped_call_ids:
+                                logger.warning(f"  Round {round_num}: Skipping output for duplicate call_id: {item.call_id}")
+                                continue
                         input_list.append(item)
                 
                 if result_text:
@@ -3496,10 +3549,12 @@ def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None) ->
         builder = DiagramBuilder()
         result_path = builder.build(diagram_spec, str(png_path))
         
-        # Save spec JSON
+        # Save spec JSON (remove non-serializable conversation history)
         spec_path = output_dir / f"{output_name}.json"
+        # Create a clean copy for saving
+        clean_spec = {k: v for k, v in spec.items() if not k.startswith('_')}
         with open(spec_path, 'w') as f:
-            json.dump(spec, f, indent=2)
+            json.dump(clean_spec, f, indent=2)
         
         return {
             "success": True,
