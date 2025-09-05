@@ -100,6 +100,97 @@ def load_prompt_config(prompt_name: str = "analyze_hockey_query") -> Dict[str, A
 PROMPT_CONFIG = load_prompt_config()
 
 # ============================================================================
+# SESSION MANAGEMENT
+# ============================================================================
+
+# Global session storage for logging context
+active_sessions = {}
+
+def log_with_session(session_id: Optional[str], level: str, message: str):
+    """Helper to log with session context."""
+    session_tag = f"[Session {session_id}] " if session_id else ""
+    full_message = f"{session_tag}{message}"
+    
+    if level == "info":
+        logger.info(full_message)
+    elif level == "error":
+        logger.error(full_message)
+    elif level == "warning":
+        logger.warning(full_message)
+    elif level == "debug":
+        logger.debug(full_message)
+
+@mcp.tool("initialize_diagram")
+def initialize_diagram(description: str, diagram_type: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Initialize a new hockey diagram session with unique ID for tracking.
+    
+    This tool creates a session for building a hockey diagram, providing a unique
+    session_id that should be passed to all subsequent tool calls for proper
+    logging and tracing.
+    
+    Args:
+        description: Brief description of the diagram/drill to create
+        diagram_type: Optional type (drill, play, formation, practice_plan)
+        
+    Returns:
+        Dictionary containing:
+        - session_id: Unique identifier for this diagram session
+        - description: Echo of the provided description
+        - created_at: Timestamp of session creation
+        - workflow: Recommended workflow steps
+        - instructions: How to use the session_id
+    """
+    import uuid
+    from datetime import datetime
+    
+    # Generate unique session ID
+    session_id = str(uuid.uuid4())[:8]
+    timestamp = datetime.now().isoformat()
+    
+    # Store session info
+    session_info = {
+        "session_id": session_id,
+        "description": description,
+        "diagram_type": diagram_type or "drill",
+        "created_at": timestamp,
+        "steps_completed": [],
+        "current_step": "initialized"
+    }
+    active_sessions[session_id] = session_info
+    
+    # Log session initialization
+    logger.info("=" * 80)
+    logger.info(f"🏒 NEW DIAGRAM SESSION INITIALIZED")
+    logger.info(f"   Session ID: {session_id}")
+    logger.info(f"   Description: {description}")
+    logger.info(f"   Type: {diagram_type or 'drill'}")
+    logger.info(f"   Started: {timestamp}")
+    logger.info("=" * 80)
+    
+    # Return session info with workflow
+    return {
+        "session_id": session_id,
+        "description": description,
+        "diagram_type": diagram_type or "drill",
+        "created_at": timestamp,
+        "workflow": {
+            "step_1": "Analyze the query with analyze_hockey_query()",
+            "step_2": "Review and refine with clarifications if needed",
+            "step_3": "Translate to spec with translate_analysis_to_spec()",
+            "step_4": "Validate with validate_diagram_spec_full()",
+            "step_5": "Preview with preview_diagram()",
+            "step_6": "Generate final diagram with generate_diagram()"
+        },
+        "instructions": (
+            f"IMPORTANT: Pass session_id='{session_id}' to ALL subsequent tool calls "
+            "for proper logging and tracing. Example:\n"
+            f"analyze_hockey_query(query='...', session_id='{session_id}')"
+        ),
+        "status": "ready"
+    }
+
+# ============================================================================
 # MAIN MCP TOOL: QUERY ANALYSIS WITH EXA
 # ============================================================================
 
@@ -108,7 +199,8 @@ def analyze_hockey_query(
     query: str, 
     clarifications: Optional[Dict[str, Any]] = None, 
     use_exa_mcp: bool = True,
-    exa_api_key: Optional[str] = None
+    exa_api_key: Optional[str] = None,
+    session_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Analyzes a hockey drill query and extracts/enriches components needed for diagram spec.
@@ -119,6 +211,7 @@ def analyze_hockey_query(
         clarifications: Optional user answers to questions
         use_exa_mcp: Whether to include Exa MCP server for web search (default: True)
         exa_api_key: Exa API key (uses EXA_API_KEY env var if not provided)
+        session_id: Optional session ID from initialize_diagram for tracking
         
     Returns:
         Analysis with explicit info, assumptions, and components aligned to spec sections
@@ -131,10 +224,18 @@ def analyze_hockey_query(
             "suggestion": "Configure OPENAI_API_KEY to enable LLM analysis"
         }
     
+    # Session logging
+    session_tag = f"[Session {session_id}] " if session_id else ""
+    
+    # Update session tracking if provided
+    if session_id and session_id in active_sessions:
+        active_sessions[session_id]["steps_completed"].append("analyze_query")
+        active_sessions[session_id]["current_step"] = "analyzing"
+    
     # Determine mode: initial analysis or refinement
     is_refinement = bool(clarifications and clarifications.get("previous_response_id"))
     mode = "refinement" if is_refinement else "initial"
-    logger.info(f"🎯 Running in {mode} mode")
+    logger.info(f"{session_tag}🎯 Running in {mode} mode")
     
     # Build prompt from config
     if PROMPT_CONFIG:
@@ -618,7 +719,8 @@ def translate_analysis_to_spec(
     description: Optional[str] = None,
     existing_spec: Optional[Dict[str, Any]] = None,
     clarifications: Optional[Dict[str, Any]] = None,
-    previous_response_id: Optional[str] = None
+    previous_response_id: Optional[str] = None,
+    session_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Translate analyzed hockey query to complete diagram specification.
@@ -1543,7 +1645,7 @@ def map_positions_with_llm(
     
     # Import zone boundaries functions
     sys.path.append(str(Path(__file__).parent.parent / "src"))
-    from zone_boundaries import get_zone_boundaries, list_available_zones
+    from zone_boundaries_enhanced import get_zone_boundaries_enhanced as get_zone_boundaries, list_zones_for_view as list_available_zones
     
     # Build the main prompt
     prompt = position_prompt_config["main_prompt_template"].format(
@@ -2120,7 +2222,7 @@ def map_movements_with_llm(
     zone_path = Path(__file__).parent.parent / "src"
     if str(zone_path) not in sys.path:
         sys.path.append(str(zone_path))
-    from zone_boundaries import get_zone_boundaries, list_available_zones
+    from zone_boundaries_enhanced import get_zone_boundaries_enhanced as get_zone_boundaries, list_zones_for_view as list_available_zones
     from curve_generator import generate_curve_waypoints, suggest_curve_type, validate_path
     
     # Define tools for spatial awareness and curve generation
@@ -2777,7 +2879,7 @@ def map_equipment_with_llm(
     
     # Import zone boundaries functions
     sys.path.append(str(Path(__file__).parent.parent / "src"))
-    from zone_boundaries import get_zone_boundaries, list_available_zones
+    from zone_boundaries_enhanced import get_zone_boundaries_enhanced as get_zone_boundaries, list_zones_for_view as list_available_zones
     
     # Build the main prompt
     prompt = equipment_prompt_config["main_prompt_template"].format(
@@ -3565,17 +3667,19 @@ def preview_diagram(spec: Dict[str, Any], format: str = "ascii") -> Dict[str, An
 # ============================================================================
 
 @mcp.tool("generate_diagram")
-def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None) -> Dict[str, Any]:
+def generate_diagram(spec: Dict[str, Any], output_name: Optional[str] = None, session_id: Optional[str] = None) -> Dict[str, Any]:
     """Generate the hockey diagram and save files.
     
     Args:
         spec: Complete validated diagram specification
         output_name: Optional name for output files
+        session_id: Optional session ID from initialize_diagram for tracking
         
     Returns:
         Paths to generated files and success status
     """
-    logger.info(f"🎨 [GENERATE] Creating diagram: {output_name or 'diagram'}")
+    session_tag = f"[Session {session_id}] " if session_id else ""
+    logger.info(f"{session_tag}🎨 [GENERATE] Creating diagram: {output_name or 'diagram'}")
     
     try:
         # Convert spec
