@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 # Add server directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'servers'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'servers'))
 
 from hockey_diagram_mcp_v3 import (
     analyze_hockey_query, 

@@ -399,9 +399,15 @@ def analyze_hockey_query(
                     logger.info("📞 Continuing conversation after MCP tool calls...")
                     try:
                         # Make a follow-up call with previous_response_id to get the final answer
+                        # We need to pass a message to continue the conversation
                         followup_response = client.responses.create(
                             model=model_config.get("model", "gpt-4o-mini"),
                             instructions="Based on the search results, provide the final JSON analysis as requested.",
+                            input=[{
+                                "type": "message",
+                                "role": "user", 
+                                "content": f"Continue analyzing the hockey query and provide the JSON analysis: {query}"
+                            }],
                             previous_response_id=response_id,
                             max_output_tokens=model_config.get("max_tokens", 4000),
                             temperature=model_config.get("temperature", 0.2)
@@ -410,7 +416,10 @@ def analyze_hockey_query(
                         # Extract text from follow-up response
                         if hasattr(followup_response, 'output_text'):
                             output_text = followup_response.output_text
-                            logger.info(f"✅ Got final answer after MCP: {len(output_text)} chars")
+                            logger.info(f"✅ Got final answer after MCP: {len(output_text) if output_text else 0} chars")
+                            # Update response_id for any further continuations
+                            if hasattr(followup_response, 'id'):
+                                response_id = followup_response.id
                         else:
                             logger.error("Failed to get text even after follow-up")
                     except Exception as e:

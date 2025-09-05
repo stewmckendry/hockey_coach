@@ -36,7 +36,6 @@ def test_direct_mcp_pattern():
                 "server_url": "http://localhost:8001",
                 "allowed_tools": [
                     "analyze_hockey_query",
-                    "test_analyze_query", 
                     "health_check"
                 ],
                 "require_approval": "never"
