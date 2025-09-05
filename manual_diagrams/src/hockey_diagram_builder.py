@@ -56,6 +56,16 @@ class Annotation:
     style: Literal["normal", "bold"] = "normal"
 
 @dataclass
+class Equipment:
+    """Equipment element per specification."""
+    type: Literal["cone", "pylon", "puck", "net", "tire", "stick"]
+    coordinates: Dict[str, float]  # x, y
+    count: int = 1
+    color: str = "orange"
+    size: Literal["small", "medium", "large"] = "medium"
+    label: Optional[str] = None
+
+@dataclass
 class DiagramSpec:
     """Complete diagram specification."""
     title: str
@@ -64,6 +74,7 @@ class DiagramSpec:
     movements: List[Movement]
     zones: List[Zone]
     annotations: List[Annotation]
+    equipment: List[Equipment]
     metadata: Dict[str, any]
 
 class DiagramBuilder:
@@ -111,6 +122,8 @@ class DiagramBuilder:
         # Draw elements in order with higher z-order
         if spec.zones:
             self._draw_zones(spec.zones)
+        if hasattr(spec, 'equipment') and spec.equipment:
+            self._draw_equipment(spec.equipment)
         if spec.players:
             self._draw_players(spec.players)
         if spec.movements:
@@ -581,6 +594,101 @@ class DiagramBuilder:
                            fontsize=10, ha='center', va='center',
                            color=label_color, fontweight='bold', zorder=z_order+1)
                 
+    def _draw_equipment(self, equipment: List[Equipment]):
+        """Draw equipment items (cones, pylons, pucks, etc.)."""
+        for eq in equipment:
+            x = eq.coordinates.get("x", 0)
+            y = eq.coordinates.get("y", 0)
+            
+            # Size mapping
+            size_map = {"small": 1.5, "medium": 2.5, "large": 3.5}
+            base_size = size_map.get(eq.size, 2.5)
+            
+            # Color mapping with defaults
+            color_map = {
+                "orange": "#FF6600",
+                "yellow": "#FFD700",
+                "blue": "#1E88E5",
+                "red": "#D32F2F",
+                "white": "#FFFFFF",
+                "black": "#000000"
+            }
+            color = color_map.get(eq.color, eq.color)
+            
+            if eq.type in ["cone", "pylon"]:
+                # Draw cone as triangle or circle
+                if eq.type == "cone":
+                    # Draw as circle (top view of cone)
+                    circle = Circle(
+                        (x, y),
+                        radius=base_size,
+                        facecolor=color,
+                        edgecolor="black",
+                        linewidth=1.5,
+                        zorder=11,
+                        alpha=0.9
+                    )
+                    self.ax.add_patch(circle)
+                else:
+                    # Draw pylon as triangle
+                    triangle = Polygon(
+                        [(x, y-base_size), (x-base_size, y+base_size), (x+base_size, y+base_size)],
+                        facecolor=color,
+                        edgecolor="black",
+                        linewidth=1.5,
+                        zorder=11,
+                        alpha=0.9
+                    )
+                    self.ax.add_patch(triangle)
+                    
+            elif eq.type == "puck":
+                # Draw puck(s) as small black circles
+                for i in range(eq.count):
+                    offset = i * 2  # Space multiple pucks
+                    puck = Circle(
+                        (x + offset, y),
+                        radius=1,
+                        facecolor="black",
+                        edgecolor="black",
+                        zorder=10
+                    )
+                    self.ax.add_patch(puck)
+                    
+            elif eq.type == "tire":
+                # Draw tire as thick circle
+                tire = Circle(
+                    (x, y),
+                    radius=base_size * 1.5,
+                    facecolor="none",
+                    edgecolor="black",
+                    linewidth=3,
+                    zorder=11
+                )
+                self.ax.add_patch(tire)
+                
+            elif eq.type == "stick":
+                # Draw stick as rectangle
+                stick = Rectangle(
+                    (x - base_size*2, y - 0.5),
+                    width=base_size * 4,
+                    height=1,
+                    facecolor="brown",
+                    edgecolor="black",
+                    linewidth=1,
+                    zorder=10
+                )
+                self.ax.add_patch(stick)
+                
+            elif eq.type == "net":
+                # Draw extra net (in addition to standard nets)
+                self._draw_net(x, y)
+            
+            # Add label if provided
+            if eq.label:
+                self.ax.text(x, y - base_size - 2, eq.label,
+                           fontsize=8, ha='center', va='top',
+                           color='black', zorder=12)
+    
     def _draw_annotations(self, annotations: List[Annotation]):
         """Draw text annotations."""
         size_map = {"small": 8, "medium": 10, "large": 12}

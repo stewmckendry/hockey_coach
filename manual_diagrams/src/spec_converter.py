@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Import or define the actual classes
 try:
-    from hockey_diagram_builder import DiagramSpec, Player, Movement, Zone, Annotation
+    from hockey_diagram_builder import DiagramSpec, Player, Movement, Zone, Annotation, Equipment
 except ImportError:
     # Fallback definitions if imports fail
     @dataclass
@@ -151,6 +151,21 @@ def dict_to_zone(zone_dict: Dict[str, Any]) -> Optional[Zone]:
         return None
 
 
+def dict_to_equipment(eq_dict: Dict[str, Any]) -> Optional[Equipment]:
+    """Convert dict to Equipment object."""
+    try:
+        return Equipment(
+            type=eq_dict.get("type", "cone"),
+            coordinates=eq_dict.get("coordinates", {"x": 0, "y": 0}),
+            count=eq_dict.get("count", 1),
+            color=eq_dict.get("color", "orange"),
+            size=eq_dict.get("size", "medium"),
+            label=eq_dict.get("label", None)
+        )
+    except Exception as e:
+        logger.error(f"Failed to convert equipment: {e}")
+        return None
+
 def dict_to_diagram_spec(spec_dict: Dict[str, Any]) -> Optional[DiagramSpec]:
     """
     Convert dict to DiagramSpec object with robust error handling.
@@ -192,6 +207,16 @@ def dict_to_diagram_spec(spec_dict: Dict[str, Any]) -> Optional[DiagramSpec]:
             elif hasattr(z, 'type'):  # Already a Zone object
                 zones.append(z)
         
+        # Convert equipment
+        equipment = []
+        for e in spec_dict.get("equipment", []):
+            if isinstance(e, dict):
+                eq = dict_to_equipment(e)
+                if eq:
+                    equipment.append(eq)
+            elif hasattr(e, 'type'):  # Already an Equipment object
+                equipment.append(e)
+        
         # Convert annotations (can be strings or Annotation objects)
         annotations = []
         for a in spec_dict.get("annotations", []):
@@ -224,6 +249,7 @@ def dict_to_diagram_spec(spec_dict: Dict[str, Any]) -> Optional[DiagramSpec]:
             movements=movements,
             zones=zones,
             annotations=annotations,
+            equipment=equipment,
             metadata=spec_dict.get("metadata", {})
         )
         

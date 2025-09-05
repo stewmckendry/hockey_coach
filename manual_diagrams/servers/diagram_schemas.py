@@ -144,6 +144,33 @@ ZONES_SCHEMA = {
     "items": ZONE_SCHEMA
 }
 
+# Equipment schema
+EQUIPMENT_SCHEMA = {
+    "type": "object",
+    "required": ["type", "coordinates"],
+    "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "enum": ["cone", "pylon", "puck", "net", "tire", "stick"]},
+        "coordinates": {
+            "type": "object",
+            "required": ["x", "y"],
+            "properties": {
+                "x": {"type": "number", "minimum": -100, "maximum": 100},
+                "y": {"type": "number", "minimum": -42.5, "maximum": 42.5}
+            }
+        },
+        "count": {"type": "number", "minimum": 1, "default": 1},
+        "color": {"type": "string", "enum": ["orange", "yellow", "blue", "red", "white", "black"]},
+        "size": {"type": "string", "enum": ["small", "medium", "large"], "default": "medium"},
+        "label": {"type": "string"}
+    }
+}
+
+EQUIPMENT_LIST_SCHEMA = {
+    "type": "array",
+    "items": EQUIPMENT_SCHEMA
+}
+
 # Annotation schema
 ANNOTATION_SCHEMA = {
     "type": "object",
@@ -186,7 +213,8 @@ DIAGRAM_SPEC_SCHEMA = {
         "movements": MOVEMENTS_SCHEMA,
         "rink": RINK_SCHEMA,
         "zones": ZONES_SCHEMA,
-        "annotations": ANNOTATIONS_SCHEMA
+        "annotations": ANNOTATIONS_SCHEMA,
+        "equipment": EQUIPMENT_LIST_SCHEMA
     }
 }
 
@@ -196,7 +224,8 @@ NODE_SCHEMAS = {
     "movements": MOVEMENTS_SCHEMA,
     "rink": RINK_SCHEMA,
     "zones": ZONES_SCHEMA,
-    "annotations": ANNOTATIONS_SCHEMA
+    "annotations": ANNOTATIONS_SCHEMA,
+    "equipment": EQUIPMENT_LIST_SCHEMA
 }
 
 # Enum definitions for quick reference
