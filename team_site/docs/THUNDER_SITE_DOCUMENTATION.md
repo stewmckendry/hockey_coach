@@ -1,5 +1,5 @@
 # ⚡ THUNDER HOCKEY TEAM SITE - MASTER DOCUMENTATION
-*Version 1.0 - January 5, 2025*
+*Version 1.1 - January 6, 2025*
 
 ## 🎯 Overview
 This document serves as the single source of truth for the Ted Reeve Thunder U10A team Notion site. All parallel development sessions should reference this document to maintain consistency.
@@ -18,7 +18,10 @@ This document serves as the single source of truth for the Ted Reeve Thunder U10
 #### 1. ⚡ Thunder Hockey Systems
 - **Database ID**: `2660cdbf-4977-81ec-8ef1-e798971e7ae9`
 - **Purpose**: Hockey systems/plays teaching defensive and offensive formations
-- **Current Entries**: 1 (Defensive Zone Coverage)
+- **Current Entries**: 3
+  - Defensive Zone Coverage (ID: `2620cdbf-4977-818b-9ea4-c1a77f79eae2`)
+  - Corner Battles (ID: `2660cdbf-4977-8133-8b26-cea12011f35a`)
+  - Breakouts (ID: `2660cdbf-4977-816e-a626-dec2b49b6f33`)
 - **View**: Gallery view with card layout
 
 #### 2. ⚡ Thunder Drills  
@@ -374,7 +377,7 @@ The following planning documents have been archived and should NOT be used for n
 ## 🔐 MAINTENANCE NOTES
 
 ### Version Control
-- This is Version 1.0 (January 5, 2025)
+- This is Version 1.1 (January 6, 2025)
 - Update version number with major changes
 - Keep changelog at bottom of document
 
@@ -387,6 +390,17 @@ The following planning documents have been archived and should NOT be used for n
 ---
 
 ## 📋 CHANGELOG
+
+### Version 1.1 - January 6, 2025
+- Added Corner Battles system page (defensive zone specific)
+  - Contains vs Attack concept based on seeing opponent's eyes
+  - Position-specific responsibilities for D-zone corners
+  - 3-level practice progression
+- Added Breakouts system page
+  - 3 breakout routes with diagrams (Up the Boards, Wheel, Push the Pace)
+  - When to use each route
+  - Position-specific execution instructions
+- Updated database relations linking systems to drills and practice plans
 
 ### Version 1.0 - January 5, 2025
 - Initial documentation created
