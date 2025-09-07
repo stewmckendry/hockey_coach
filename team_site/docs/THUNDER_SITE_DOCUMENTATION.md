@@ -1,5 +1,5 @@
 # ⚡ THUNDER HOCKEY TEAM SITE - MASTER DOCUMENTATION
-*Version 1.1 - January 6, 2025*
+*Version 1.3 - January 7, 2025*
 
 ## 🎯 Overview
 This document serves as the single source of truth for the Ted Reeve Thunder U10A team Notion site. All parallel development sessions should reference this document to maintain consistency.
@@ -11,17 +11,20 @@ This document serves as the single source of truth for the Ted Reeve Thunder U10
 ### Home Page (Root)
 - **ID**: `2660cdbf-4977-8099-a6bb-ccfc949f854b`
 - **Name**: "⚡ Ted Reeve Thunder U10A"
-- **Contains**: All three core databases
+- **Contains**: All four core databases
 
 ### Core Databases
 
 #### 1. ⚡ Thunder Hockey Systems
 - **Database ID**: `2660cdbf-4977-81ec-8ef1-e798971e7ae9`
 - **Purpose**: Hockey systems/plays teaching defensive and offensive formations
-- **Current Entries**: 3
+- **Current Entries**: 6
   - Defensive Zone Coverage (ID: `2620cdbf-4977-818b-9ea4-c1a77f79eae2`)
   - Corner Battles (ID: `2660cdbf-4977-8133-8b26-cea12011f35a`)
   - Breakouts (ID: `2660cdbf-4977-816e-a626-dec2b49b6f33`)
+  - Offensive Zone Entries (ID: `2660cdbf-4977-810d-8124-c7e0f738075e`)
+  - Offensive Forecheck (ID: `2660cdbf-4977-8165-bbb4-c7551803bf8e`)
+  - Win the Blue Lines (ID: `2670cdbf-4977-8161-8f86-d74f4fed4291`)
 - **View**: Gallery view with card layout
 
 #### 2. ⚡ Thunder Drills  
@@ -35,6 +38,18 @@ This document serves as the single source of truth for the Ted Reeve Thunder U10
 - **Purpose**: Complete practice session plans
 - **Current Entries**: 1 (September 2, 2025 practice)
 - **View**: Calendar/Table view
+
+#### 4. ⚡ Thunder Code - Team Guidelines
+- **Database ID**: `2670cdbf-4977-812f-8265-ec5be833871a`
+- **Purpose**: Team expectations, guidelines, and development resources for players, parents, and coaches
+- **Current Entries**: 6
+  - Player Expectations - Be a Thunder Champion (ID: `2670cdbf-4977-81f9-b610-e084ccb2a01f`)
+  - Parent Expectations - Thunder Support Squad (ID: `2670cdbf-4977-8103-81de-fcb1679c582d`)
+  - Coach Expectations - Leading Thunder (ID: `2670cdbf-4977-814b-a7eb-d7438edd407b`)
+  - Nutrition & Hydration - Fuel the Storm (ID: `2670cdbf-4977-812c-b261-cfde69d99f7b`)
+  - Game Day Preparation - Ready to Strike (ID: `2670cdbf-4977-8144-8fce-fb49166d11f9`)
+  - Training at Home - Thunder Never Stops (ID: `2670cdbf-4977-8149-a286-f9acb963292b`)
+- **View**: Gallery/Table view
 
 ---
 
@@ -105,6 +120,24 @@ Core Properties:
 Relations:
 - Systems Covered (Relation to Systems DB)
 - Drills (Relation to Drills DB)
+```
+
+### Thunder Code Database (11 Properties)
+```
+Core Properties:
+- Guideline Title (Title) - Primary identifier
+- Category (Select) - Player/Parent/Coach Expectations, Nutrition & Hydration, Game Preparation, Home Training, Team Culture
+- Priority (Select) - ⚡ Essential, ⚡⚡ Important, ⚡⚡⚡ Good to Know
+- Age Appropriate (Checkbox) - Content suitable for U10
+- One Big Idea (Rich Text) - Core concept in one sentence
+- Hero Image (Files) - Main visual/banner
+- Video Resources (URL) - Supporting video links
+- Tags (Multi-select) - Nutrition/Hydration/Preparation/Training/Expectations/Team Culture/Safety/Development/Fun
+- Implementation Tips (Rich Text) - How to apply guidelines
+
+Relations:
+- Related to Drills (Relation to Drills DB)
+- Related to Systems (Relation to Systems DB)
 ```
 
 ---
@@ -390,6 +423,32 @@ The following planning documents have been archived and should NOT be used for n
 ---
 
 ## 📋 CHANGELOG
+
+### Version 1.3 - January 7, 2025
+- Added Thunder Code - Team Guidelines database
+  - New database for team expectations and development guidelines
+  - 6 comprehensive pages covering player, parent, and coach expectations
+  - Added nutrition & hydration guidelines tailored for U10 athletes
+  - Created game day preparation checklist
+  - Included home training exercises and daily habits
+  - Database includes priority levels, categories, and implementation tips
+- Updated site structure to include 4 core databases
+- Added Thunder Code database schema documentation
+
+### Version 1.2 - January 7, 2025
+- Added Offensive Zone Entries system page
+  - Wide entry pattern with net drive and high support
+  - Variations including button curl and cycle/drop pass
+  - Focus on speed, space creation, and net drive
+- Added Offensive Forecheck system page  
+  - Batman & Robin pressure system with Spider-Man support
+  - Quick strike offense after turnovers
+  - Position flexibility based on proximity to puck
+- Added Win the Blue Lines system page
+  - Smart decisions at both blue lines to reduce turnovers
+  - Defensive blue line exit strategies (chip vs carry)
+  - Offensive blue line entry options and D pinching techniques
+- Updated entry count to 6 total systems
 
 ### Version 1.1 - January 6, 2025
 - Added Corner Battles system page (defensive zone specific)
