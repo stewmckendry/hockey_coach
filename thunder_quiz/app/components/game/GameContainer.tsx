@@ -67,7 +67,7 @@ export default function GameContainer() {
         userAnswer: answer,
         isCorrect: validation.correct,
         usedHint,
-        timeSpent: 30 - 0, // TODO: Track actual time spent
+        timeSpent: 60 - 0, // TODO: Track actual time spent
       };
       
       dispatch({ type: 'ANSWER_QUESTION', payload: answerRecord });
@@ -98,7 +98,7 @@ export default function GameContainer() {
         userAnswer: answer,
         isCorrect,
         usedHint,
-        timeSpent: 30,
+        timeSpent: 60,
       };
       
       dispatch({ type: 'ANSWER_QUESTION', payload: answerRecord });

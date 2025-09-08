@@ -9,9 +9,12 @@ export default function ScoreDisplay() {
   return (
     <div className="w-full max-w-4xl mx-auto mb-6">
       {/* Hockey Rink Visual Score Display */}
-      <div className="relative bg-gradient-to-b from-blue-100 to-white rounded-lg shadow-lg p-4 border-4 border-thunder-black">
-        {/* Center Ice Line */}
-        <div className="absolute inset-x-0 top-1/2 h-1 bg-red-600 transform -translate-y-1/2"></div>
+      <div className="relative bg-gradient-to-b from-blue-50 via-white to-blue-50 rounded-xl shadow-xl p-6 border-2 border-gray-300 overflow-hidden">
+        {/* Ice texture effect */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-x-0 top-1/2 h-0.5 bg-red-500 transform -translate-y-1/2"></div>
+          <div className="absolute inset-y-0 left-1/2 w-0.5 bg-blue-500 transform -translate-x-1/2"></div>
+        </div>
         
         {/* Score Container */}
         <div className="relative z-10 flex items-center justify-between">

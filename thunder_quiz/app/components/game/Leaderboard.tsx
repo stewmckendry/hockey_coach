@@ -44,19 +44,23 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-xl">
+    <div className="w-full max-w-3xl mx-auto p-4">
+      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="bg-thunder-gradient p-6 rounded-t-lg">
+        <div className="bg-gradient-to-r from-thunder-red to-red-700 p-8">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-white">🏆 Leaderboard</h2>
-              <p className="text-white/80 text-sm mt-1">Top 10 Thunder Players</p>
+            <div className="text-center w-full">
+              <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-3">
+                <span className="text-4xl">🏆</span>
+                <span>Leaderboard</span>
+                <span className="text-4xl">🏆</span>
+              </h2>
+              <p className="text-white/90 text-lg">Top 10 Thunder Players</p>
             </div>
             {onClose && (
               <button
                 onClick={onClose}
-                className="text-white/80 hover:text-white transition-colors"
+                className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors text-2xl"
               >
                 ✕
               </button>
@@ -85,10 +89,12 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
                 return (
                   <div
                     key={entry.id}
-                    className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                    className={`flex items-center justify-between p-4 rounded-xl transition-all ${
                       isCurrentPlayer
-                        ? 'bg-thunder-red/10 border-2 border-thunder-red'
-                        : 'bg-thunder-lightGrey hover:bg-gray-100'
+                        ? 'bg-gradient-to-r from-red-50 to-red-100 border-2 border-thunder-red shadow-md'
+                        : rank <= 3
+                        ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 hover:shadow-md'
+                        : 'bg-gray-50 hover:bg-gray-100 hover:shadow-sm'
                     }`}
                   >
                     <div className="flex items-center gap-3">

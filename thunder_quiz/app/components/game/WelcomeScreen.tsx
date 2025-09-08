@@ -32,75 +32,95 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-thunder-white to-thunder-lightGrey p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          {/* Thunder Logo */}
-          <div className="text-center mb-8">
-            <div className="w-32 h-32 mx-auto mb-4 relative">
-              <div className="absolute inset-0 thunder-gradient rounded-full flex items-center justify-center">
-                <span className="text-4xl font-bold text-white">⚡</span>
-              </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white via-gray-50 to-gray-100 p-4">
+      <div className="max-w-lg w-full">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+          {/* Header with Thunder Logo */}
+          <div className="bg-gradient-to-r from-thunder-red to-red-700 p-8 text-center">
+            <div className="w-40 h-40 mx-auto mb-4 relative">
+              <Image
+                src="/thunder-logo.png"
+                alt="Thunder Logo"
+                width={160}
+                height={160}
+                className="object-contain filter drop-shadow-lg"
+                priority
+              />
             </div>
-            <h1 className="text-3xl font-bold thunder-text-gradient mb-2">
+            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
               Thunder Hockey Quiz
             </h1>
-            <p className="text-thunder-grey">
+            <p className="text-white/90 text-lg">
               Test your hockey knowledge!
             </p>
           </div>
 
-          {/* Game Format Info */}
-          <div className="bg-thunder-lightGrey rounded-lg p-4 mb-6">
-            <h2 className="font-semibold text-thunder-black mb-2">How to Play:</h2>
-            <ul className="text-sm text-thunder-grey space-y-1">
-              <li>🏒 3 periods, 5 questions each</li>
-              <li>🚨 Score goals with correct answers</li>
-              <li>💡 Get hints if you need help</li>
-              <li>⏱️ 30 seconds per question</li>
-              <li>🏆 Compete for the top leaderboard spot!</li>
-            </ul>
-          </div>
-
-          {/* Nickname Form */}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label htmlFor="nickname" className="block text-sm font-medium text-thunder-black mb-2">
-                Enter Your Nickname
-              </label>
-              <input
-                type="text"
-                id="nickname"
-                value={nickname}
-                onChange={(e) => {
-                  setNickname(e.target.value);
-                  setError('');
-                }}
-                className="w-full px-4 py-2 border-2 border-thunder-grey rounded-lg focus:outline-none focus:border-thunder-red transition-colors"
-                placeholder="ThunderBolt99"
-                maxLength={15}
-                autoFocus
-              />
-              {error && (
-                <p className="mt-1 text-sm text-red-600">{error}</p>
-              )}
-              <p className="mt-1 text-xs text-thunder-grey">
-                3-15 characters, letters and numbers only
-              </p>
+          <div className="p-8">
+            {/* Game Format Info - Simplified */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-5 mb-8 border border-gray-200">
+              <h2 className="font-bold text-thunder-black mb-3 text-lg">How to Play</h2>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏒</span>
+                  <span className="text-gray-700">15 questions total</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⏱️</span>
+                  <span className="text-gray-700">60 seconds each</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🚨</span>
+                  <span className="text-gray-700">Score goals!</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏆</span>
+                  <span className="text-gray-700">Beat the leaderboard</span>
+                </div>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-3 px-4 bg-thunder-red hover:bg-red-700 text-white font-bold rounded-lg transition-colors transform hover:scale-105 active:scale-95"
-            >
-              Start Game 🏒
-            </button>
-          </form>
+            {/* Nickname Form - Cleaner */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="nickname" className="block text-base font-bold text-thunder-black mb-3">
+                  Choose Your Nickname
+                </label>
+                <input
+                  type="text"
+                  id="nickname"
+                  value={nickname}
+                  onChange={(e) => {
+                    setNickname(e.target.value);
+                    setError('');
+                  }}
+                  className="w-full px-5 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-thunder-red focus:ring-2 focus:ring-red-200 transition-all"
+                  placeholder="ThunderBolt99"
+                  maxLength={15}
+                  autoFocus
+                />
+                {error && (
+                  <p className="mt-2 text-sm text-red-600 font-medium">{error}</p>
+                )}
+                {!error && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    3-15 characters, letters and numbers only
+                  </p>
+                )}
+              </div>
 
-          {/* Footer */}
-          <div className="mt-6 text-center text-xs text-thunder-grey">
-            <p>U10A Ted Reeve Thunder</p>
-            <p className="mt-1">Have fun, work hard, be respectful!</p>
+              <button
+                type="submit"
+                className="w-full py-4 px-6 bg-gradient-to-r from-thunder-red to-red-700 hover:from-red-700 hover:to-red-800 text-white text-lg font-bold rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+              >
+                Start Game 🏒
+              </button>
+            </form>
+
+            {/* Footer - Cleaner */}
+            <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+              <p className="text-sm font-semibold text-gray-700">U10A Ted Reeve Thunder</p>
+              <p className="text-xs text-gray-500 mt-1">Have fun, work hard, be respectful!</p>
+            </div>
           </div>
         </div>
       </div>
