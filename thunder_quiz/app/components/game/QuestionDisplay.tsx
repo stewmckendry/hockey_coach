@@ -89,7 +89,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
   return (
     <div className="max-w-3xl mx-auto">
       {/* Period and Question Header */}
-      <div className="bg-white rounded-3xl shadow-xl mb-8 p-8">
+      <div className="bg-white rounded-3xl shadow-xl mb-10 p-10">
         <div className="flex justify-between items-center">
           <div className="text-xl font-bold text-gray-900">
             {isOvertime ? (
@@ -138,13 +138,13 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
             <span>{question.category.replace('-', ' ').toUpperCase()}</span>
           </span>
         </div>
-        <div className="p-12 space-y-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-10 leading-relaxed">
+        <div className="p-14 space-y-10">
+          <h2 className="text-3xl font-bold text-gray-900 mb-12 leading-relaxed">
             {question.question}
           </h2>
 
         {/* Answer Options */}
-        <div className="space-y-5">
+        <div className="space-y-6">
           {question.type === 'multiple-choice' && question.options && (
             <>
               {question.options.map((option, index) => (
@@ -220,7 +220,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
 
         {/* Hint Section */}
         {showHint && (
-          <div className="mt-6 px-8 py-7 bg-yellow-50 border-2 border-yellow-300 rounded-2xl">
+          <div className="mt-8 px-8 py-7 bg-yellow-50 border-2 border-yellow-300 rounded-2xl">
             <p className="text-base text-yellow-800">
               <span className="font-bold text-lg">💡 Hint:</span> {hintMessage}
             </p>
@@ -237,7 +237,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
             (question.type !== 'short-answer' && selectedAnswer === null) ||
             (question.type === 'short-answer' && shortAnswer.trim() === '')
           }
-          className={`mt-10 w-full py-6 px-10 font-bold text-xl rounded-2xl transition-colors duration-200 shadow-lg ${
+          className={`mt-12 w-full py-7 px-10 font-bold text-xl rounded-2xl transition-colors duration-200 shadow-lg ${
             ((question.type !== 'short-answer' && selectedAnswer !== null) ||
             (question.type === 'short-answer' && shortAnswer.trim() !== ''))
               ? 'bg-gradient-to-r from-thunder-red to-red-700 hover:from-red-700 hover:to-red-800 text-white hover:shadow-xl'
