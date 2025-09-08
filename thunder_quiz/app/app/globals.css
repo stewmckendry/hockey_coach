@@ -38,11 +38,71 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', Arial, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
+/* Notion-style typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: rgb(55, 53, 47);
+}
+
+h1 { font-size: 2.5rem; font-weight: 700; line-height: 1.2; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+
+p {
+  color: rgb(55, 53, 47);
+  line-height: 1.7;
+}
+
+/* Notion-style cards and spacing */
+.notion-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px;
+  transition: all 0.2s ease;
+  padding: 24px;
+}
+
+.notion-card:hover {
+  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 5px 10px, rgba(15, 15, 15, 0.2) 0px 15px 40px;
+  transform: translateY(-2px);
+}
+
+/* Notion-style callouts */
+.notion-callout {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px;
+  border-radius: 8px;
+  background: rgb(241, 241, 239);
+  margin: 20px 0;
+  gap: 12px;
+}
+
+.notion-callout-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.notion-callout-red {
+  background: rgba(255, 235, 238, 0.8);
+  border-left: 3px solid var(--thunder-red);
+}
+
+.notion-callout-yellow {
+  background: rgba(251, 243, 219, 0.8);
+  border-left: 3px solid #F59E0B;
+}
+
+/* Thunder specific styles */
 .thunder-gradient {
   background: linear-gradient(135deg, var(--thunder-red) 0%, var(--thunder-black) 100%);
 }
@@ -52,4 +112,42 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Improved buttons with Notion style */
+button {
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* Better focus states */
+*:focus-visible {
+  outline: 2px solid var(--thunder-red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible {
+  outline-offset: 0;
+}
+
+/* Animations */
+@keyframes goal-celebration {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.2) rotate(10deg); }
+  50% { transform: scale(1.3) rotate(-10deg); }
+  75% { transform: scale(1.2) rotate(10deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-goal-celebration {
+  animation: goal-celebration 1s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
 }

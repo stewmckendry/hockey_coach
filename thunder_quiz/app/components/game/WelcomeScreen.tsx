@@ -32,9 +32,9 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white via-gray-50 to-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-white p-6">
       <div className="max-w-lg w-full">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="notion-card">
           {/* Header with Thunder Logo */}
           <div className="bg-gradient-to-r from-thunder-red to-red-700 p-8 text-center">
             <div className="w-40 h-40 mx-auto mb-4 relative">
@@ -55,11 +55,11 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
             </p>
           </div>
 
-          <div className="p-8">
+          <div className="p-10 space-y-8">
             {/* Game Format Info - Simplified */}
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-5 mb-8 border border-gray-200">
               <h2 className="font-bold text-thunder-black mb-3 text-lg">How to Play</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">🏒</span>
                   <span className="text-gray-700">15 questions total</span>

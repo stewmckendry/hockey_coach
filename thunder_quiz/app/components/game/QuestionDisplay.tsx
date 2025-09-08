@@ -86,9 +86,9 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
   const isOvertime = state.isOvertime;
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div className="max-w-3xl mx-auto p-6">
       {/* Period and Question Header */}
-      <div className="bg-white rounded-xl shadow-md p-4 mb-4">
+      <div className="notion-card mb-6">
         <div className="flex justify-between items-center">
           <div className="text-lg font-bold text-thunder-black">
             {isOvertime ? (
@@ -109,29 +109,29 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
       </div>
 
       {/* Question Card */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+      <div className="notion-card p-0">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-5 border-b border-gray-100 rounded-t-xl">
           <span className="inline-block px-4 py-1 bg-thunder-red text-white text-xs font-bold rounded-full">
             {question.category.replace('-', ' ').toUpperCase()}
           </span>
         </div>
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-thunder-black mb-6">
+        <div className="p-8 space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-8 leading-relaxed">
             {question.question}
           </h2>
 
         {/* Answer Options */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {question.type === 'multiple-choice' && question.options && (
             <>
               {question.options.map((option, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedAnswer(option)}
-                  className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${
+                  className={`w-full p-5 text-left rounded-xl border font-medium transition-all ${
                     selectedAnswer === option
-                      ? 'border-thunder-red bg-red-50 shadow-md transform scale-[1.02]'
-                      : 'border-gray-300 hover:border-thunder-red hover:bg-gray-50 hover:shadow-sm'
+                      ? 'border-thunder-red bg-red-50 shadow-sm transform scale-[1.01]'
+                      : 'border-gray-200 hover:border-thunder-red hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
