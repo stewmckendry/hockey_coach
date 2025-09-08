@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     // Try to use Vercel KV if available
     if (process.env.KV_REST_API_URL) {
       // Store entry in hash
-      await kv.hset(`leaderboard:${newEntry.id}`, newEntry);
+      await kv.hset(`leaderboard:${newEntry.id}`, newEntry as unknown as Record<string, unknown>);
       
       // Add to sorted set with score
       await kv.zadd('leaderboard:scores', {

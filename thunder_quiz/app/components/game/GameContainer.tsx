@@ -20,8 +20,12 @@ export default function GameContainer() {
 
   useEffect(() => {
     if (state.gameStatus === 'finished' && !showLeaderboard) {
-      submitScore();
-      setShowLeaderboard(true);
+      // Submit score then show leaderboard with a small delay to ensure data is saved
+      submitScore().then(() => {
+        setTimeout(() => {
+          setShowLeaderboard(true);
+        }, 500);
+      });
     }
   }, [state.gameStatus]);
 
@@ -183,34 +187,43 @@ export default function GameContainer() {
     setShowLeaderboard(false);
   };
 
-  // Render based on game state
+    // Render based on game state
   if (state.gameStatus === 'not-started') {
     return <WelcomeScreen onStart={startGame} />;
   }
 
   if (state.gameStatus === 'finished' || showLeaderboard) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-thunder-white to-thunder-lightGrey p-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Final Score */}
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold thunder-text-gradient mb-2">Game Over!</h1>
-            <div className="text-xl text-thunder-black">
-              Final Score: {state.playerGoals} - {state.opponentGoals}
-            </div>
-            <div className="text-thunder-grey mt-1">
-              {state.playerGoals > state.opponentGoals ? '🏆 You Win!' : 
-               state.playerGoals < state.opponentGoals ? '💪 Better luck next time!' : 
-               '🤝 It\'s a tie!'}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-12">
+        <div className="max-w-2xl mx-auto space-y-8">
+          {/* Final Score - matching leaderboard width */}
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            <div className="text-center py-10 px-8">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6 tracking-tight">Game Over!</h1>
+              <div className="text-3xl font-bold text-gray-900 mb-4">
+                Final Score: {state.playerGoals} - {state.opponentGoals}
+              </div>
+              <div className="text-xl text-gray-600 font-medium mb-3">
+                {state.playerGoals > state.opponentGoals ? '🏆 You Win!' : 
+                 state.playerGoals < state.opponentGoals ? '💪 Better luck next time!' : 
+                 '🤝 It\'s a tie!'}
+              </div>
+              {state.nickname && (
+                <div className="text-lg text-gray-500 font-medium">
+                  Playing as: <span className="font-bold text-thunder-red">{state.nickname}</span>
+                </div>
+              )}
             </div>
           </div>
           
-          <Leaderboard currentPlayer={state.nickname} />
+          {/* Leaderboard component */}
+          <Leaderboard key={Date.now()} currentPlayer={state.nickname} />
           
-          <div className="text-center mt-6">
+          {/* Play Again button with better styling */}
+          <div className="text-center">
             <button
               onClick={playAgain}
-              className="px-6 py-3 bg-thunder-red hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+              className="w-full max-w-md mx-auto px-12 py-5 bg-gradient-to-r from-thunder-red to-red-700 hover:from-red-700 hover:to-red-800 text-white text-2xl font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
             >
               Play Again 🏒
             </button>
@@ -223,16 +236,16 @@ export default function GameContainer() {
   const currentQuestion = state.questions[state.currentQuestion];
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-thunder-white to-thunder-lightGrey p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-16">
       <div className="max-w-4xl mx-auto">
         <ScoreDisplay />
         
         {feedback.show ? (
-          <div className={`text-center py-12 animate-fade-in`}>
-            <div className={`text-5xl mb-4 ${feedback.correct ? 'animate-goal-celebration' : ''}`}>
+          <div className={`text-center py-16 animate-fade-in`}>
+            <div className={`text-6xl mb-6 ${feedback.correct ? 'animate-goal-celebration' : ''}`}>
               {feedback.correct ? '🚨' : '❌'}
             </div>
-            <p className={`text-2xl font-bold ${feedback.correct ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-3xl font-bold ${feedback.correct ? 'text-green-600' : 'text-red-600'}`}>
               {feedback.message}
             </p>
           </div>
@@ -243,9 +256,9 @@ export default function GameContainer() {
             onTimeout={handleTimeout}
           />
         ) : (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-thunder-red"></div>
-            <p className="mt-2 text-thunder-grey">Loading question...</p>
+          <div className="text-center py-16">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-4 border-thunder-red"></div>
+            <p className="mt-4 text-xl text-gray-600 font-medium">Loading question...</p>
           </div>
         )}
       </div>

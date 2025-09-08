@@ -16,7 +16,10 @@ export interface Question {
   correctAnswer: string | boolean; // String for MC/short answer, boolean for T/F
   hint?: string;
   explanation?: string;
-  difficulty?: "easy" | "medium" | "hard";
+  difficulty: "easy" | "medium" | "hard";
+  topics?: string[]; // Topics for diversity tracking
+  ageAppropriate?: boolean;
+  estimatedReadingTime?: number;
 }
 
 export interface GameState {

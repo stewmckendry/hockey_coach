@@ -7,9 +7,9 @@ export default function ScoreDisplay() {
   const { state } = useGame();
 
   return (
-    <div className="w-full max-w-4xl mx-auto mb-6">
+    <div className="w-full max-w-3xl mx-auto mb-10">
       {/* Hockey Rink Visual Score Display */}
-      <div className="relative bg-gradient-to-b from-blue-50 via-white to-blue-50 rounded-xl shadow-xl p-6 border-2 border-gray-300 overflow-hidden">
+      <div className="relative bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden">
         {/* Ice texture effect */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-x-0 top-1/2 h-0.5 bg-red-500 transform -translate-y-1/2"></div>
@@ -25,11 +25,12 @@ export default function ScoreDisplay() {
             </div>
             <div className="relative">
               <div className="text-5xl font-bold text-thunder-black">
-                {Math.floor(state.playerGoals)}
+                {state.playerGoals % 1 !== 0 ? (
+                  <span>{Math.floor(state.playerGoals)}<sup className="text-2xl text-thunder-red">½</sup></span>
+                ) : (
+                  state.playerGoals
+                )}
               </div>
-              {state.playerGoals % 1 !== 0 && (
-                <span className="absolute -top-2 -right-2 text-xl text-thunder-red">+½</span>
-              )}
             </div>
             <div className="mt-2">
               <span className="text-xs text-thunder-grey">{state.nickname}</span>
@@ -96,7 +97,7 @@ export default function ScoreDisplay() {
       {/* Stats Bar */}
       <div className="mt-4 flex justify-center gap-6 text-sm">
         <div className="text-thunder-grey">
-          <span className="font-semibold">Questions:</span> {state.currentQuestion}/15
+          <span className="font-semibold">Questions:</span> {state.answers.length}/15
         </div>
         <div className="text-thunder-grey">
           <span className="font-semibold">Accuracy:</span>{' '}

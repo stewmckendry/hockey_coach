@@ -7,10 +7,11 @@ const openai = new OpenAI({
 
 export async function POST(request: Request) {
   try {
-    const { question, answer, correctAnswer, isSecondAttempt } = await request.json();
+    const { question, answer, correctAnswer, isSecondAttempt, questionType } = await request.json();
 
     // For multiple choice and true/false, do direct comparison
-    if (typeof correctAnswer === 'boolean' || question.includes('?')) {
+    // For short answer, use AI validation
+    if (questionType === 'multiple-choice' || questionType === 'true-false' || typeof correctAnswer === 'boolean') {
       const isCorrect = String(answer).toLowerCase() === String(correctAnswer).toLowerCase();
       
       if (!isCorrect && !isSecondAttempt) {
@@ -43,13 +44,22 @@ Generate a helpful hint that guides them toward the right answer without giving 
     }
 
     // For short answer questions, use AI to validate
-    const validationPrompt = `You are validating answers for a youth hockey quiz. Be generous with spelling and minor variations.
+    const validationPrompt = `You are validating answers for a youth hockey quiz for 9-10 year old kids. Be VERY generous and accepting.
 
 Question: ${question}
 Expected Answer: ${correctAnswer}
 Player's Answer: ${answer}
 
-Is the player's answer correct or essentially correct? Consider common variations, abbreviations, and minor spelling errors as correct.
+IMPORTANT: Accept the answer as correct if:
+- The core concept is right (even if wording is different)
+- Common abbreviations or shorthand (e.g., "pk" for "penalty kill", "pp" for "power play")
+- Minor spelling errors or typos
+- Partial answers that show understanding (e.g., "offsides" instead of "offside")
+- Different but valid terminology (e.g., "goalie" vs "goaltender", "sin bin" vs "penalty box")
+- Numbers written as words or vice versa
+- Plural/singular variations
+
+This is for kids learning hockey - if they show they understand the concept, mark it correct!
 
 Respond with only "true" or "false".`;
 

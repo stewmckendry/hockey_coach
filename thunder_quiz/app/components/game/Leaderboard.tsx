@@ -59,23 +59,23 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4">
-      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="w-full">
+      <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         {/* Header */}
-        <div className="bg-gradient-to-r from-thunder-red to-red-700 p-8">
+        <div className="bg-white text-center py-10 px-8">
           <div className="flex justify-between items-center">
             <div className="text-center w-full">
-              <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-3">
-                <span className="text-4xl">🏆</span>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-4 tracking-tight">
+                <span className="text-5xl">🏆</span>
                 <span>Leaderboard</span>
-                <span className="text-4xl">🏆</span>
+                <span className="text-5xl">🏆</span>
               </h2>
-              <p className="text-white/90 text-lg">Top 10 Thunder Players</p>
+              <p className="text-xl text-gray-600 font-medium">Top 10 Thunder Players</p>
             </div>
             {onClose && (
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors text-2xl"
+                className="absolute top-6 right-6 text-gray-600 hover:text-gray-900 transition-colors text-3xl"
               >
                 ✕
               </button>
@@ -84,18 +84,18 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
         </div>
 
         {/* Leaderboard Content */}
-        <div className="p-6">
+        <div className="px-10 py-8">
           {loading ? (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-thunder-red"></div>
-              <p className="mt-2 text-thunder-grey">Loading scores...</p>
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-4 border-thunder-red"></div>
+              <p className="mt-4 text-xl text-gray-600 font-medium">Loading scores...</p>
             </div>
           ) : scores.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-thunder-grey">No scores yet. Be the first to play!</p>
+            <div className="text-center py-12">
+              <p className="text-xl text-gray-600 font-medium">No scores yet. Be the first to play!</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {scores.map((entry, index) => {
                 const rank = index + 1;
                 const isCurrentPlayer = entry.nickname === currentPlayer;
@@ -104,19 +104,19 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
                 return (
                   <div
                     key={entry.id}
-                    className={`flex items-center justify-between p-4 rounded-xl transition-all ${
+                    className={`flex items-center justify-between p-6 rounded-2xl transition-all ${
                       isCurrentPlayer
-                        ? 'bg-gradient-to-r from-red-50 to-red-100 border-2 border-thunder-red shadow-md'
+                        ? 'bg-gradient-to-r from-red-50 to-red-100 border-2 border-thunder-red shadow-lg'
                         : rank <= 3
-                        ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 hover:shadow-md'
-                        : 'bg-gray-50 hover:bg-gray-100 hover:shadow-sm'
+                        ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 hover:shadow-lg'
+                        : 'bg-gray-50 hover:bg-gray-100 hover:shadow-md'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       {/* Rank */}
-                      <div className="w-8 text-center">
+                      <div className="w-10 text-center">
                         {getMedalEmoji(rank) || (
-                          <span className="text-thunder-grey font-semibold">
+                          <span className="text-gray-600 font-bold text-lg">
                             {rank}
                           </span>
                         )}
@@ -124,15 +124,15 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
                       
                       {/* Player Info */}
                       <div>
-                        <div className="font-semibold text-thunder-black">
+                        <div className="font-bold text-gray-900 text-lg">
                           {entry.nickname}
                           {isCurrentPlayer && (
-                            <span className="ml-2 text-xs bg-thunder-red text-white px-2 py-0.5 rounded-full">
+                            <span className="ml-3 text-sm bg-thunder-red text-white px-3 py-1 rounded-full">
                               YOU
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-thunder-grey">
+                        <div className="text-sm text-gray-600 mt-1 font-medium">
                           {formatDate(entry.date)} • Accuracy: {entry.accuracy}%
                         </div>
                       </div>
@@ -140,16 +140,16 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
 
                     {/* Score */}
                     <div className="text-right">
-                      <div className="font-bold text-thunder-black">
+                      <div className="font-bold text-gray-900 text-lg">
                         {entry.playerGoals} - {entry.opponentGoals}
                       </div>
-                      <div className="text-xs text-thunder-grey">
+                      <div className="text-sm text-gray-600 font-medium">
                         {goalDiff > 0 ? (
-                          <span className="text-green-600">+{goalDiff} WIN</span>
+                          <span className="text-green-600 font-bold">+{goalDiff} WIN</span>
                         ) : goalDiff < 0 ? (
-                          <span className="text-red-600">{goalDiff} LOSS</span>
+                          <span className="text-red-600 font-bold">{goalDiff} LOSS</span>
                         ) : (
-                          <span className="text-yellow-600">TIE</span>
+                          <span className="text-yellow-600 font-bold">TIE</span>
                         )}
                       </div>
                     </div>
@@ -160,8 +160,8 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
           )}
 
           {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-thunder-lightGrey text-center">
-            <p className="text-xs text-thunder-grey">
+          <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+            <p className="text-sm text-gray-600 font-medium">
               Scores reset every 30 days • Keep practicing!
             </p>
           </div>

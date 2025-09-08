@@ -48,6 +48,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
           question: question.question,
           answer,
           correctAnswer: question.correctAnswer,
+          questionType: question.type,
           isSecondAttempt: false,
         }),
       });
@@ -86,56 +87,78 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
   const isOvertime = state.isOvertime;
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto">
       {/* Period and Question Header */}
-      <div className="notion-card mb-6">
+      <div className="bg-white rounded-3xl shadow-xl mb-8 p-8">
         <div className="flex justify-between items-center">
-          <div className="text-lg font-bold text-thunder-black">
+          <div className="text-xl font-bold text-gray-900">
             {isOvertime ? (
-              <span className="text-thunder-red animate-pulse">🚨 OVERTIME 🚨</span>
+              <span className="text-thunder-red animate-pulse text-2xl">🚨 OVERTIME 🚨</span>
             ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600">Period {state.currentPeriod}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-700 font-semibold">Period {state.currentPeriod}</span>
                 <span className="text-gray-400">•</span>
-                <span className="text-gray-600">Question {(questionNumber - 1) % 5 + 1}/5</span>
+                <span className="text-gray-700 font-semibold">Question {(questionNumber - 1) % 5 + 1}/5</span>
               </div>
             )}
           </div>
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 ${getTimeColor()}`}>
-            <span className="text-2xl">⏱️</span>
-            <span className="text-2xl font-bold">{timeLeft}s</span>
+          <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl bg-gray-100 ${getTimeColor()}`}>
+            <span className="text-3xl">⏱️</span>
+            <span className="text-3xl font-bold">{timeLeft}s</span>
           </div>
         </div>
       </div>
 
       {/* Question Card */}
-      <div className="notion-card p-0">
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-5 border-b border-gray-100 rounded-t-xl">
-          <span className="inline-block px-4 py-1 bg-thunder-red text-white text-xs font-bold rounded-full">
-            {question.category.replace('-', ' ').toUpperCase()}
+      <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-red-50 px-10 py-6 border-b-4 border-blue-200">
+          <span className={`inline-flex items-center gap-2 px-8 py-4 text-white text-base font-black rounded-full tracking-wide shadow-lg transform hover:scale-105 transition-transform ${
+            question.category === 'rules-penalties' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+            question.category === 'team-systems' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+            question.category === 'nhl-knowledge' ? 'bg-gradient-to-r from-purple-500 to-purple-600' :
+            question.category === 'equipment-safety' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+            question.category === 'sportsmanship' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+            question.category === 'team-tactics' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+            question.category === 'skills-fundamentals' ? 'bg-gradient-to-r from-pink-500 to-pink-600' :
+            question.category === 'practice-drills' ? 'bg-gradient-to-r from-teal-500 to-teal-600' :
+            question.category === 'fun-facts' ? 'bg-gradient-to-r from-indigo-500 to-indigo-600' :
+            'bg-gradient-to-r from-gray-500 to-gray-600'
+          }`}>
+            <span className="text-2xl">
+              {question.category === 'rules-penalties' ? '⚖️' :
+               question.category === 'team-systems' ? '📋' :
+               question.category === 'nhl-knowledge' ? '🏆' :
+               question.category === 'equipment-safety' ? '🛡️' :
+               question.category === 'sportsmanship' ? '🤝' :
+               question.category === 'team-tactics' ? '♟️' :
+               question.category === 'skills-fundamentals' ? '⭐' :
+               question.category === 'practice-drills' ? '🎯' :
+               question.category === 'fun-facts' ? '💡' : '🏒'}
+            </span>
+            <span>{question.category.replace('-', ' ').toUpperCase()}</span>
           </span>
         </div>
-        <div className="p-8 space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-8 leading-relaxed">
+        <div className="p-12 space-y-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-10 leading-relaxed">
             {question.question}
           </h2>
 
         {/* Answer Options */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           {question.type === 'multiple-choice' && question.options && (
             <>
               {question.options.map((option, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedAnswer(option)}
-                  className={`w-full p-5 text-left rounded-xl border font-medium transition-all ${
+                  className={`w-full p-6 text-left rounded-2xl border-2 font-medium transition-all text-lg ${
                     selectedAnswer === option
-                      ? 'border-thunder-red bg-red-50 shadow-sm transform scale-[1.01]'
+                      ? 'border-thunder-red bg-red-50 shadow-lg'
                       : 'border-gray-200 hover:border-thunder-red hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold">
+                  <div className="flex items-center gap-4">
+                    <span className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold">
                       {String.fromCharCode(65 + index)}
                     </span>
                     <span>{option}</span>
@@ -146,31 +169,31 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
           )}
 
           {question.type === 'true-false' && (
-            <div className="flex gap-4">
+            <div className="flex gap-6">
               <button
                 onClick={() => setSelectedAnswer(true)}
-                className={`flex-1 p-5 rounded-xl border-2 font-bold text-lg transition-all ${
+                className={`flex-1 p-8 rounded-3xl border-4 font-black text-2xl transition-all transform hover:scale-105 ${
                   selectedAnswer === true
-                    ? 'border-green-600 bg-green-50 text-green-700 shadow-md transform scale-[1.02]'
-                    : 'border-gray-300 hover:border-green-600 hover:bg-green-50'
+                    ? 'border-green-500 bg-gradient-to-r from-green-400 to-green-500 text-white shadow-2xl animate-pulse-glow scale-105'
+                    : 'border-green-300 bg-gradient-to-r from-green-50 to-white hover:border-green-400 hover:from-green-100'
                 }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-2xl">✓</span>
-                  <span>TRUE</span>
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-5xl">✅</span>
+                  <span className="tracking-wide">TRUE</span>
                 </div>
               </button>
               <button
                 onClick={() => setSelectedAnswer(false)}
-                className={`flex-1 p-5 rounded-xl border-2 font-bold text-lg transition-all ${
+                className={`flex-1 p-8 rounded-3xl border-4 font-black text-2xl transition-all transform hover:scale-105 ${
                   selectedAnswer === false
-                    ? 'border-red-600 bg-red-50 text-red-700 shadow-md transform scale-[1.02]'
-                    : 'border-gray-300 hover:border-red-600 hover:bg-red-50'
+                    ? 'border-red-500 bg-gradient-to-r from-red-400 to-red-500 text-white shadow-2xl animate-pulse-glow scale-105'
+                    : 'border-red-300 bg-gradient-to-r from-red-50 to-white hover:border-red-400 hover:from-red-100'
                 }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-2xl">✗</span>
-                  <span>FALSE</span>
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-5xl">❌</span>
+                  <span className="tracking-wide">FALSE</span>
                 </div>
               </button>
             </div>
@@ -182,7 +205,12 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
                 type="text"
                 value={shortAnswer}
                 onChange={(e) => setShortAnswer(e.target.value)}
-                className="w-full p-3 border-2 border-thunder-grey rounded-lg focus:outline-none focus:border-thunder-red"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && shortAnswer.trim() !== '') {
+                    handleSubmit();
+                  }
+                }}
+                className="w-full px-8 py-6 text-lg border-2 border-gray-300 rounded-2xl focus:outline-none focus:border-thunder-red focus:ring-4 focus:ring-red-100 bg-gray-50 transition-all"
                 placeholder="Type your answer here..."
                 autoFocus
               />
@@ -192,11 +220,11 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
 
         {/* Hint Section */}
         {showHint && (
-          <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              <span className="font-semibold">💡 Hint:</span> {hintMessage}
+          <div className="mt-6 px-8 py-7 bg-yellow-50 border-2 border-yellow-300 rounded-2xl">
+            <p className="text-base text-yellow-800">
+              <span className="font-bold text-lg">💡 Hint:</span> {hintMessage}
             </p>
-            <p className="text-xs text-yellow-700 mt-2">
+            <p className="text-sm text-yellow-700 mt-3 font-medium">
               Try again for half points!
             </p>
           </div>
@@ -209,10 +237,10 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
             (question.type !== 'short-answer' && selectedAnswer === null) ||
             (question.type === 'short-answer' && shortAnswer.trim() === '')
           }
-          className={`mt-8 w-full py-4 px-6 font-bold text-lg rounded-xl transition-all shadow-lg ${
+          className={`mt-10 w-full py-6 px-10 font-bold text-xl rounded-2xl transition-colors duration-200 shadow-lg ${
             ((question.type !== 'short-answer' && selectedAnswer !== null) ||
             (question.type === 'short-answer' && shortAnswer.trim() !== ''))
-              ? 'bg-gradient-to-r from-thunder-red to-red-700 hover:from-red-700 hover:to-red-800 text-white transform hover:scale-[1.02] active:scale-[0.98]'
+              ? 'bg-gradient-to-r from-thunder-red to-red-700 hover:from-red-700 hover:to-red-800 text-white hover:shadow-xl'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
