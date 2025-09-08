@@ -7,9 +7,9 @@ export default function ScoreDisplay() {
   const { state } = useGame();
 
   return (
-    <div className="w-full max-w-3xl mx-auto mb-10">
+    <div className="w-full max-w-3xl mx-auto mb-12">
       {/* Hockey Rink Visual Score Display */}
-      <div className="relative bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden">
+      <div className="relative bg-white rounded-3xl shadow-xl p-10 border border-gray-100 overflow-hidden">
         {/* Ice texture effect */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-x-0 top-1/2 h-0.5 bg-red-500 transform -translate-y-1/2"></div>

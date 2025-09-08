@@ -1,13 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '@/lib/gameContext';
 import Image from 'next/image';
 
 export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
   const [nickname, setNickname] = useState('');
   const [error, setError] = useState('');
+  const [topScores, setTopScores] = useState<Array<{nickname: string, score: number}>>([]);
   const { dispatch } = useGame();
+
+  useEffect(() => {
+    // Fetch top scores
+    fetch('/api/leaderboard')
+      .then(res => res.json())
+      .then(data => {
+        if (data.entries) {
+          setTopScores(data.entries.slice(0, 5));
+        }
+      })
+      .catch(err => console.error('Failed to fetch leaderboard:', err));
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +105,28 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
                 </div>
               </div>
             </div>
+
+            {/* Top Scores Preview */}
+            {topScores.length > 0 && (
+              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-2xl p-8 border-2 border-yellow-300">
+                <h2 className="text-xl font-black text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">
+                  🏆 Top Thunder Players 🏆
+                </h2>
+                <div className="space-y-3">
+                  {topScores.map((player, index) => (
+                    <div key={index} className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border-2 border-yellow-200">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-black text-yellow-600">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                        </span>
+                        <span className="font-bold text-gray-800">{player.nickname}</span>
+                      </div>
+                      <span className="font-black text-xl text-thunder-red">{player.score} pts</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Nickname Form - More playful */}
             <form onSubmit={handleSubmit} className="space-y-8">
