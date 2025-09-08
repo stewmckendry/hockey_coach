@@ -6,13 +6,11 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
+          // DO NOT set X-Frame-Options to allow Notion embedding
+          // Instead, use CSP frame-ancestors
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://www.notion.so https://notion.so"
+            value: "frame-ancestors 'self' https://www.notion.so https://*.notion.site;"
           },
           {
             key: 'X-Content-Type-Options',

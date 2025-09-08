@@ -139,20 +139,42 @@ export default function GameContainer() {
       (state.answers.filter(a => a.isCorrect).length / state.answers.length) * 100
     );
     
+    const scoreData = {
+      nickname: state.nickname,
+      playerGoals: state.playerGoals,
+      opponentGoals: state.opponentGoals,
+      totalQuestions: state.answers.length,
+      accuracy,
+    };
+    
     try {
-      await fetch('/api/leaderboard', {
+      // Try Notion API first
+      const notionResponse = await fetch('/api/notion-leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nickname: state.nickname,
-          playerGoals: state.playerGoals,
-          opponentGoals: state.opponentGoals,
-          totalQuestions: state.answers.length,
-          accuracy,
-        }),
+        body: JSON.stringify(scoreData),
       });
+      
+      if (!notionResponse.ok) {
+        // Fallback to regular leaderboard
+        await fetch('/api/leaderboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(scoreData),
+        });
+      }
     } catch (error) {
       console.error('Error submitting score:', error);
+      // Try fallback
+      try {
+        await fetch('/api/leaderboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(scoreData),
+        });
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
     }
   };
 

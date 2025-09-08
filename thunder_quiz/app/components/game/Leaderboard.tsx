@@ -18,12 +18,27 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await fetch('/api/leaderboard');
-      const data = await response.json();
-      setScores(data.scores || []);
+      // Try Notion API first, fallback to regular leaderboard
+      const notionResponse = await fetch('/api/notion-leaderboard');
+      if (notionResponse.ok) {
+        const data = await notionResponse.json();
+        setScores(data.scores || []);
+      } else {
+        // Fallback to regular leaderboard
+        const response = await fetch('/api/leaderboard');
+        const data = await response.json();
+        setScores(data.scores || []);
+      }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
-      setScores([]);
+      // Try fallback
+      try {
+        const response = await fetch('/api/leaderboard');
+        const data = await response.json();
+        setScores(data.scores || []);
+      } catch {
+        setScores([]);
+      }
     } finally {
       setLoading(false);
     }
