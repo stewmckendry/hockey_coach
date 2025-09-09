@@ -5622,28 +5622,14 @@ def main():
     args = parser.parse_args()
     
     if args.transport == "stdio":
-        # Stdio mode for Claude Desktop
-        async def run_stdio():
-            from mcp.server.stdio import stdio_server
-            async with stdio_server() as streams:
-                await mcp.run(
-                    streams[0], streams[1],
-                    mcp.create_initialization_options()
-                )
-            
-        logger.info("🏒 Starting Hockey Diagram MCP Server v3 (stdio mode)")
-        logger.info("📊 Ready for OpenAI Responses API with Exa MCP")
-        try:
-            asyncio.run(run_stdio())
-        except KeyboardInterrupt:
-            logger.info("Server stopped by user")
-        except Exception as e:
-            logger.error(f"Server error: {e}")
-            raise
+        # Stdio mode for Claude Desktop - just use FastMCP's built-in run method
+        # Do NOT log to stdout/stderr as it interferes with MCP protocol
+        mcp.run()
     else:
         # SSE/HTTP mode
-        logger.info(f"🏒 Starting Hockey Diagram MCP Server v3 at http://{args.host}:{args.port}")
-        logger.info("📊 Ready for OpenAI Responses API with Exa MCP")
+        # Only log for non-stdio transports
+        logger.info(f"Starting Hockey Diagram MCP Server v3 at http://{args.host}:{args.port}")
+        logger.info("Ready for OpenAI Responses API with Exa MCP")
         mcp.run(transport="sse", host=args.host, port=args.port)
 
 if __name__ == "__main__":
