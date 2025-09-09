@@ -2,13 +2,18 @@
 
 :root {
   --thunder-red: #DC2626;
-  --thunder-black: #000000;
+  --thunder-red-light: #FEE2E2;
+  --thunder-red-pastel: #FECACA;
+  --thunder-black: #1F2937;
   --thunder-grey: #6B7280;
   --thunder-white: #FFFFFF;
-  --thunder-light-grey: #F3F4F6;
+  --thunder-light-grey: #F9FAFB;
+  --thunder-bg: #F8FAFC;
   
-  --background: #FFFFFF;
-  --foreground: #000000;
+  --background: #F8FAFC;
+  --foreground: #1F2937;
+  --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
 }
 
 @theme inline {
@@ -36,12 +41,13 @@ body {
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
   color: var(--foreground);
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', Arial, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 /* Notion-style typography */
@@ -61,18 +67,35 @@ p {
   line-height: 1.7;
 }
 
-/* Notion-style cards and spacing */
-.notion-card {
+/* Modern card styles */
+.modern-card {
   background: white;
-  border-radius: 12px;
-  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px;
-  transition: all 0.2s ease;
+  border-radius: 24px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.modern-card:hover {
+  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-4px);
+}
+
+.modern-card-sm {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 24px;
 }
 
-.notion-card:hover {
-  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 5px 10px, rgba(15, 15, 15, 0.2) 0px 15px 40px;
-  transform: translateY(-2px);
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
 }
 
 /* Notion-style callouts */
@@ -122,15 +145,22 @@ button {
   transform: none !important;
 }
 
-/* Better focus states */
+/* Better focus states - softer and less harsh */
 *:focus-visible {
-  outline: 2px solid var(--thunder-red);
-  outline-offset: 2px;
+  outline: 2px solid #E5E7EB;
+  outline-offset: 1px;
   border-radius: 4px;
 }
 
 button:focus-visible {
+  outline: 2px solid #9CA3AF;
   outline-offset: 0;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
 }
 
 /* Animations - Disabled for better UX */

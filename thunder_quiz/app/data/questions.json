@@ -1145,9 +1145,9 @@
       "category": "skills-fundamentals",
       "type": "true-false",
       "question": "A backhand pass is usually less accurate than a forehand pass.",
-      "correctAnswer": false,
-      "hint": "With practice, both can be equally good!",
-      "explanation": "Backhand passes can be just as accurate with proper technique.",
+      "correctAnswer": true,
+      "hint": "Think about which pass gives you more control of the puck.",
+      "explanation": "Backhand passes are generally less accurate because you have less control and visibility of the puck on your backhand.",
       "difficulty": "medium",
       "topics": [
         "skills-fundamentals"

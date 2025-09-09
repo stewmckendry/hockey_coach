@@ -27,16 +27,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { count = 15 } = await request.json();
+    const { count = 15, recentlyUsedIds = [] } = await request.json();
     
     // Get all questions with difficulty ratings
     const allQuestions = questionsData.questions as Question[];
     
-    // Progressive difficulty: Period 1 = Easy, Period 2 = Medium, Period 3 = Hard
-    // 5 questions per period for standard game
-    const easyQuestions = allQuestions.filter(q => q.difficulty === 'easy');
-    const mediumQuestions = allQuestions.filter(q => q.difficulty === 'medium');
-    const hardQuestions = allQuestions.filter(q => q.difficulty === 'hard');
+    // Track recently used questions (from client's session storage)
+    const recentlyUsedSet = new Set(recentlyUsedIds);
     
     // Proper Fisher-Yates shuffle for true randomization
     const shuffleArray = (arr: Question[]) => {
@@ -48,90 +45,93 @@ export async function POST(request: Request) {
       return shuffled;
     };
     
-    // Function to select questions with topic diversity
-    const selectDiverseQuestions = (questions: Question[], numToSelect: number): Question[] => {
+    // Enhanced selection with better repeat prevention
+    const selectQuestionsWithMemory = (
+      questions: Question[], 
+      numToSelect: number,
+      alreadySelected: Set<string>
+    ): Question[] => {
       const selected: Question[] = [];
       const usedCategories = new Set<string>();
-      const usedTopics = new Set<string>();
       
-      // Shuffle the input questions
-      const shuffled = shuffleArray(questions);
+      // Separate into unused and recently used
+      const unused = questions.filter(q => !recentlyUsedSet.has(q.id) && !alreadySelected.has(q.id));
+      const recentlyUsed = questions.filter(q => recentlyUsedSet.has(q.id) && !alreadySelected.has(q.id));
       
-      // First pass: try to get diverse categories
-      for (const q of shuffled) {
+      // Shuffle both pools
+      const shuffledUnused = shuffleArray(unused);
+      const shuffledRecent = shuffleArray(recentlyUsed);
+      
+      // First: Select from unused questions with category diversity
+      for (const q of shuffledUnused) {
         if (selected.length >= numToSelect) break;
         
-        // Prefer questions from unused categories
-        if (!usedCategories.has(q.category)) {
+        // Prioritize category diversity
+        if (!usedCategories.has(q.category) || selected.length < numToSelect / 2) {
           selected.push(q);
           usedCategories.add(q.category);
-          if (q.topics) {
-            q.topics.forEach(t => usedTopics.add(t));
-          }
+          alreadySelected.add(q.id);
         }
       }
       
-      // Second pass: fill remaining slots, prioritizing topic diversity
-      for (const q of shuffled) {
-        if (selected.length >= numToSelect) break;
-        if (selected.includes(q)) continue;
-        
-        // Calculate topic overlap score (lower is better)
-        const overlapScore = q.topics 
-          ? q.topics.filter(t => usedTopics.has(t)).length 
-          : 0;
-        
-        // Add questions with minimal topic overlap
-        if (overlapScore <= 1) {
-          selected.push(q);
-          usedCategories.add(q.category);
-          if (q.topics) {
-            q.topics.forEach(t => usedTopics.add(t));
-          }
-        }
-      }
-      
-      // Final pass: if still need more, just add what's left
-      for (const q of shuffled) {
+      // Second: Fill remaining from unused without category restriction
+      for (const q of shuffledUnused) {
         if (selected.length >= numToSelect) break;
         if (!selected.includes(q)) {
           selected.push(q);
+          alreadySelected.add(q.id);
         }
+      }
+      
+      // Last resort: Use recently used questions if needed
+      for (const q of shuffledRecent) {
+        if (selected.length >= numToSelect) break;
+        selected.push(q);
+        alreadySelected.add(q.id);
       }
       
       return selected;
     };
     
     const selectedQuestions: Question[] = [];
+    const alreadySelectedIds = new Set<string>();
     
-    // Period 1: Mix of easy and easier medium questions (since we only have 15 easy)
-    const period1Easy = selectDiverseQuestions(easyQuestions, 3);
-    const period1Medium = selectDiverseQuestions(mediumQuestions, 2);
-    selectedQuestions.push(...period1Easy, ...period1Medium);
+    // More balanced difficulty distribution (less reliance on limited easy questions)
+    // Period 1: Easier questions (easy + easier mediums)
+    const easyQuestions = allQuestions.filter(q => q.difficulty === 'easy');
+    const mediumQuestions = allQuestions.filter(q => q.difficulty === 'medium');
+    const hardQuestions = allQuestions.filter(q => q.difficulty === 'hard');
     
-    // Period 2: Mostly medium with some easy
-    const remainingMedium = mediumQuestions.filter(q => !selectedQuestions.includes(q));
-    const period2Medium = selectDiverseQuestions(remainingMedium, 3);
-    const remainingEasy = easyQuestions.filter(q => !selectedQuestions.includes(q));
-    const period2Easy = selectDiverseQuestions(remainingEasy, 2);
-    selectedQuestions.push(...period2Medium, ...period2Easy);
+    // Period 1: Easy and medium (2 easy, 3 medium)
+    const period1Easy = selectQuestionsWithMemory(easyQuestions, 2, alreadySelectedIds);
+    const period1Medium = selectQuestionsWithMemory(mediumQuestions, 3, alreadySelectedIds);
+    selectedQuestions.push(...shuffleArray([...period1Easy, ...period1Medium]));
     
-    // Period 3: Mix of hard and medium
-    const period3Hard = selectDiverseQuestions(hardQuestions, 3);
-    const remainingMediumForP3 = mediumQuestions.filter(q => !selectedQuestions.includes(q));
-    const period3Medium = selectDiverseQuestions(remainingMediumForP3, 2);
-    selectedQuestions.push(...period3Hard, ...period3Medium);
+    // Period 2: Medium-hard (2 medium, 3 hard)
+    const period2Medium = selectQuestionsWithMemory(mediumQuestions, 2, alreadySelectedIds);
+    const period2Hard = selectQuestionsWithMemory(hardQuestions, 3, alreadySelectedIds);
+    selectedQuestions.push(...shuffleArray([...period2Medium, ...period2Hard]));
     
-    // If we need more questions (overtime), mix medium and hard with diversity
+    // Period 3: Hard only (5 hard)
+    const period3Hard = selectQuestionsWithMemory(hardQuestions, 5, alreadySelectedIds);
+    selectedQuestions.push(...shuffleArray(period3Hard));
+    
+    // Overtime: Mix of medium and hard
     if (count > 15) {
-      const remainingHard = hardQuestions.filter(q => !selectedQuestions.includes(q));
-      const remainingMediumForOT = mediumQuestions.filter(q => !selectedQuestions.includes(q));
-      const overtimePool = [...remainingHard, ...remainingMediumForOT];
-      const overtimeQuestions = selectDiverseQuestions(overtimePool, count - 15);
+      const overtimeQuestions: Question[] = [];
+      for (let i = 15; i < count; i++) {
+        // Alternate between medium and hard for overtime
+        const pool = i % 2 === 0 ? mediumQuestions : hardQuestions;
+        const selected = selectQuestionsWithMemory(pool, 1, alreadySelectedIds);
+        overtimeQuestions.push(...selected);
+      }
       selectedQuestions.push(...overtimeQuestions);
     }
     
-    return NextResponse.json({ questions: selectedQuestions.slice(0, count) });
+    return NextResponse.json({ 
+      questions: selectedQuestions.slice(0, count),
+      totalQuestionsInPool: allQuestions.length
+    });
   } catch (error) {
     console.error('Error selecting questions:', error);
     return NextResponse.json(
