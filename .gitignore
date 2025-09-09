@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 *.csv
 *.json
+!thunder_quiz/app/data/questions.json
+!thunder_quiz/app/vercel.json
 .env
 .env.production
 .env.development
@@ -23,6 +25,7 @@ chroma_data/
 data/generated/images/*
 !data/generated/images/.gitkeep
 *.png
+!thunder_quiz/app/public/*.png
 *.jpg
 *.jpeg
 *.gif
