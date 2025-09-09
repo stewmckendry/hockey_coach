@@ -124,10 +124,141 @@ def log_with_session(session_id: Optional[str], level: str, message: str):
     elif level == "debug":
         logger.debug(full_message)
 
+def load_centralized_coordinates() -> Dict[str, Any]:
+    """Load centralized coordinate reference from JSON file."""
+    coordinates_path = Path(__file__).parent.parent / "config" / "coordinates" / "rink_positions.json"
+    try:
+        with open(coordinates_path, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to load centralized coordinates: {e}")
+        # Return minimal fallback coordinates
+        return {
+            "zone_positions": {
+                "offensive": {"slot": {"x": 75, "y": 0}},
+                "defensive": {"slot": {"x": -75, "y": 0}},
+                "neutral": {"center ice": {"x": 0, "y": 0}}
+            }
+        }
+
+def generate_rink_reference_from_coordinates(coordinates_data: Dict[str, Any]) -> str:
+    """Generate rink reference text from centralized coordinates."""
+    landmarks = coordinates_data.get("key_landmarks", {})
+    faceoff_dots = coordinates_data.get("faceoff_dots", {})
+    nets = coordinates_data.get("nets", {})
+    examples = coordinates_data.get("examples", {})
+    
+    # Build the rink reference text
+    rink_ref = f"""RINK COORDINATE SYSTEM:
+- X-axis: {coordinates_data.get('coordinate_system', {}).get('x_axis', '-100 to +100')}
+- Y-axis: {coordinates_data.get('coordinate_system', {}).get('y_axis', '-42.5 to +42.5')}
+- Center ice: (0, 0)
+
+KEY LANDMARKS:
+- Blue lines: x = {landmarks.get('blue_lines', {}).get('offensive', {}).get('x', 69)} (offensive) and x = {landmarks.get('blue_lines', {}).get('defensive', {}).get('x', -69)} (defensive)
+- Goal lines: x = {landmarks.get('goal_lines', {}).get('offensive', {}).get('x', 89)} (offensive) and x = {landmarks.get('goal_lines', {}).get('defensive', {}).get('x', -89)} (defensive)
+- Red line (center): x = 0
+- Side boards: y = ±{landmarks.get('side_boards', {}).get('top', {}).get('y', 42.5)}
+- End boards: x = ±{landmarks.get('end_boards', {}).get('offensive', {}).get('x', 100)}
+- Top of circles: x = {landmarks.get('top_of_circles', {}).get('offensive', {}).get('x', 79)} (offensive) and x = {landmarks.get('top_of_circles', {}).get('defensive', {}).get('x', -79)} (defensive) - circles extend ~10 units past blue lines
+
+FACEOFF DOTS (All 9 dots):
+- Offensive zone: ({faceoff_dots.get('offensive_zone', {}).get('right_faceoff_dot', {}).get('x', 69)}, ±{abs(faceoff_dots.get('offensive_zone', {}).get('right_faceoff_dot', {}).get('y', 22.5))}) - right and left faceoff dots
+- Defensive zone: ({faceoff_dots.get('defensive_zone', {}).get('right_faceoff_dot', {}).get('x', -69)}, ±{abs(faceoff_dots.get('defensive_zone', {}).get('right_faceoff_dot', {}).get('y', 22.5))}) - right and left faceoff dots
+- Neutral zone near offensive: ({faceoff_dots.get('neutral_zone', {}).get('right_offensive_neutral_dot', {}).get('x', 20)}, ±{abs(faceoff_dots.get('neutral_zone', {}).get('right_offensive_neutral_dot', {}).get('y', 22.5))}) - right and left offensive neutral dots
+- Neutral zone near defensive: ({faceoff_dots.get('neutral_zone', {}).get('right_defensive_neutral_dot', {}).get('x', -20)}, ±{abs(faceoff_dots.get('neutral_zone', {}).get('right_defensive_neutral_dot', {}).get('y', 22.5))}) - right and left defensive neutral dots
+- Center ice: (0, 0) - center faceoff dot
+
+NET POSITIONS:
+- Offensive net: ({nets.get('offensive_net', {}).get('x', 89)}, 0)
+- Defensive net: ({nets.get('defensive_net', {}).get('x', -89)}, 0)
+
+RELATIVE POSITIONING GUIDE:
+- 'halfway between A and B': Calculate (A.x + B.x) / 2, (A.y + B.y) / 2
+- 'X feet from landmark': 1 foot ≈ 1 unit in coordinate system
+- 'between blue line and red line': x should be between 0 and 69 (offensive) or 0 and -69 (defensive)
+- 'near the boards': y should be close to ±42.5
+- 'in front of': Typically 5-10 units towards center from reference point
+- 'behind': Add units away from center
+
+LEFT/RIGHT AMBIGUITY RESOLUTION:
+Hockey has two interpretations of 'left' and 'right':
+1. WING POSITIONS (Y-axis): 'right wing', 'right side', 'right boards'
+   - Right = negative y (towards bottom of diagram)
+   - Left = positive y (towards top of diagram)
+2. ZONE PROGRESSION (X-axis): 'right side of neutral zone', 'left side of offensive zone'
+   - Right = positive x (towards offensive end)
+   - Left = negative x (towards defensive end)
+
+DEFAULT INTERPRETATION:
+- Single word 'right/left' → Wing position (Y-axis)
+- 'right/left side' with player context → Wing position (Y-axis)
+- 'right/left side of [zone]' → Zone progression (X-axis)
+- 'right/left boards' → Always Y-axis
+- 'right/left of [landmark]' → Depends on landmark orientation
+
+EXAMPLES:
+- 'right side' → y = -38 (right wing area)
+- 'left wing position' → y = +22 (left wing area)
+- 'right side of neutral zone' → x = 20 (offensive side of neutral zone)
+- 'left side of offensive zone' → x = 69, y = +20 (left wing in offensive zone)
+- 'between blue line and red line on the right' → x = 34.5, y = -38"""
+    
+    # Add examples if available
+    if examples:
+        halfway_example = examples.get("halfway_between_blue_line_and_top_of_circle", {})
+        if halfway_example:
+            off_example = halfway_example.get("offensive", {})
+            def_example = halfway_example.get("defensive", {})
+            if off_example and def_example:
+                rink_ref += f"""
+- 'halfway between blue line and top of circle' → offensive: x = {off_example.get('x', 74)}, defensive: x = {def_example.get('x', -74)}
+- 'top of circle' → offensive: x = 79, defensive: x = -79"""
+    
+    return rink_ref
+
+def generate_zone_positions_text_from_coordinates(coordinates_data: Dict[str, Any]) -> str:
+    """Generate zone positions text from centralized coordinates."""
+    zone_positions = coordinates_data.get("zone_positions", {})
+    
+    zone_text = "COMMON POSITIONS BY ZONE:\n\n"
+    
+    # Offensive zone
+    if "offensive" in zone_positions:
+        zone_text += "OFFENSIVE ZONE (x: 25 to 100):\n"
+        for pos_name, coords in zone_positions["offensive"].items():
+            if isinstance(coords, dict) and "x" in coords and "y" in coords:
+                zone_text += f"- {pos_name.replace('_', ' ').title()}: ({coords['x']}, {coords['y']})\n"
+        zone_text += "\n"
+    
+    # Defensive zone  
+    if "defensive" in zone_positions:
+        zone_text += "DEFENSIVE ZONE (x: -100 to -25):\n"
+        for pos_name, coords in zone_positions["defensive"].items():
+            if isinstance(coords, dict) and "x" in coords and "y" in coords:
+                zone_text += f"- {pos_name.replace('_', ' ').title()}: ({coords['x']}, {coords['y']})\n"
+        zone_text += "\n"
+    
+    # Neutral zone
+    if "neutral" in zone_positions:
+        zone_text += "NEUTRAL ZONE (x: -25 to 25):\n"
+        for pos_name, coords in zone_positions["neutral"].items():
+            if isinstance(coords, dict) and "x" in coords and "y" in coords:
+                zone_text += f"- {pos_name.replace('_', ' ').title()}: ({coords['x']}, {coords['y']})\n"
+    
+    return zone_text
+
 @mcp.tool("initialize_diagram")
-def initialize_diagram(description: str, diagram_type: Optional[str] = None) -> Dict[str, Any]:
+def initialize_diagram(
+    description: str, 
+    diagram_type: Optional[str] = None,
+    title: Optional[str] = None,
+    view: str = "full",
+    return_empty_spec: bool = True
+) -> Dict[str, Any]:
     """
     Initialize a new hockey diagram session with unique ID for tracking.
+    Optionally returns an empty spec for incremental building.
     
     This tool creates a session for building a hockey diagram, providing a unique
     session_id that should be passed to all subsequent tool calls for proper
@@ -136,14 +267,18 @@ def initialize_diagram(description: str, diagram_type: Optional[str] = None) -> 
     Args:
         description: Brief description of the diagram/drill to create
         diagram_type: Optional type (drill, play, formation, practice_plan)
+        title: Optional title for the diagram (defaults to description)
+        view: Rink view - "full", "offensive", "defensive", "neutral" (default: "full")
+        return_empty_spec: If True, returns an empty spec for incremental building (default: True)
         
     Returns:
         Dictionary containing:
         - session_id: Unique identifier for this diagram session
         - description: Echo of the provided description
         - created_at: Timestamp of session creation
-        - workflow: Recommended workflow steps
+        - workflow: Recommended workflow steps (traditional vs incremental)
         - instructions: How to use the session_id
+        - spec: Empty diagram spec (if return_empty_spec=True)
     """
     import uuid
     from datetime import datetime
@@ -159,40 +294,123 @@ def initialize_diagram(description: str, diagram_type: Optional[str] = None) -> 
         "diagram_type": diagram_type or "drill",
         "created_at": timestamp,
         "steps_completed": [],
-        "current_step": "initialized"
+        "current_step": "initialized",
+        "build_method": "incremental" if return_empty_spec else "traditional"
     }
     active_sessions[session_id] = session_info
     
-    # Log session initialization
+    # Enhanced logging with build method
     logger.info("=" * 80)
     logger.info(f"🏒 NEW DIAGRAM SESSION INITIALIZED")
     logger.info(f"   Session ID: {session_id}")
     logger.info(f"   Description: {description}")
     logger.info(f"   Type: {diagram_type or 'drill'}")
+    logger.info(f"   Build Method: {'INCREMENTAL' if return_empty_spec else 'TRADITIONAL'}")
+    logger.info(f"   View: {view}")
     logger.info(f"   Started: {timestamp}")
     logger.info("=" * 80)
     
-    # Return session info with workflow
-    return {
+    # Base result
+    result = {
         "session_id": session_id,
         "description": description,
         "diagram_type": diagram_type or "drill",
         "created_at": timestamp,
         "workflow": {
-            "step_1": "Analyze the query with analyze_hockey_query()",
-            "step_2": "Review and refine with clarifications if needed",
-            "step_3": "Translate to spec with translate_analysis_to_spec()",
-            "step_4": "Validate with validate_diagram_spec_full()",
-            "step_5": "Preview with preview_diagram()",
-            "step_6": "Generate final diagram with generate_diagram()"
+            "recommended": "INCREMENTAL (atomic building tools)",
+            "steps": [
+                "1. initialize_diagram() - Get session_id and empty spec",
+                "2. analyze_hockey_query() - Optional but recommended for understanding",
+                "3. Build spec with atomic tools:",
+                "   - add_player() - Add players with positions",
+                "   - add_coach() - Add coaches if needed",
+                "   - add_equipment() - Add cones, pylons, etc.",
+                "   - add_movement() - Add passes, shots, skating paths",
+                "4. validate_diagram_spec_full() - Validate complete spec",
+                "5. preview_diagram() - Preview before generating",
+                "6. generate_diagram() - Create final diagram",
+                "7. save_diagram_template() - Save for reuse"
+            ],
+            "movement_patterns": {
+                "simple": "Single add_movement() with optional curve_point",
+                "complex": "Chain multiple add_movement() calls (circles, figure-8, zigzag)",
+                "curve_control": "Use curve_point parameter for precise Bezier curves"
+            },
+            "note": "translate_analysis_to_spec is deprecated - use atomic tools for higher confidence"
         },
         "instructions": (
             f"IMPORTANT: Pass session_id='{session_id}' to ALL subsequent tool calls "
-            "for proper logging and tracing. Example:\n"
-            f"analyze_hockey_query(query='...', session_id='{session_id}')"
+            "for proper logging and tracing.\n"
+            "CRITICAL: Store the returned 'spec' in your memory or a temp file and update it "
+            "after EACH atomic tool call. Always pass the current updated spec to the next tool. "
+            "This prevents drift and ensures consistency across all operations."
         ),
         "status": "ready"
     }
+    
+    # Add empty spec if requested
+    if return_empty_spec:
+        # Helper function to get rink features based on view
+        def get_rink_features_for_view(view: str) -> List[str]:
+            """Return appropriate rink features based on view"""
+            base_features = ["center_line", "blue_lines", "goal_lines", "faceoff_dots", "faceoff_circles"]
+            
+            if view == "offensive":
+                return base_features + ["offensive_zone", "goals", "goal_creases"]
+            elif view == "defensive":
+                return base_features + ["defensive_zone", "goals", "goal_creases"]
+            elif view == "neutral":
+                return base_features + ["neutral_zone"]
+            else:  # full
+                return base_features + ["offensive_zone", "defensive_zone", "neutral_zone", "goals", "goal_creases"]
+        
+        # Create annotated empty spec with proper structure
+        result["spec"] = {
+            "metadata": {
+                "title": title or description,
+                "description": description,
+                "type": diagram_type or "drill",
+                "view": view,  # Store view in metadata for reference
+                "created_at": timestamp,
+                "version": "1.0.0"
+            },
+            "rink": {
+                "type": view,  # This matches the rink type (full, offensive, etc.)
+                "view": view,  # REQUIRED: view must be in rink object for validation
+                "zones": {
+                    "offensive": {"color": "rgba(255, 0, 0, 0.1)"},
+                    "neutral": {"color": "rgba(128, 128, 128, 0.1)"},
+                    "defensive": {"color": "rgba(0, 0, 255, 0.1)"}
+                }
+            },
+            "players": [],  # Will be populated with add_player()
+            "movements": [],  # Will be populated with add_movement()
+            "equipment": [],  # Cones, pylons, tires, etc.
+            "annotations": []  # Text labels and notes
+        }
+        
+        # Add spec structure hints
+        result["spec_hints"] = {
+            "players": "Use add_player() to add F1, F2, D1, D2, G1, etc.",
+            "movements": "Use add_movement() for passes, shots, and skating paths",
+            "equipment": "Use add_equipment() for cones, pylons, tires, obstacles",
+            "coordinate_system": {
+                "x_axis": "-100 (left boards) to +100 (right boards)",
+                "y_axis": "-42.5 (bottom boards) to +42.5 (top boards)",
+                "origin": "(0,0) is center ice"
+            },
+            "common_positions": {
+                "center_ice": {"x": 0, "y": 0},
+                "offensive_faceoff_dots": {"x": 69, "y": "±22.5"},
+                "defensive_faceoff_dots": {"x": -69, "y": "±22.5"},
+                "blue_lines": {"x": "±25", "y": 0},
+                "goal_lines": {"x": "±89", "y": 0}
+            }
+        }
+        
+        logger.info(f"[Session {session_id}] Empty spec created with view: {view}")
+    
+    return result
 
 # ============================================================================
 # MAIN MCP TOOL: QUERY ANALYSIS WITH EXA
@@ -716,7 +934,11 @@ def analyze_hockey_query(
 # TOOL 2: TRANSLATE ANALYSIS TO SPEC
 # ============================================================================
 
-@mcp.tool("translate_analysis_to_spec")
+# NOTE: This tool is NOT EXPOSED via MCP - Commented out in favor of atomic building tools
+# The atomic approach (add_player, add_movement, etc.) provides higher confidence and control
+# This ambitious all-in-one translation had too many assumptions and lower reliability
+# Keeping code for reference but using incremental building approach instead
+# @mcp.tool("translate_analysis_to_spec")
 def translate_analysis_to_spec(
     analysis: Dict[str, Any],
     title: Optional[str] = None,
@@ -1651,14 +1873,23 @@ def map_positions_with_llm(
     sys.path.append(str(Path(__file__).parent.parent / "src"))
     from zone_boundaries_enhanced import get_zone_boundaries_enhanced as get_zone_boundaries, list_zones_for_view as list_available_zones
     
+    # Load centralized coordinates and generate dynamic references
+    coordinates_data = load_centralized_coordinates()
+    
+    # Generate dynamic rink reference from centralized data
+    rink_reference = generate_rink_reference_from_coordinates(coordinates_data)
+    
+    # Generate dynamic zone positions from centralized data
+    zone_positions = generate_zone_positions_text_from_coordinates(coordinates_data)
+    
     # Build the main prompt
     prompt = position_prompt_config["main_prompt_template"].format(
         rink_view=rink_view,
         zone_context=f"Focusing on {rink_view} zone view",
         players_json=json.dumps(players, indent=2),
         instructions=position_prompt_config["instructions"],
-        rink_reference=position_prompt_config["rink_reference"],
-        zone_positions=position_prompt_config["zone_positions"],
+        rink_reference=rink_reference,
+        zone_positions=zone_positions,
         output_format=position_prompt_config["output_format"]
     )
     
@@ -4083,6 +4314,7 @@ def health_check() -> Dict[str, Any]:
             "save_diagram_template",
             "search_diagram_templates",
             "fetch_diagram_template",
+            "add_player",  # NEW atomic tool
             "health_check"
         ],
         "template_library": {
@@ -4096,6 +4328,1281 @@ def health_check() -> Dict[str, Any]:
             "note": "When client.responses.create() is available, Exa searches will be automatic"
         }
     }
+
+# ============================================================================
+# ATOMIC BUILDING TOOLS - Phase 1
+# ============================================================================
+
+@mcp.tool("add_player")
+def add_player(
+    spec: Dict[str, Any],
+    player_type: str,
+    position_desc: str,
+    zone: str,
+    team: str = "home",
+    has_puck: bool = False,
+    player_id: Optional[str] = None,
+    label: Optional[str] = None,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Add a player to the diagram spec with intelligent positioning.
+    
+    Args:
+        spec: Current diagram specification
+        player_type: "forward", "defense", or "goalie"
+        position_desc: Natural language position like "faceoff dot", "high slot", "corner"
+        zone: Required zone context - "offensive", "defensive", or "neutral"
+        team: "home", "away", or "neutral" (default: "home")
+        has_puck: Whether player starts with puck (default: False)
+        player_id: Custom ID, auto-generates if not provided (F1, F2, D1, etc.)
+        label: Display label, defaults to player_id
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with new player added
+    """
+    # Session-aware logging
+    log_with_session(session_id, "info", f"➕ Adding {player_type} at '{position_desc}' in {zone} zone")
+    
+    # Update session tracking
+    if session_id and session_id in active_sessions:
+        active_sessions[session_id]["steps_completed"].append(f"add_player:{player_id or 'auto'}")
+        active_sessions[session_id]["current_step"] = "building_players"
+    
+    try:
+        # Auto-generate player ID if not provided
+        if not player_id:
+            existing_ids = [p.get("id", "") for p in spec.get("players", [])]
+            prefix_map = {
+                "forward": "F",
+                "defense": "D", 
+                "goalie": "G"
+            }
+            prefix = prefix_map.get(player_type, "P")
+            
+            # Find next available number
+            num = 1
+            while f"{prefix}{num}" in existing_ids:
+                num += 1
+            player_id = f"{prefix}{num}"
+            log_with_session(session_id, "debug", f"Auto-generated ID: {player_id}")
+        
+        # Validate zone parameter
+        zone_lower = zone.lower().strip()
+        if zone_lower not in ["offensive", "defensive", "neutral"]:
+            return {
+                "status": "error",
+                "error": f"Invalid zone '{zone}'. Must be 'offensive', 'defensive', or 'neutral'",
+                "spec": spec
+            }
+        
+        log_with_session(session_id, "debug", f"Using zone: {zone_lower}")
+        
+        # Load centralized coordinates
+        coordinates_data = load_centralized_coordinates()
+        zone_positions = coordinates_data.get("zone_positions", {})
+        
+        # Zone-aware exact positions
+        position_lower = position_desc.lower().strip()
+        
+        # Check for exact match in the specified zone
+        coordinates = None
+        position_source = None
+        
+        if zone_lower in zone_positions:
+            coordinates = zone_positions[zone_lower].get(position_lower, None)
+            if coordinates:
+                position_source = "direct_mapping"
+        
+        # If not exact match, use LLM for any complex/relative position
+        if not coordinates:
+            log_with_session(session_id, "info", f"🤖 Using LLM for complex position: {position_desc}")
+            
+            # Create a single player entry for LLM mapping with zone context
+            player_for_mapping = {
+                "id": player_id,
+                "type": player_type,
+                "position_desc": f"{position_desc} in {zone} zone"  # Include zone in description
+            }
+            
+            # Use map_positions_with_llm for complex positions with the specific zone
+            mapping_result = map_positions_with_llm([player_for_mapping], zone_lower)
+            
+            # Check for successful mapping - map_positions_with_llm returns players_mapped, not mapped_players
+            if mapping_result and not mapping_result.get("error"):
+                players_mapped = mapping_result.get("players_mapped", [])
+                # Find our player in the mapped results
+                mapped_player = None
+                for p in players_mapped:
+                    if p.get("id") == player_id:
+                        mapped_player = p
+                        break
+                
+                if mapped_player and mapped_player.get("coordinates"):
+                    coordinates = mapped_player.get("coordinates")
+                    position_source = "llm_mapping"
+                    log_with_session(session_id, "info", 
+                                   f"✨ LLM mapped to ({coordinates['x']}, {coordinates['y']})")
+                else:
+                    log_with_session(session_id, "error", f"❌ LLM position mapping failed - no coordinates returned")
+                    return {
+                        "status": "error",
+                        "error": f"Could not resolve position '{position_desc}'",
+                        "suggestions": [
+                            "Use landmark positions: 'left faceoff dot', 'high slot', 'behind net'",
+                            "Use relative positions: 'center ice left side', '5 units left of center'",
+                            "Specify zone context: 'offensive slot', 'defensive crease'"
+                        ],
+                        "spec": spec
+                    }
+        
+        log_with_session(session_id, "info", 
+                        f"📍 Mapped '{position_desc}' to ({coordinates['x']}, {coordinates['y']})")
+        
+        # Validate boundaries (rink limits: x: -100 to 100, y: -40 to 40)
+        # Using y: -40 to 40 for stricter validation to keep players within visible ice
+        if abs(coordinates['x']) > 100:
+            log_with_session(session_id, "warning", f"⚠️ X coordinate {coordinates['x']} exceeds rink bounds, clamping to ±100")
+            coordinates['x'] = max(-100, min(100, coordinates['x']))
+        
+        if abs(coordinates['y']) > 40:
+            log_with_session(session_id, "warning", f"⚠️ Y coordinate {coordinates['y']} exceeds rink bounds, clamping to ±40")
+            coordinates['y'] = max(-40, min(40, coordinates['y']))
+        
+        # Check for overlaps with all entities
+        overlap_threshold = 5.0
+        overlapping_entities = []
+        
+        # Check overlaps with other players
+        for existing_player in spec.get("players", []):
+            if "coordinates" in existing_player:
+                dx = abs(existing_player["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_player["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"player:{existing_player['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Player overlap detected with player {existing_player['id']}")
+        
+        # Check overlaps with coaches
+        for existing_coach in spec.get("coaches", []):
+            if "coordinates" in existing_coach:
+                dx = abs(existing_coach["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_coach["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"coach:{existing_coach['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Player overlap detected with coach {existing_coach['id']}")
+        
+        # Check overlaps with equipment
+        for existing_equipment in spec.get("equipment", []):
+            if "coordinates" in existing_equipment:
+                dx = abs(existing_equipment["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_equipment["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"equipment:{existing_equipment['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Player overlap detected with equipment {existing_equipment['id']}")
+        
+        # Handle puck assignment
+        if has_puck:
+            # Remove puck from other players
+            for player in spec.get("players", []):
+                if player.get("has_puck"):
+                    log_with_session(session_id, "info", 
+                                   f"🏒 Moving puck from {player['id']} to {player_id}")
+                    player["has_puck"] = False
+        
+        # Create player object matching the spec format
+        new_player = {
+            "id": player_id,
+            "type": player_type,
+            "position": player_id,  # Display position
+            "team": team,
+            "has_puck": has_puck,
+            "coordinates": coordinates,
+            "label": label or player_id,
+            "number": None
+        }
+        
+        # Add to spec
+        if "players" not in spec:
+            spec["players"] = []
+        spec["players"].append(new_player)
+        
+        # Log success with visual separator
+        log_with_session(session_id, "info", 
+                        f"✅ Successfully added {player_type} {player_id} "
+                        f"({'with puck' if has_puck else 'without puck'})")
+        log_with_session(session_id, "info", "-" * 40)
+        
+        return {
+            "spec": spec,
+            "added_player": {
+                "id": player_id,
+                "coordinates": coordinates,
+                "position_confidence": 0.95 if position_source == "direct_mapping" else 0.8,
+                "position_source": position_source
+            },
+            "status": "success",
+            "message": f"Added {player_type} {player_id} at {position_desc}",
+            "validation": {
+                "zone_check": "pass",
+                "overlap_check": "warning" if overlapping_entities else "pass",
+                "overlapping_with": overlapping_entities if overlapping_entities else None,
+                "puck_assignment": "valid"
+            }
+        }
+        
+    except Exception as e:
+        log_with_session(session_id, "error", f"❌ Failed to add player: {str(e)}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "spec": spec
+        }
+
+@mcp.tool("add_coach")
+def add_coach(
+    spec: Dict[str, Any],
+    position_desc: str,
+    zone: str,
+    role: str = "head",
+    coach_id: Optional[str] = None,
+    label: Optional[str] = None,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Add a coach to the diagram spec with intelligent positioning.
+    
+    Args:
+        spec: Current diagram specification
+        position_desc: Natural language position like "behind bench", "top of circle", "near boards"
+        zone: Required zone context - "offensive", "defensive", "neutral", or "bench"
+        role: "head", "assistant", or "guest" (default: "head")
+        coach_id: Custom ID, auto-generates if not provided (C1, C2, etc.)
+        label: Display label, defaults to coach_id
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with new coach added
+    """
+    # Session-aware logging
+    log_with_session(session_id, "info", f"👔 Adding {role} coach at '{position_desc}' in {zone} zone")
+    
+    # Update session tracking
+    if session_id and session_id in active_sessions:
+        active_sessions[session_id]["steps_completed"].append(f"add_coach:{coach_id or 'auto'}")
+        active_sessions[session_id]["current_step"] = "building_coaches"
+    
+    try:
+        # Initialize coaches array if not present
+        if "coaches" not in spec:
+            spec["coaches"] = []
+        
+        # Auto-generate coach ID if not provided
+        if not coach_id:
+            existing_ids = [c.get("id", "") for c in spec.get("coaches", [])]
+            num = 1
+            while f"C{num}" in existing_ids:
+                num += 1
+            coach_id = f"C{num}"
+            log_with_session(session_id, "debug", f"Auto-generated ID: {coach_id}")
+        
+        # Load centralized coordinates
+        coordinates_data = load_centralized_coordinates()
+        zone_positions = coordinates_data.get("zone_positions", {})
+        
+        # Zone-aware coach positions (exact matches)
+        position_lower = position_desc.lower().strip()
+        zone_lower = zone.lower().strip()
+        
+        # Check for exact match in the specified zone
+        coordinates = None
+        position_source = None
+        
+        if zone_lower in zone_positions:
+            coordinates = zone_positions[zone_lower].get(position_lower, None)
+            if coordinates:
+                position_source = "direct_mapping"
+        
+        # If not exact match, use LLM for complex positions
+        if not coordinates:
+            log_with_session(session_id, "info", f"🤖 Using LLM for complex coach position: {position_desc} in {zone} zone")
+            
+            # Create a coach entry for LLM mapping with zone context
+            coach_for_mapping = {
+                "id": coach_id,
+                "type": "coach",
+                "position_desc": f"{position_desc} in {zone} zone"
+            }
+            
+            # Use map_positions_with_llm with the appropriate zone
+            mapping_result = map_positions_with_llm([coach_for_mapping], zone_lower)
+            
+            # Check for successful mapping
+            if mapping_result and not mapping_result.get("error"):
+                coaches_mapped = mapping_result.get("players_mapped", [])  # LLM returns as players_mapped
+                # Find our coach in the mapped results
+                mapped_coach = None
+                for c in coaches_mapped:
+                    if c.get("id") == coach_id:
+                        mapped_coach = c
+                        break
+                
+                if mapped_coach and mapped_coach.get("coordinates"):
+                    coordinates = mapped_coach.get("coordinates")
+                    position_source = "llm_mapping"
+                    log_with_session(session_id, "info", 
+                                   f"✨ LLM mapped coach to ({coordinates['x']}, {coordinates['y']})")
+                else:
+                    log_with_session(session_id, "error", f"❌ LLM position mapping failed - no coordinates returned")
+                    return {
+                        "status": "error",
+                        "error": f"Could not resolve coach position '{position_desc}'",
+                        "suggestions": [
+                            "Use landmark positions: 'behind home bench', 'center ice', 'blue line center'",
+                            "Use relative positions: 'behind bench', '10 feet from blue line'",
+                            "Specify teaching positions: 'top of circles', 'corner teaching position'"
+                        ],
+                        "spec": spec
+                    }
+            else:
+                error_msg = mapping_result.get("error", "Unknown error") if mapping_result else "No result"
+                log_with_session(session_id, "error", f"❌ LLM position mapping failed: {error_msg}")
+                return {
+                    "status": "error",
+                    "error": f"Could not resolve coach position '{position_desc}'",
+                    "suggestions": [
+                        "Use landmark positions: 'behind home bench', 'center ice', 'blue line center'",
+                        "Use relative positions: 'behind bench', '10 feet from blue line'",
+                        "Specify teaching positions: 'top of circles', 'corner teaching position'"
+                    ],
+                    "spec": spec
+                }
+        
+        log_with_session(session_id, "info", 
+                        f"📍 Mapped coach position '{position_desc}' to ({coordinates['x']}, {coordinates['y']})")
+        
+        # Check for overlaps with existing entities
+        overlap_threshold = 5.0
+        overlapping_entities = []
+        
+        # Check overlaps with players
+        for existing_player in spec.get("players", []):
+            if "coordinates" in existing_player:
+                dx = abs(existing_player["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_player["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"player:{existing_player['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Coach overlap detected with player {existing_player['id']}")
+        
+        # Check overlaps with other coaches
+        for existing_coach in spec.get("coaches", []):
+            if "coordinates" in existing_coach:
+                dx = abs(existing_coach["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_coach["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"coach:{existing_coach['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Coach overlap detected with coach {existing_coach['id']}")
+        
+        # Check overlaps with equipment
+        for existing_equipment in spec.get("equipment", []):
+            if "coordinates" in existing_equipment:
+                dx = abs(existing_equipment["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_equipment["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"equipment:{existing_equipment['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Coach overlap detected with equipment {existing_equipment['id']}")
+        
+        # Create coach object
+        coach = {
+            "id": coach_id,
+            "role": role,
+            "coordinates": coordinates,
+            "label": label or coach_id,
+            "position_desc": position_desc
+        }
+        
+        # Add coach to spec
+        spec["coaches"].append(coach)
+        
+        log_with_session(session_id, "info", 
+                        f"✅ Successfully added {role} coach {coach_id}")
+        log_with_session(session_id, "info", "-" * 40)
+        
+        return {
+            "spec": spec,
+            "added_coach": {
+                "id": coach_id,
+                "coordinates": coordinates,
+                "position_confidence": 0.95 if position_source == "direct_mapping" else 0.8,
+                "position_source": position_source
+            },
+            "status": "success",
+            "message": f"Added {role} coach {coach_id} at {position_desc}",
+            "validation": {
+                "position_check": "pass",
+                "overlap_check": "warning" if overlapping_entities else "pass",
+                "overlapping_with": overlapping_entities if overlapping_entities else None,
+                "in_play_area": coordinates.get("x", 0) < 85  # Coaches shouldn't be in active play area
+            }
+        }
+        
+    except Exception as e:
+        log_with_session(session_id, "error", f"❌ Failed to add coach: {str(e)}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "spec": spec
+        }
+
+@mcp.tool("add_equipment")
+def add_equipment(
+    spec: Dict[str, Any],
+    equipment_type: str,
+    position_desc: str,
+    zone: str,
+    count: int = 1,
+    color: str = "orange",
+    size: str = "medium",
+    equipment_id: Optional[str] = None,
+    label: Optional[str] = None,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Add equipment to the diagram spec with intelligent positioning.
+    
+    Args:
+        spec: Current diagram specification
+        equipment_type: "cone", "pylon", "tire", "net", "stick", "puck", "obstacle"
+        position_desc: Natural language position like "blue line", "center ice", "corner"
+        zone: Required zone context - "offensive", "defensive", "neutral"
+        count: Number of equipment items (default: 1)
+        color: Equipment color - "orange", "red", "blue", "yellow", "white", "black" (default: "orange")
+        size: Equipment size - "small", "medium", "large" (default: "medium")
+        equipment_id: Custom ID (auto-generates E1, E2, E3)
+        label: Display label (defaults to equipment_id)
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with new equipment added
+    """
+    # Session-aware logging
+    log_with_session(session_id, "info", f"🔶 Adding {equipment_type} at '{position_desc}' in {zone} zone")
+    
+    # Update session tracking
+    if session_id and session_id in active_sessions:
+        active_sessions[session_id]["steps_completed"].append(f"add_equipment:{equipment_id or 'auto'}")
+        active_sessions[session_id]["current_step"] = "building_equipment"
+    
+    try:
+        # Auto-generate equipment ID if not provided
+        if not equipment_id:
+            existing_ids = [e.get("id", "") for e in spec.get("equipment", [])]
+            num = 1
+            while f"E{num}" in existing_ids:
+                num += 1
+            equipment_id = f"E{num}"
+            log_with_session(session_id, "debug", f"Auto-generated ID: {equipment_id}")
+        
+        # Validate zone parameter
+        zone_lower = zone.lower().strip()
+        if zone_lower not in ["offensive", "defensive", "neutral"]:
+            return {
+                "status": "error",
+                "error": f"Invalid zone '{zone}'. Must be 'offensive', 'defensive', or 'neutral'",
+                "spec": spec
+            }
+        
+        # Validate equipment type
+        valid_types = ["cone", "pylon", "tire", "net", "stick", "puck", "obstacle", "goal", "barrier"]
+        if equipment_type.lower() not in valid_types:
+            log_with_session(session_id, "warning", f"⚠️ Unknown equipment type '{equipment_type}', using anyway")
+        
+        # Validate count
+        if count < 1 or count > 50:
+            return {
+                "status": "error",
+                "error": f"Invalid count '{count}'. Must be between 1 and 50",
+                "spec": spec
+            }
+        
+        log_with_session(session_id, "debug", f"Using zone: {zone_lower}, count: {count}")
+        
+        # Load centralized coordinates
+        coordinates_data = load_centralized_coordinates()
+        zone_positions = coordinates_data.get("zone_positions", {})
+        
+        # Zone-aware exact positions
+        position_lower = position_desc.lower().strip()
+        
+        # Check for exact match in the specified zone
+        coordinates = None
+        position_source = None
+        
+        if zone_lower in zone_positions:
+            coordinates = zone_positions[zone_lower].get(position_lower, None)
+            if coordinates:
+                position_source = "direct_mapping"
+        
+        # If not exact match, use LLM for any complex/relative position
+        if not coordinates:
+            log_with_session(session_id, "info", f"🤖 Using LLM for complex equipment position: {position_desc}")
+            
+            # Create equipment entry for LLM mapping with zone context
+            equipment_for_mapping = {
+                "id": equipment_id,
+                "type": equipment_type,
+                "position_desc": f"{position_desc} in {zone} zone",  # Include zone in description
+                "count": count,
+                "color": color,
+                "size": size
+            }
+            
+            # For equipment, we can reuse the position mapping logic from players
+            # Create a temporary player-like object for position mapping
+            temp_player = {
+                "id": equipment_id,
+                "type": "equipment",
+                "position_desc": f"{position_desc} in {zone} zone"
+            }
+            
+            # Use map_positions_with_llm for complex positions with the specific zone
+            mapping_result = map_positions_with_llm([temp_player], zone_lower)
+            
+            # Check for successful mapping
+            if mapping_result and not mapping_result.get("error"):
+                players_mapped = mapping_result.get("players_mapped", [])
+                # Find our equipment in the mapped results
+                mapped_equipment = None
+                for p in players_mapped:
+                    if p.get("id") == equipment_id:
+                        mapped_equipment = p
+                        break
+                
+                if mapped_equipment and mapped_equipment.get("coordinates"):
+                    coordinates = mapped_equipment.get("coordinates")
+                    position_source = "llm_mapping"
+                    log_with_session(session_id, "info", 
+                                   f"✨ LLM mapped equipment to ({coordinates['x']}, {coordinates['y']})")
+                else:
+                    log_with_session(session_id, "error", f"❌ LLM equipment position mapping failed - no coordinates returned")
+                    return {
+                        "status": "error",
+                        "error": f"Could not resolve position '{position_desc}'",
+                        "suggestions": [
+                            "Use landmark positions: 'blue line', 'center ice', 'corner'",
+                            "Use relative positions: 'near boards', 'center of zone'",
+                            "Specify zone context: 'offensive slot', 'defensive corner'"
+                        ],
+                        "spec": spec
+                    }
+        
+        log_with_session(session_id, "info", 
+                        f"📍 Mapped '{position_desc}' to ({coordinates['x']}, {coordinates['y']})")
+        
+        # Check for overlaps with existing entities
+        overlap_threshold = 5.0
+        overlapping_entities = []
+        
+        # Check overlaps with players
+        for existing_player in spec.get("players", []):
+            if "coordinates" in existing_player:
+                dx = abs(existing_player["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_player["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"player:{existing_player['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Equipment overlap detected with player {existing_player['id']}")
+        
+        # Check overlaps with coaches
+        for existing_coach in spec.get("coaches", []):
+            if "coordinates" in existing_coach:
+                dx = abs(existing_coach["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_coach["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"coach:{existing_coach['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Equipment overlap detected with coach {existing_coach['id']}")
+        
+        # Check overlaps with other equipment (only check the base position for multi-count items)
+        for existing_equipment in spec.get("equipment", []):
+            if "coordinates" in existing_equipment:
+                dx = abs(existing_equipment["coordinates"]["x"] - coordinates["x"])
+                dy = abs(existing_equipment["coordinates"]["y"] - coordinates["y"])
+                if dx < overlap_threshold and dy < overlap_threshold:
+                    overlapping_entities.append(f"equipment:{existing_equipment['id']}")
+                    log_with_session(session_id, "warning", 
+                                   f"⚠️ Equipment overlap detected with equipment {existing_equipment['id']}")
+        
+        # Handle multiple equipment items
+        equipment_list = []
+        
+        if count == 1:
+            # Single equipment item
+            equipment_spec = {
+                "id": equipment_id,
+                "type": equipment_type,
+                "coordinates": coordinates,
+                "count": 1,
+                "color": color,
+                "size": size,
+                "label": label or equipment_id
+            }
+            equipment_list.append(equipment_spec)
+        else:
+            # Multiple equipment items - spread them out
+            for i in range(count):
+                offset_y = (i - count/2 + 0.5) * 8  # Spread by 8 units
+                item_coordinates = {
+                    "x": coordinates["x"],
+                    "y": coordinates["y"] + offset_y
+                }
+                
+                equipment_spec = {
+                    "id": f"{equipment_id}_{i+1}",
+                    "type": equipment_type,
+                    "coordinates": item_coordinates,
+                    "count": 1,
+                    "color": color,
+                    "size": size,
+                    "label": label or equipment_id if i == 0 else ""  # Only label first item
+                }
+                equipment_list.append(equipment_spec)
+        
+        # Add equipment to spec
+        if "equipment" not in spec:
+            spec["equipment"] = []
+        
+        spec["equipment"].extend(equipment_list)
+        
+        log_with_session(session_id, "info", f"✅ Successfully added {len(equipment_list)} {equipment_type}(s)")
+        
+        return {
+            "spec": spec,
+            "added_equipment": {
+                "id": equipment_id,
+                "type": equipment_type,
+                "coordinates": coordinates,
+                "count": count,
+                "items_created": len(equipment_list),
+                "position_confidence": 0.95 if position_source == "direct_mapping" else 0.8,
+                "position_source": position_source
+            },
+            "status": "success",
+            "message": f"Added {count} {equipment_type}(s) at {position_desc}",
+            "validation": {
+                "position_check": "pass",
+                "overlap_check": "warning" if overlapping_entities else "pass",
+                "overlapping_with": overlapping_entities if overlapping_entities else None,
+                "count_check": "pass",
+                "equipment_type_valid": equipment_type.lower() in valid_types
+            }
+        }
+        
+    except Exception as e:
+        log_with_session(session_id, "error", f"❌ Failed to add equipment: {str(e)}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "spec": spec
+        }
+
+def path_intersects_circle(start_pos: Dict[str, float], end_pos: Dict[str, float], 
+                          circle_pos: Dict[str, float], radius: float) -> bool:
+    """
+    Check if a line segment (movement path) intersects a circle (player/equipment).
+    Uses distance from point to line segment algorithm.
+    
+    Args:
+        start_pos: Start point of line segment
+        end_pos: End point of line segment  
+        circle_pos: Center of circle
+        radius: Circle radius
+        
+    Returns:
+        True if line intersects circle
+    """
+    # Vector from start to end
+    dx = end_pos["x"] - start_pos["x"]
+    dy = end_pos["y"] - start_pos["y"]
+    
+    # Vector from start to circle center
+    fx = circle_pos["x"] - start_pos["x"] 
+    fy = circle_pos["y"] - start_pos["y"]
+    
+    # If line segment has zero length, just check distance to start point
+    if dx == 0 and dy == 0:
+        distance = (fx**2 + fy**2) ** 0.5
+        return distance <= radius
+    
+    # Project circle center onto line segment
+    t = max(0, min(1, (fx * dx + fy * dy) / (dx**2 + dy**2)))
+    
+    # Find closest point on line segment
+    closest_x = start_pos["x"] + t * dx
+    closest_y = start_pos["y"] + t * dy
+    
+    # Distance from circle center to closest point
+    distance = ((circle_pos["x"] - closest_x)**2 + (circle_pos["y"] - closest_y)**2) ** 0.5
+    
+    return distance <= radius
+
+def generate_smooth_curve_waypoints(
+    from_pos: Dict[str, float],
+    curve_point: Dict[str, float], 
+    to_pos: Dict[str, float],
+    num_waypoints: int = 5
+) -> List[Dict[str, float]]:
+    """
+    Generate smooth curve waypoints using quadratic Bezier curve algorithm.
+    
+    Args:
+        from_pos: Starting position {x, y}
+        curve_point: Control point where direction changes {x, y}
+        to_pos: Ending position {x, y}
+        num_waypoints: Number of waypoints to generate (default: 5)
+        
+    Returns:
+        List of waypoint coordinates creating a smooth curve
+    """
+    waypoints = []
+    
+    # Generate waypoints using quadratic Bezier curve formula
+    # B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
+    # where P0=from, P1=curve_point, P2=to, t goes from 0 to 1
+    
+    for i in range(1, num_waypoints + 1):
+        t = i / (num_waypoints + 1)  # Distribute evenly between 0 and 1
+        
+        # Quadratic Bezier formula
+        x = ((1 - t) ** 2) * from_pos["x"] + \
+            2 * (1 - t) * t * curve_point["x"] + \
+            (t ** 2) * to_pos["x"]
+            
+        y = ((1 - t) ** 2) * from_pos["y"] + \
+            2 * (1 - t) * t * curve_point["y"] + \
+            (t ** 2) * to_pos["y"]
+        
+        waypoints.append({"x": round(x, 1), "y": round(y, 1)})
+    
+    return waypoints
+
+def map_movement_path_with_llm(
+    movement: Dict[str, Any],
+    players: List[Dict[str, Any]],
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Simplified movement mapping with LLM for realistic paths and waypoints.
+    
+    Args:
+        movement: Movement data with from_pos, to_pos, type, etc.
+        players: List of players for context
+        session_id: Session ID for logging
+        
+    Returns:
+        Mapping result with waypoints and refined coordinates
+    """
+    try:
+        # Load OpenAI client
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            log_with_session(session_id, "warning", "⚠️ OPENAI_API_KEY not set, skipping waypoint generation")
+            return {"error": "OPENAI_API_KEY not set"}
+        
+        client = OpenAI(api_key=api_key)
+        
+        # Create simplified prompt for movement path generation
+        system_prompt = f"""You are a hockey movement path generator. Generate realistic skating paths with waypoints for hockey movements.
+
+HOCKEY COORDINATE SYSTEM:
+- X-axis: -100 (defensive goal) to +100 (offensive goal)
+- Y-axis: -42.5 (bottom boards) to +42.5 (top boards)
+- Center ice: (0, 0)
+
+MOVEMENT TYPES:
+- pass: Straight or curved path for puck movement
+- shot: Usually straight but can curve for deflections
+- skate: Curved skating paths avoiding obstacles
+- carry: Puck-carrying with realistic skating curves
+- drop_pass: Backward pass with continuation
+- backward: Skating backward with wider curves
+- lateral: Side-to-side movement
+- pressure: Aggressive forechecking path
+
+Generate 2-4 waypoints for curved movements. For straight movements (like shots), use 0 waypoints.
+Consider hockey physics: players skate in curves, avoid obstacles, use efficient paths.
+
+Return ONLY valid JSON in this format:
+{{
+    "movement": {{
+        "from_pos": {{"x": float, "y": float}},
+        "to_pos": {{"x": float, "y": float}},
+        "waypoints": [
+            {{"x": float, "y": float}},
+            {{"x": float, "y": float}}
+        ],
+        "reasoning": "Brief explanation of path choice",
+        "confidence": 0.0-1.0
+    }}
+}}"""
+
+        user_prompt = f"""Generate realistic movement path:
+- Type: {movement['type']}
+- From: {movement['from_desc']} at ({movement['from_pos']['x']}, {movement['from_pos']['y']})
+- To: {movement['to_desc']} at ({movement['to_pos']['x']}, {movement['to_pos']['y']})
+- With puck: {movement['with_puck']}
+- Style: {movement['style']}
+
+Current players on ice:
+{json.dumps([{'id': p.get('id'), 'position': p.get('coordinates')} for p in players[:5]], indent=2)}
+
+Generate waypoints for a realistic hockey movement path."""
+
+        log_with_session(session_id, "debug", f"🤖 LLM movement mapping for {movement['type']}")
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.3,
+            max_tokens=500
+        )
+
+        response_text = response.choices[0].message.content.strip()
+        
+        # Parse JSON response
+        if response_text.startswith("```json"):
+            response_text = response_text.split("```json")[1].split("```")[0].strip()
+        elif response_text.startswith("```"):
+            response_text = response_text.split("```")[1].strip()
+        
+        result = json.loads(response_text)
+        
+        log_with_session(session_id, "info", f"✨ LLM generated movement path with {len(result.get('movement', {}).get('waypoints', []))} waypoints")
+        return result
+        
+    except Exception as e:
+        log_with_session(session_id, "error", f"❌ Movement path mapping failed: {str(e)}")
+        return {"error": str(e)}
+
+@mcp.tool("add_movement")
+def add_movement(
+    spec: Dict[str, Any],
+    movement_type: str,
+    from_desc: str,
+    to_desc: str,
+    curve_point: Optional[str] = None,
+    style: str = "solid",
+    with_puck: bool = False,
+    label: Optional[str] = None,
+    movement_id: Optional[str] = None,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Add a movement (pass, shot, skate, carry) to the diagram spec with intelligent positioning.
+    
+    Args:
+        spec: Current diagram specification
+        movement_type: "pass", "shot", "skate", "carry", "drop_pass", "backward", "lateral", "pressure"
+        from_desc: Start position description - can reference player ID or position like "center ice"
+        to_desc: End position description - can reference player ID or position like "net", "corner"
+        curve_point: Optional curve control point - where direction changes (e.g., "neutral zone", "D1")
+        style: Movement style - "solid", "dashed", "dotted", "wavy" (default: "solid")
+        with_puck: Whether movement involves the puck (default: False)
+        label: Optional label for the movement
+        movement_id: Custom ID (auto-generates M1, M2, M3)
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with new movement added
+    """
+    # Session-aware logging
+    log_with_session(session_id, "info", f"🏒 Adding {movement_type} movement from '{from_desc}' to '{to_desc}'")
+    
+    # Update session tracking
+    if session_id and session_id in active_sessions:
+        active_sessions[session_id]["steps_completed"].append(f"add_movement:{movement_id or 'auto'}")
+        active_sessions[session_id]["current_step"] = "building_movements"
+    
+    try:
+        # Auto-generate movement ID if not provided
+        if not movement_id:
+            existing_ids = [m.get("id", "") for m in spec.get("movements", [])]
+            num = 1
+            while f"M{num}" in existing_ids:
+                num += 1
+            movement_id = f"M{num}"
+            log_with_session(session_id, "debug", f"Auto-generated ID: {movement_id}")
+        
+        # Validate movement type
+        valid_types = ["pass", "shot", "skate", "carry", "drop_pass", "backward", "lateral", "pressure"]
+        if movement_type.lower() not in valid_types:
+            return {
+                "status": "error", 
+                "error": f"Invalid movement type '{movement_type}'. Must be one of: {', '.join(valid_types)}",
+                "spec": spec
+            }
+        
+        # Validate style
+        valid_styles = ["solid", "dashed", "dotted", "wavy"]
+        if style.lower() not in valid_styles:
+            return {
+                "status": "error",
+                "error": f"Invalid style '{style}'. Must be one of: {', '.join(valid_styles)}",
+                "spec": spec
+            }
+        
+        # Load centralized coordinates
+        coordinates_data = load_centralized_coordinates()
+        
+        # Resolve FROM position
+        from_pos = None
+        from_confidence = 0.0
+        
+        # First check if it's a player ID reference
+        from_desc_lower = from_desc.lower().strip()
+        existing_players = {}
+        for p in spec.get("players", []):
+            if isinstance(p, dict) and "id" in p:
+                existing_players[p["id"].lower()] = p
+        
+        if from_desc_lower in existing_players:
+            # Reference to existing player
+            player = existing_players[from_desc_lower]
+            if isinstance(player, dict):
+                from_pos = player.get("coordinates", {"x": 0, "y": 0})
+                from_confidence = 0.95
+                log_with_session(session_id, "info", f"📍 FROM resolved to player {player.get('id')} at ({from_pos['x']}, {from_pos['y']})")
+            else:
+                log_with_session(session_id, "error", f"Player {from_desc_lower} is not a dict: {type(player)}")
+                return {
+                    "status": "error",
+                    "error": f"Invalid player data structure for {from_desc_lower}",
+                    "spec": spec
+                }
+        else:
+            # Try to resolve as position description using centralized coordinates
+            # Check all zones for the position
+            for zone_name, zone_positions in coordinates_data.get("zone_positions", {}).items():
+                if from_desc_lower in zone_positions:
+                    from_pos = zone_positions[from_desc_lower]
+                    from_confidence = 0.9
+                    log_with_session(session_id, "info", f"📍 FROM mapped to {zone_name} position: ({from_pos['x']}, {from_pos['y']})")
+                    break
+            
+            # If still not found, use LLM for complex position
+            if not from_pos:
+                log_with_session(session_id, "info", f"🤖 Using LLM for complex FROM position: {from_desc}")
+                # Create fake player entry for LLM mapping
+                temp_player = {"id": "temp_from", "type": "player", "position_desc": from_desc}
+                mapping_result = map_positions_with_llm([temp_player], "neutral")  # Default neutral zone
+                
+                if mapping_result and not mapping_result.get("error"):
+                    players_mapped = mapping_result.get("players_mapped", [])
+                    if players_mapped and players_mapped[0].get("coordinates"):
+                        from_pos = players_mapped[0].get("coordinates")
+                        from_confidence = 0.7
+                        log_with_session(session_id, "info", f"✨ LLM mapped FROM to ({from_pos['x']}, {from_pos['y']})")
+        
+        if not from_pos:
+            return {
+                "status": "error",
+                "error": f"Could not resolve FROM position '{from_desc}'",
+                "suggestions": [
+                    "Use player ID from existing players",
+                    "Use landmark positions: 'center ice', 'blue line', 'corner'",
+                    "Use relative positions: 'slot', 'high slot', 'behind net'"
+                ],
+                "spec": spec
+            }
+        
+        # Resolve TO position (similar logic)
+        to_pos = None
+        to_confidence = 0.0
+        
+        to_desc_lower = to_desc.lower().strip()
+        
+        if to_desc_lower in existing_players:
+            # Reference to existing player
+            player = existing_players[to_desc_lower]
+            if isinstance(player, dict):
+                to_pos = player.get("coordinates", {"x": 0, "y": 0})  # Fixed: was "position", should be "coordinates"
+                to_confidence = 0.95
+                log_with_session(session_id, "info", f"📍 TO resolved to player {player.get('id')} at ({to_pos['x']}, {to_pos['y']})")
+            else:
+                log_with_session(session_id, "error", f"Player {to_desc_lower} is not a dict: {type(player)}")
+                return {
+                    "status": "error",
+                    "error": f"Invalid player data structure for {to_desc_lower}",
+                    "spec": spec
+                }
+        else:
+            # Try to resolve as position description
+            for zone_name, zone_positions in coordinates_data.get("zone_positions", {}).items():
+                if to_desc_lower in zone_positions:
+                    to_pos = zone_positions[to_desc_lower]
+                    to_confidence = 0.9
+                    log_with_session(session_id, "info", f"📍 TO mapped to {zone_name} position: ({to_pos['x']}, {to_pos['y']})")
+                    break
+            
+            # If still not found, use LLM for complex position
+            if not to_pos:
+                log_with_session(session_id, "info", f"🤖 Using LLM for complex TO position: {to_desc}")
+                temp_player = {"id": "temp_to", "type": "player", "position_desc": to_desc}
+                mapping_result = map_positions_with_llm([temp_player], "neutral")
+                
+                if mapping_result and not mapping_result.get("error"):
+                    players_mapped = mapping_result.get("players_mapped", [])
+                    if players_mapped and players_mapped[0].get("coordinates"):
+                        to_pos = players_mapped[0].get("coordinates")
+                        to_confidence = 0.7
+                        log_with_session(session_id, "info", f"✨ LLM mapped TO to ({to_pos['x']}, {to_pos['y']})")
+        
+        if not to_pos:
+            return {
+                "status": "error",
+                "error": f"Could not resolve TO position '{to_desc}'",
+                "suggestions": [
+                    "Use player ID from existing players", 
+                    "Use landmark positions: 'net', 'corner', 'blue line'",
+                    "Use relative positions: 'slot', 'high slot', 'behind net'"
+                ],
+                "spec": spec
+            }
+        
+        # Determine waypoint generation strategy
+        waypoints = None
+        curve_pos = None
+        
+        # Resolve curve_point position if provided
+        if curve_point:
+            log_with_session(session_id, "info", f"📐 Resolving curve point: {curve_point}")
+            
+            # Check if it's a player ID reference
+            curve_point_lower = curve_point.lower().strip()
+            if curve_point_lower in existing_players:
+                player = existing_players[curve_point_lower]
+                curve_pos = player.get("position", None)
+                log_with_session(session_id, "info", f"📍 Curve point resolved to player {player.get('id')} at ({curve_pos['x']}, {curve_pos['y']})")
+            else:
+                # Try to resolve as position description
+                for zone_name, zone_positions in coordinates_data.get("zone_positions", {}).items():
+                    if curve_point_lower in zone_positions:
+                        curve_pos = zone_positions[curve_point_lower]
+                        log_with_session(session_id, "info", f"📍 Curve point mapped to {zone_name} position: ({curve_pos['x']}, {curve_pos['y']})")
+                        break
+                
+                # If still not found, use LLM for complex position
+                if not curve_pos:
+                    log_with_session(session_id, "info", f"🤖 Using LLM for curve point: {curve_point}")
+                    temp_player = {"id": "temp_curve", "type": "player", "position_desc": curve_point}
+                    mapping_result = map_positions_with_llm([temp_player], "neutral")
+                    
+                    if mapping_result and not mapping_result.get("error"):
+                        players_mapped = mapping_result.get("players_mapped", [])
+                        if players_mapped and players_mapped[0].get("coordinates"):
+                            curve_pos = players_mapped[0].get("coordinates")
+                            log_with_session(session_id, "info", f"✨ LLM mapped curve point to ({curve_pos['x']}, {curve_pos['y']})")
+        
+        # Generate waypoints based on movement type and curve_point
+        if curve_pos:
+            # Use mathematical curve generation when curve_point is provided
+            log_with_session(session_id, "info", f"📐 Generating smooth curve through control point")
+            
+            # Determine number of waypoints based on distance and movement type
+            distance = ((to_pos["x"] - from_pos["x"])**2 + (to_pos["y"] - from_pos["y"])**2) ** 0.5
+            
+            if movement_type.lower() in ["shot", "pass"] and distance < 30:
+                num_waypoints = 2  # Fewer waypoints for short passes/shots
+            elif movement_type.lower() in ["skate", "carry", "backward"]:
+                num_waypoints = 4  # More waypoints for skating movements
+            else:
+                num_waypoints = 3  # Default
+            
+            waypoints = generate_smooth_curve_waypoints(from_pos, curve_pos, to_pos, num_waypoints)
+            log_with_session(session_id, "info", f"✅ Generated {len(waypoints)} waypoints for smooth curve")
+            
+        elif movement_type.lower() in ["shot", "pass"] and not curve_point:
+            # Straight line for shots and passes without curve_point
+            log_with_session(session_id, "info", f"➡️ Using straight line for {movement_type}")
+            waypoints = None  # No waypoints means straight line
+            
+        elif movement_type.lower() in ["skate", "carry", "backward", "lateral", "pressure"]:
+            # Use LLM for complex curved movements without explicit curve_point
+            log_with_session(session_id, "info", f"🤖 Using LLM for complex {movement_type} path")
+            
+            movement_for_mapping = {
+                "id": movement_id,
+                "type": movement_type.lower(),
+                "from_desc": from_desc,
+                "to_desc": to_desc,
+                "from_pos": from_pos,
+                "to_pos": to_pos,
+                "style": style.lower(),
+                "with_puck": with_puck
+            }
+            
+            movement_mapping_result = map_movement_path_with_llm(
+                movement_for_mapping,
+                spec.get("players", []),
+                session_id
+            )
+            
+            if movement_mapping_result and not movement_mapping_result.get("error"):
+                mapped_movement = movement_mapping_result.get("movement")
+                if mapped_movement:
+                    waypoints = mapped_movement.get("waypoints")
+                    # Use LLM-suggested path improvements
+                    from_pos = mapped_movement.get("from_pos", from_pos)
+                    to_pos = mapped_movement.get("to_pos", to_pos)
+                    log_with_session(session_id, "info", 
+                                   f"✨ LLM generated {len(waypoints) if waypoints else 0} waypoints")
+            else:
+                log_with_session(session_id, "warning", f"⚠️ LLM failed, using straight line")
+        else:
+            # Default to straight line
+            log_with_session(session_id, "info", f"➡️ Using straight line for movement")
+            waypoints = None
+        
+        # Create movement object matching the spec format
+        new_movement = {
+            "id": movement_id,
+            "type": movement_type.lower(),
+            "from_pos": from_pos,
+            "to_pos": to_pos,
+            "style": style.lower(),
+            "with_puck": with_puck,
+            "label": label,
+            "from_desc": from_desc,  # Keep original descriptions for reference
+            "to_desc": to_desc
+        }
+        
+        # Add waypoints if generated
+        if waypoints:
+            new_movement["waypoints"] = waypoints
+        
+        # Validate movement path
+        validation_warnings = []
+        path_intersections = []
+        
+        # Create path points for validation (from -> waypoints -> to)
+        path_points = [from_pos]
+        if waypoints:
+            path_points.extend(waypoints)
+        path_points.append(to_pos)
+        
+        # Check path intersections with entities (5-unit collision detection)
+        collision_threshold = 5.0
+        
+        # Check intersections with players
+        for player in spec.get("players", []):
+            if "coordinates" in player:
+                player_pos = player["coordinates"]
+                for i in range(len(path_points) - 1):
+                    if path_intersects_circle(path_points[i], path_points[i+1], player_pos, collision_threshold):
+                        path_intersections.append(f"player:{player['id']}")
+                        validation_warnings.append(f"Path intersects player {player['id']}")
+                        log_with_session(session_id, "warning", f"⚠️ Movement path intersects player {player['id']}")
+                        break
+        
+        # Check intersections with equipment
+        for equipment in spec.get("equipment", []):
+            if "coordinates" in equipment:
+                equip_pos = equipment["coordinates"]
+                for i in range(len(path_points) - 1):
+                    if path_intersects_circle(path_points[i], path_points[i+1], equip_pos, collision_threshold):
+                        path_intersections.append(f"equipment:{equipment['id']}")
+                        validation_warnings.append(f"Path intersects equipment {equipment['id']}")
+                        log_with_session(session_id, "warning", f"⚠️ Movement path intersects equipment {equipment['id']}")
+                        break
+        
+        # Check boundary violations (rink limits: x: -100 to 100, y: -42.5 to 42.5)
+        boundary_violations = []
+        for point in path_points:
+            if point["x"] < -100 or point["x"] > 100:
+                boundary_violations.append(f"x-boundary at ({point['x']}, {point['y']})")
+            if point["y"] < -42.5 or point["y"] > 42.5:
+                boundary_violations.append(f"y-boundary at ({point['x']}, {point['y']})")
+        
+        if boundary_violations:
+            validation_warnings.extend([f"Path violates {v}" for v in boundary_violations])
+            log_with_session(session_id, "warning", f"⚠️ Movement path violates boundaries: {boundary_violations}")
+        
+        # Distance validation
+        total_distance = 0
+        for i in range(len(path_points) - 1):
+            dx = path_points[i+1]["x"] - path_points[i]["x"]
+            dy = path_points[i+1]["y"] - path_points[i]["y"]
+            total_distance += (dx**2 + dy**2) ** 0.5
+        
+        # Movement type distance validation
+        distance_warnings = []
+        if movement_type.lower() == "shot" and total_distance > 50:
+            distance_warnings.append(f"Shot distance ({total_distance:.1f}) unusually long")
+        elif movement_type.lower() == "pass" and total_distance > 80:
+            distance_warnings.append(f"Pass distance ({total_distance:.1f}) very long")
+        elif movement_type.lower() in ["skate", "carry"] and total_distance < 5:
+            distance_warnings.append(f"Skating movement ({total_distance:.1f}) very short")
+        
+        if distance_warnings:
+            validation_warnings.extend(distance_warnings)
+            log_with_session(session_id, "warning", f"⚠️ Distance validation: {distance_warnings}")
+        
+        # Add to spec
+        if "movements" not in spec:
+            spec["movements"] = []
+        spec["movements"].append(new_movement)
+        
+        # Log success
+        log_with_session(session_id, "info", 
+                        f"✅ Successfully added {movement_type} movement {movement_id}")
+        log_with_session(session_id, "info", "-" * 40)
+        
+        return {
+            "spec": spec,
+            "added_movement": {
+                "id": movement_id,
+                "type": movement_type,
+                "from_pos": from_pos,
+                "to_pos": to_pos,
+                "waypoints": waypoints,
+                "from_confidence": from_confidence,
+                "to_confidence": to_confidence,
+                "style": style,
+                "with_puck": with_puck,
+                "has_waypoints": waypoints is not None and len(waypoints) > 0
+            },
+            "status": "success",
+            "message": f"Added {movement_type} movement from {from_desc} to {to_desc}",
+            "validation": {
+                "movement_type_valid": movement_type.lower() in valid_types,
+                "style_valid": style.lower() in valid_styles,
+                "from_resolved": from_confidence > 0,
+                "to_resolved": to_confidence > 0,
+                "position_confidence": min(from_confidence, to_confidence),
+                "path_check": "warning" if validation_warnings else "pass",
+                "path_intersections": path_intersections if path_intersections else None,
+                "boundary_violations": boundary_violations if boundary_violations else None,
+                "validation_warnings": validation_warnings if validation_warnings else None,
+                "total_path_distance": round(total_distance, 1)
+            }
+        }
+        
+    except Exception as e:
+        log_with_session(session_id, "error", f"❌ Failed to add movement: {str(e)}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "spec": spec
+        }
 
 # ============================================================================
 # SERVER INITIALIZATION
