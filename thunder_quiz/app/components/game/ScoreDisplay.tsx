@@ -61,7 +61,7 @@ export default function ScoreDisplay() {
         {/* Period/Overtime Indicator */}
         <div className="mt-4 text-center">
           {state.isOvertime ? (
-            <span className="inline-block px-4 py-1 bg-thunder-red text-white font-bold rounded-full animate-pulse">
+            <span className="inline-block px-4 py-1 bg-thunder-red text-white font-bold rounded-full">
               OVERTIME
             </span>
           ) : (
@@ -88,7 +88,7 @@ export default function ScoreDisplay() {
         {state.answers.length > 0 && state.answers[state.answers.length - 1]?.isCorrect && (
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <span className="text-6xl animate-goal-celebration">🚨</span>
+              <span className="text-6xl">🚨</span>
             </div>
           </div>
         )}

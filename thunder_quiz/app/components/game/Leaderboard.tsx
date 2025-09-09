@@ -87,7 +87,7 @@ export default function Leaderboard({ currentPlayer, onClose }: LeaderboardProps
         <div className="px-10 py-8">
           {loading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-4 border-thunder-red"></div>
+              <div className="inline-block rounded-full h-12 w-12 border-b-4 border-thunder-red"></div>
               <p className="mt-4 text-xl text-gray-600 font-medium">Loading scores...</p>
             </div>
           ) : scores.length === 0 ? (

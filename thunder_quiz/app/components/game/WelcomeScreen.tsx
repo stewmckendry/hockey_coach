@@ -53,8 +53,8 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-gray-100 transform hover:scale-[1.02] transition-transform duration-300">
           {/* Header with Thunder Logo - More vibrant */}
           <div className="bg-gradient-to-b from-white to-gray-50 text-center py-12 px-8 relative">
-            {/* Animated logo container */}
-            <div className="w-32 h-32 mx-auto mb-8 relative animate-bounce-slow">
+            {/* Static logo container */}
+            <div className="w-32 h-32 mx-auto mb-8 relative">
               <Image
                 src="/thunder-logo.png"
                 alt="Thunder Logo"
@@ -63,19 +63,11 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
                 className="object-contain drop-shadow-lg"
                 priority
               />
-              {/* Mascot overlay */}
-              <Image 
-                src="/mascot.png" 
-                alt="Thunder Mascot"
-                width={80}
-                height={80}
-                className="absolute -right-10 -bottom-6 animate-bounce-slow delay-200" 
-              />
             </div>
-            <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-thunder-red to-red-800 mb-4 animate-fade-in">
+            <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-thunder-red to-red-800 mb-4">
               Thunder Hockey Quiz
             </h1>
-            <p className="text-xl text-gray-700 font-bold animate-slide-up">
+            <p className="text-xl text-gray-700 font-bold">
               ⚡ Test your hockey knowledge! ⚡
             </p>
           </div>
@@ -87,20 +79,20 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
                 🎮 How to Play 🎮
               </h2>
               <div className="grid grid-cols-2 gap-6 text-base">
-                <div className="flex items-center gap-3 transform hover:scale-110 transition-transform">
-                  <span className="text-3xl animate-pulse">🏒</span>
+                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
+                  <span className="text-3xl">🏒</span>
                   <span className="text-gray-800 font-bold">15 questions total</span>
                 </div>
-                <div className="flex items-center gap-3 transform hover:scale-110 transition-transform">
-                  <span className="text-3xl animate-pulse delay-100">⏱️</span>
+                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
+                  <span className="text-3xl">⏱️</span>
                   <span className="text-gray-800 font-bold">60 seconds each</span>
                 </div>
-                <div className="flex items-center gap-3 transform hover:scale-110 transition-transform">
-                  <span className="text-3xl animate-pulse delay-200">🚨</span>
+                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
+                  <span className="text-3xl">🚨</span>
                   <span className="text-gray-800 font-bold">Score goals!</span>
                 </div>
-                <div className="flex items-center gap-3 transform hover:scale-110 transition-transform">
-                  <span className="text-3xl animate-pulse delay-300">🏆</span>
+                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
+                  <span className="text-3xl">🏆</span>
                   <span className="text-gray-800 font-bold">Beat the leaderboard</span>
                 </div>
               </div>
@@ -153,12 +145,12 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
                   </div>
                 </div>
                 {error && (
-                  <p className="mt-3 text-base text-red-600 font-bold text-center animate-shake">
+                  <p className="mt-3 text-base text-red-600 font-bold text-center">
                     ❌ {error}
                   </p>
                 )}
                 {!error && nickname.length > 0 && (
-                  <p className="mt-3 text-base text-green-600 font-bold text-center animate-fade-in">
+                  <p className="mt-3 text-base text-green-600 font-bold text-center">
                     ✅ Great nickname!
                   </p>
                 )}
@@ -175,7 +167,7 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
               >
                 <span className="flex items-center justify-center gap-3">
                   <span>Start Game</span>
-                  <span className="text-3xl animate-bounce-slow">🏒</span>
+                  <span className="text-3xl">🏒</span>
                 </span>
               </button>
             </form>

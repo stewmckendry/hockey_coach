@@ -241,8 +241,8 @@ export default function GameContainer() {
         <ScoreDisplay />
         
         {feedback.show ? (
-          <div className={`text-center py-16 animate-fade-in`}>
-            <div className={`text-6xl mb-6 ${feedback.correct ? 'animate-goal-celebration' : ''}`}>
+          <div className={`text-center py-16`}>
+            <div className={`text-6xl mb-6`}>
               {feedback.correct ? '🚨' : '❌'}
             </div>
             <p className={`text-3xl font-bold ${feedback.correct ? 'text-green-600' : 'text-red-600'}`}>
@@ -257,7 +257,7 @@ export default function GameContainer() {
           />
         ) : (
           <div className="text-center py-16">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-4 border-thunder-red"></div>
+            <div className="inline-block rounded-full h-12 w-12 border-b-4 border-thunder-red"></div>
             <p className="mt-4 text-xl text-gray-600 font-medium">Loading question...</p>
           </div>
         )}
