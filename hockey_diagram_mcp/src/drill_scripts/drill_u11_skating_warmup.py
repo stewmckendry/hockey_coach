@@ -225,7 +225,7 @@ def create_u11_skating_warmup():
     # Build and save the diagram
     builder = DiagramBuilder()
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_path = f'/Users/liammckendry/hockey_coach_issue-111/manual_diagrams/outputs/drill_u11_skating_warmup_{timestamp}.png'
+    output_path = f'/Users/liammckendry/hockey_coach_issue-111/hockey_diagram_mcp/outputs/drill_u11_skating_warmup_{timestamp}.png'
     
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

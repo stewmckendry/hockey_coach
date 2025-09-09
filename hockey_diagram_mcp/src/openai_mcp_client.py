@@ -217,7 +217,7 @@ def create_mcp_config_example():
     }
     
     # Save config example
-    config_path = "/Users/liammckendry/hockey_coach_issue-111/manual_diagrams/config/mcp_client_config.json"
+    config_path = "/Users/liammckendry/hockey_coach_issue-111/hockey_diagram_mcp/config/mcp_client_config.json"
     os.makedirs(os.path.dirname(config_path), exist_ok=True)
     
     with open(config_path, 'w') as f:

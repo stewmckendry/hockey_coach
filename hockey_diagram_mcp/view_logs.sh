@@ -2,7 +2,7 @@
 
 # Script to view the latest MCP server log file
 
-LOG_DIR="/Users/liammckendry/hockey_coach_issue-111/manual_diagrams/logs"
+LOG_DIR="/Users/liammckendry/hockey_coach_issue-111/hockey_diagram_mcp/logs"
 
 # Create log directory if it doesn't exist
 mkdir -p "$LOG_DIR"

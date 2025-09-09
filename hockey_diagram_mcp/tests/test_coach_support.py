@@ -96,7 +96,7 @@ def test_coach_in_analysis():
             
     except ImportError as e:
         print(f"❌ Import error: {e}")
-        print("   Make sure you're in the manual_diagrams directory")
+        print("   Make sure you're in the hockey_diagram_mcp directory")
         return False
     except Exception as e:
         print(f"❌ Test error: {e}")
