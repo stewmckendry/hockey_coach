@@ -42,7 +42,7 @@ Examples:
 
 ### Step C: Claude Shares Results
 **Claude** provides:
-- **Filepath**: `/Users/.../manual_diagrams/outputs/diagram_YYYYMMDD_HHMMSS.png`
+- **Filepath**: `/Users/.../hockey_diagram_mcp/outputs/diagram_YYYYMMDD_HHMMSS.png`
 - **Spec summary**: Key elements used (players, movements, zones)
 - **New features added** (if spec was updated)
 
@@ -89,7 +89,7 @@ When a request requires new capabilities:
 ## File Organization
 
 ```
-manual_diagrams/
+hockey_diagram_mcp/
 ├── spec/
 │   └── hockey_diagram_spec.md      # Living specification
 ├── src/

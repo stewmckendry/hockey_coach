@@ -158,7 +158,7 @@ class AgentTraceLogger:
     def _write_to_sheets(self):
         """Note: Agent should call get_sheet_rows() and use mcp__google-sheets tools."""
         # Save local backup
-        trace_file = f"manual_diagrams/logs/trace_{self.session_id}.json"
+        trace_file = f"hockey_diagram_mcp/logs/trace_{self.session_id}.json"
         os.makedirs(os.path.dirname(trace_file), exist_ok=True)
         with open(trace_file, 'w') as f:
             json.dump(self.trace_buffer, f, indent=2)

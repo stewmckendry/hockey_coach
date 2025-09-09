@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from dataclasses import asdict
-sys.path.append('manual_diagrams/src')
+sys.path.append('hockey_diagram_mcp/src')
 
 from hockey_diagram_builder import DiagramBuilder, DiagramSpec, Player, Movement, Zone, Annotation
 from drill_utilities import *
@@ -266,7 +266,7 @@ def create_drill_7_down_low_give_and_go():
     # Build and save the diagram
     builder = DiagramBuilder()
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_path = f'/Users/liammckendry/hockey_coach_issue-111/manual_diagrams/outputs/drill_7_down_low_give_and_go.png'
+    output_path = f'/Users/liammckendry/hockey_coach_issue-111/hockey_diagram_mcp/outputs/drill_7_down_low_give_and_go.png'
     
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

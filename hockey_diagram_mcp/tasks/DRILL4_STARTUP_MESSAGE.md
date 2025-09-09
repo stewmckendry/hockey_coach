@@ -7,7 +7,7 @@ Copy and paste this entire message into a new Claude Code chat:
 I need to create Drill 4 - 3v3 Battle hockey diagram as part of GitHub issue #111. This is a continuation from Drill 1 and 2 which are complete.
 
 ## Context
-- Working directory: `/Users/liammckendry/hockey_coach_issue-111/manual_diagrams/`
+- Working directory: `/Users/liammckendry/hockey_coach_issue-111/hockey_diagram_mcp/`
 - Virtual env: Activate with `source ../../spacy_env/bin/activate`
 - Existing code in `src/` folder with `hockey_diagram_builder.py` and `drill_utilities.py`
 - Track iterations in Google Sheets: https://docs.google.com/spreadsheets/d/1_RdgMPxluftZfeFl1SXZKYycDVxAV-GrzzhESIOXt24/

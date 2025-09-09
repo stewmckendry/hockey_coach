@@ -34,7 +34,7 @@ Claude: [Records in tracking sheet]
 ## Project Structure
 
 ```
-manual_diagrams/
+hockey_diagram_mcp/
 ├── spec/
 │   └── hockey_diagram_spec.md      # Living specification (v1.0)
 ├── src/
