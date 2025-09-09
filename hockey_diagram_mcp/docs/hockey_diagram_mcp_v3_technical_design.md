@@ -34,6 +34,33 @@ Hockey Diagram MCP v3 is an enhanced version that provides both traditional full
    - Granular control over elements
    - Real-time validation
 
+## Available MCP Tools
+
+### Full Pipeline Tools
+1. `initialize_diagram` - Start diagram session with optional empty spec
+2. `analyze_hockey_query` - Analyze natural language query with web search enrichment
+3. ~~`translate_analysis_to_spec`~~ - **DEPRECATED** - Use atomic building tools instead
+
+### Atomic Building Tools (NEW)
+4. `add_player` - Add individual player with intelligent positioning
+5. `add_coach` - Add coach with zone-aware placement
+6. `add_equipment` - Add equipment items with spreading for multiples
+7. `add_movement` - Add movements with realistic curved paths and waypoints
+
+### Validation & Preview Tools
+8. `validate_diagram_node_minimal` - Quick validation of individual nodes
+9. `validate_diagram_spec_full` - Comprehensive spec validation
+10. `preview_diagram` - ASCII art or coordinate preview
+
+### Generation & Template Tools
+11. `generate_diagram` - Generate final SVG/PNG diagram
+12. `save_diagram_template` - Save spec as reusable template
+13. `search_diagram_templates` - Search saved templates with fuzzy matching
+14. `fetch_diagram_template` - Retrieve saved template by ID
+
+### Utility Tools
+15. `health_check` - Server health and configuration status
+
 ## MCP Tools Reference
 
 ### 1. initialize_diagram (Enhanced)
@@ -59,8 +86,14 @@ Hockey Diagram MCP v3 is an enhanced version that provides both traditional full
     "diagram_type": str,          # Type of diagram
     "created_at": str,            # ISO timestamp
     "workflow": {
-        "traditional": str,       # Instructions for full pipeline
-        "incremental": str        # Instructions for atomic tools
+        "recommended": str,       # "INCREMENTAL (atomic building tools)"
+        "steps": [str],           # 7-step procedure list
+        "movement_patterns": {    # Guidance for complex movements
+            "simple": str,
+            "complex": str,
+            "curve_control": str
+        },
+        "note": str               # Deprecation notice for translate_to_spec
     },
     "instructions": str,          # How to use session_id
     "status": str,                # "ready"
@@ -175,9 +208,24 @@ Hockey Diagram MCP v3 is an enhanced version that provides both traditional full
 
 ---
 
-### 3. translate_analysis_to_spec
+### 3. translate_analysis_to_spec (DEPRECATED)
 
-**Purpose**: Convert analyzed query to complete diagram specification
+**Status**: ⚠️ **DEPRECATED - NOT EXPOSED VIA MCP**
+
+**Deprecation Reason**: 
+- This all-in-one translation tool was overly ambitious with too many assumptions
+- Lower confidence due to trying to map everything at once
+- Atomic building tools provide higher confidence and precise control
+- Code kept for reference but `@mcp.tool` decorator commented out
+
+**Replacement Approach**:
+Use atomic building tools in sequence:
+1. `add_player()` - Add players one by one
+2. `add_coach()` - Add coaches as needed
+3. `add_equipment()` - Place equipment items
+4. `add_movement()` - Create movements with curve control
+
+**Original Purpose**: Convert analyzed query to complete diagram specification
 
 **Inputs**:
 ```python
@@ -463,7 +511,126 @@ equipment_spec = {
 
 ---
 
-### 7. validate_diagram_node_minimal
+### 7. add_movement (ENHANCED v3)
+
+**Purpose**: Add hockey movements with precise curve control using mathematical algorithms or intelligent LLM path generation
+
+**Inputs**:
+```python
+{
+    "spec": dict,                    # Required: Current diagram specification
+    "movement_type": str,            # Required: "pass", "shot", "skate", "carry", "drop_pass", "backward", "lateral", "pressure"
+    "from_desc": str,                # Required: Start position - player ID or position like "center ice"
+    "to_desc": str,                  # Required: End position - player ID or position like "net", "slot"
+    "curve_point": str,              # Optional: Control point for curve - where direction changes (NEW)
+    "style": str,                    # Optional: "solid", "dashed", "dotted", "wavy" (default: "solid")
+    "with_puck": bool,              # Optional: Whether movement involves puck (default: False)
+    "label": str,                   # Optional: Label for the movement
+    "movement_id": str,             # Optional: Custom ID (auto-generates M1, M2, M3)
+    "session_id": str               # Optional: Session ID for tracking
+}
+```
+
+**Outputs**:
+```python
+{
+    "spec": dict,                    # Updated spec with new movement
+    "added_movement": {
+        "id": str,                   # Movement ID used
+        "type": str,                 # Movement type
+        "from_pos": {"x": float, "y": float},
+        "to_pos": {"x": float, "y": float},
+        "waypoints": [{"x": float, "y": float}],  # Generated curve waypoints
+        "from_confidence": float,    # 0.0-1.0 confidence for start position
+        "to_confidence": float,      # 0.0-1.0 confidence for end position
+        "style": str,                # Line style
+        "with_puck": bool,           # Puck involvement
+        "has_waypoints": bool        # Whether waypoints were generated
+    },
+    "status": str,                   # "success" or "error"
+    "message": str,                  # Human-readable message
+    "validation": {
+        "movement_type_valid": bool, # Valid movement type
+        "style_valid": bool,         # Valid line style
+        "from_resolved": bool,       # Start position successfully resolved
+        "to_resolved": bool,         # End position successfully resolved
+        "position_confidence": float,# Combined position confidence
+        "path_check": str,           # "pass" or "warning"
+        "path_intersections": [str], # Entity IDs that path crosses (format: "type:id")
+        "boundary_violations": [str],# Boundary violations with coordinates
+        "validation_warnings": [str],# All validation warnings
+        "total_path_distance": float # Total path distance in units
+    }
+}
+```
+
+**Key Features**:
+- **Position Resolution**: Three-tier resolution for FROM and TO positions:
+  1. Player ID reference (existing players in spec)
+  2. Direct coordinate mapping from centralized positions
+  3. LLM fallback for complex descriptions
+- **Realistic Path Generation**: LLM generates 2-4 waypoints for curved movements
+- **Movement Physics**: Considers hockey-specific movement patterns (skating curves, obstacle avoidance)
+- **Path Validation**: Comprehensive validation including:
+  - Collision detection with players/equipment (5-unit radius)
+  - Boundary checking (rink limits)
+  - Distance validation by movement type
+
+**Movement Types & Characteristics**:
+- **pass**: Straight or slightly curved puck movement
+- **shot**: Usually straight, can curve for deflections
+- **skate**: Curved skating paths avoiding obstacles
+- **carry**: Puck-carrying with realistic skating curves
+- **drop_pass**: Backward pass with continuation
+- **backward**: Skating backward with wider curves
+- **lateral**: Side-to-side movement
+- **pressure**: Aggressive forechecking path
+
+**Algorithm Summary (ENHANCED v3)**:
+1. **Type & Style Validation**: Validate movement type and line style parameters
+2. **FROM Position Resolution** (3-tier):
+   - Check if player ID reference → use player coordinates (confidence: 0.95)
+   - Search centralized coordinates → use position (confidence: 0.9)
+   - LLM position mapping → resolve complex description (confidence: 0.7)
+3. **TO Position Resolution** (same 3-tier approach)
+4. **CURVE_POINT Resolution** (NEW - optional):
+   - If provided, resolve using same 3-tier approach as FROM/TO
+   - Used as control point for mathematical curve generation
+5. **Waypoint Generation Strategy** (NEW):
+   - **With curve_point**: Use mathematical Bezier curve algorithm
+     - Quadratic Bezier: B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
+     - Generates 2-4 smooth waypoints based on movement type
+   - **Without curve_point**:
+     - Shots/passes: Default to straight line (no waypoints)
+     - Skating movements: Use LLM for intelligent path generation
+     - LLM considers obstacles, hockey physics, realistic curves
+6. **Path Validation**:
+   - **Collision Detection**: Check if path intersects players/equipment (5-unit radius)
+   - **Boundary Check**: Ensure path stays within rink limits (x: -100 to 100, y: -42.5 to 42.5)
+   - **Distance Validation**: Check appropriate distance for movement type
+7. **Spec Update**: Add movement with waypoints to spec.movements array
+8. **Return Results**: Include comprehensive validation warnings and path metrics
+
+**Mathematical Curve Generation (NEW)**:
+When `curve_point` is provided, the tool uses a deterministic Bezier curve algorithm:
+- **Quadratic Bezier Formula**: Generates smooth, predictable curves
+- **Waypoint Count**: Adapts based on movement type and distance
+  - Short passes/shots: 2 waypoints
+  - Skating movements: 4 waypoints  
+  - Default: 3 waypoints
+- **Benefits**: Precise control, consistent results, no LLM API calls needed
+
+**LLM Movement Context** (Fallback):
+When no `curve_point` provided for complex movements, the LLM receives:
+- Movement type and characteristics
+- Start/end positions with descriptions and coordinates
+- Current player positions for obstacle awareness
+- Hockey coordinate system reference
+- Instructions for realistic path generation
+
+---
+
+### 8. validate_diagram_node_minimal
 
 **Purpose**: Quick validation of individual diagram nodes
 
@@ -497,7 +664,7 @@ equipment_spec = {
 
 ---
 
-### 8. validate_diagram_spec_full
+### 9. validate_diagram_spec_full
 
 **Purpose**: Comprehensive validation of entire diagram specification
 
@@ -556,7 +723,7 @@ equipment_spec = {
 
 ---
 
-### 9. preview_diagram
+### 10. preview_diagram
 
 **Purpose**: Preview diagram as ASCII art or coordinate list
 
@@ -611,7 +778,7 @@ equipment_spec = {
 
 ---
 
-### 10. generate_diagram
+### 11. generate_diagram
 
 **Purpose**: Generate final SVG and PNG diagram files
 
@@ -657,7 +824,7 @@ equipment_spec = {
 
 ---
 
-### 11. save_diagram_template
+### 12. save_diagram_template
 
 **Purpose**: Save validated diagram spec as reusable template
 
@@ -699,7 +866,7 @@ equipment_spec = {
 
 ---
 
-### 12. search_diagram_templates
+### 13. search_diagram_templates
 
 **Purpose**: Fuzzy search for existing diagram templates
 
@@ -741,7 +908,7 @@ equipment_spec = {
 
 ---
 
-### 13. fetch_diagram_template
+### 14. fetch_diagram_template
 
 **Purpose**: Retrieve a saved diagram template by ID
 
@@ -781,7 +948,7 @@ equipment_spec = {
 
 ---
 
-### 14. health_check
+### 15. health_check
 
 **Purpose**: Check server health and configuration status
 
@@ -945,6 +1112,86 @@ active_sessions = {
 - ✅ Success
 - ⚠️ Warning
 - ❌ Error
+
+## Movement Chaining Patterns
+
+### Complex Movement Decomposition
+
+For complex skating patterns, the LLM should decompose them into multiple chained `add_movement` calls:
+
+#### Circle/Loop Pattern
+**User Request**: "Player skates a circle around center ice"
+**Decomposition**: 4 movements with curve points at compass positions
+```python
+# Quarter 1: South to East
+add_movement(spec, "skate", "below center", "right of center", 
+             curve_point="southeast of center")
+# Quarter 2: East to North
+add_movement(spec, "skate", "right of center", "above center",
+             curve_point="northeast of center")
+# Quarter 3: North to West
+add_movement(spec, "skate", "above center", "left of center",
+             curve_point="northwest of center")
+# Quarter 4: West to South
+add_movement(spec, "skate", "left of center", "below center",
+             curve_point="southwest of center")
+```
+
+#### Figure-8 Pattern
+**User Request**: "Figure-8 around the faceoff dots"
+**Decomposition**: 4 movements forming two connected loops
+```python
+# First loop around left dot
+add_movement(spec, "skate", "center", "center",
+             curve_point="left faceoff dot")
+# Second loop around right dot  
+add_movement(spec, "skate", "center", "center",
+             curve_point="right faceoff dot")
+```
+
+#### Zigzag/Crossovers Pattern
+**User Request**: "Crossovers down the ice"
+**Decomposition**: Alternating lateral movements
+```python
+# First crossover
+add_movement(spec, "skate", "left boards defensive", "right boards neutral",
+             curve_point="center defensive")
+# Second crossover
+add_movement(spec, "skate", "right boards neutral", "left boards offensive",
+             curve_point="center neutral")
+# Continue pattern...
+```
+
+#### Weave Through Cones
+**User Request**: "Weave through cones in neutral zone"
+**Decomposition**: Sequential curves around each obstacle
+```python
+# Around first cone
+add_movement(spec, "skate", "start", "past E1",
+             curve_point="left of E1")
+# Around second cone
+add_movement(spec, "skate", "past E1", "past E2",
+             curve_point="right of E2")
+# Continue for each cone...
+```
+
+### Movement Continuity Rules
+
+1. **Continuous Path**: The TO position of movement N should match the FROM position of movement N+1
+2. **Sequential IDs**: Use M1, M2, M3... for related movements in a pattern
+3. **Consistent Style**: Maintain the same line style across pattern segments
+4. **Shared Points**: Reuse positions for smooth connections (e.g., "center" in figure-8)
+
+### Pattern Recognition Guidelines
+
+LLMs should recognize these keywords as multi-movement patterns:
+- **"circle"** → 4+ curved movements
+- **"figure-8"** → 4 movements (2 per loop)
+- **"weave"** → alternating lateral movements
+- **"back and forth"** → paired opposite movements
+- **"zigzag"** → alternating diagonal movements
+- **"loop"** → closed path returning to start
+- **"serpentine"** → S-curve patterns
 
 ## Error Handling
 

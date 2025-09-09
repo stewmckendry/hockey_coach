@@ -317,8 +317,26 @@ def initialize_diagram(
         "diagram_type": diagram_type or "drill",
         "created_at": timestamp,
         "workflow": {
-            "traditional": "Use analyze_hockey_query() for full pipeline",
-            "incremental": "Use add_player(), add_movement(), add_equipment() with returned spec"
+            "recommended": "INCREMENTAL (atomic building tools)",
+            "steps": [
+                "1. initialize_diagram() - Get session_id and empty spec",
+                "2. analyze_hockey_query() - Optional but recommended for understanding",
+                "3. Build spec with atomic tools:",
+                "   - add_player() - Add players with positions",
+                "   - add_coach() - Add coaches if needed",
+                "   - add_equipment() - Add cones, pylons, etc.",
+                "   - add_movement() - Add passes, shots, skating paths",
+                "4. validate_diagram_spec_full() - Validate complete spec",
+                "5. preview_diagram() - Preview before generating",
+                "6. generate_diagram() - Create final diagram",
+                "7. save_diagram_template() - Save for reuse"
+            ],
+            "movement_patterns": {
+                "simple": "Single add_movement() with optional curve_point",
+                "complex": "Chain multiple add_movement() calls (circles, figure-8, zigzag)",
+                "curve_control": "Use curve_point parameter for precise Bezier curves"
+            },
+            "note": "translate_analysis_to_spec is deprecated - use atomic tools for higher confidence"
         },
         "instructions": (
             f"IMPORTANT: Pass session_id='{session_id}' to ALL subsequent tool calls "
@@ -910,7 +928,11 @@ def analyze_hockey_query(
 # TOOL 2: TRANSLATE ANALYSIS TO SPEC
 # ============================================================================
 
-@mcp.tool("translate_analysis_to_spec")
+# NOTE: This tool is NOT EXPOSED via MCP - Commented out in favor of atomic building tools
+# The atomic approach (add_player, add_movement, etc.) provides higher confidence and control
+# This ambitious all-in-one translation had too many assumptions and lower reliability
+# Keeping code for reference but using incremental building approach instead
+# @mcp.tool("translate_analysis_to_spec")
 def translate_analysis_to_spec(
     analysis: Dict[str, Any],
     title: Optional[str] = None,
@@ -4968,6 +4990,579 @@ def add_equipment(
         
     except Exception as e:
         log_with_session(session_id, "error", f"❌ Failed to add equipment: {str(e)}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "spec": spec
+        }
+
+def path_intersects_circle(start_pos: Dict[str, float], end_pos: Dict[str, float], 
+                          circle_pos: Dict[str, float], radius: float) -> bool:
+    """
+    Check if a line segment (movement path) intersects a circle (player/equipment).
+    Uses distance from point to line segment algorithm.
+    
+    Args:
+        start_pos: Start point of line segment
+        end_pos: End point of line segment  
+        circle_pos: Center of circle
+        radius: Circle radius
+        
+    Returns:
+        True if line intersects circle
+    """
+    # Vector from start to end
+    dx = end_pos["x"] - start_pos["x"]
+    dy = end_pos["y"] - start_pos["y"]
+    
+    # Vector from start to circle center
+    fx = circle_pos["x"] - start_pos["x"] 
+    fy = circle_pos["y"] - start_pos["y"]
+    
+    # If line segment has zero length, just check distance to start point
+    if dx == 0 and dy == 0:
+        distance = (fx**2 + fy**2) ** 0.5
+        return distance <= radius
+    
+    # Project circle center onto line segment
+    t = max(0, min(1, (fx * dx + fy * dy) / (dx**2 + dy**2)))
+    
+    # Find closest point on line segment
+    closest_x = start_pos["x"] + t * dx
+    closest_y = start_pos["y"] + t * dy
+    
+    # Distance from circle center to closest point
+    distance = ((circle_pos["x"] - closest_x)**2 + (circle_pos["y"] - closest_y)**2) ** 0.5
+    
+    return distance <= radius
+
+def generate_smooth_curve_waypoints(
+    from_pos: Dict[str, float],
+    curve_point: Dict[str, float], 
+    to_pos: Dict[str, float],
+    num_waypoints: int = 5
+) -> List[Dict[str, float]]:
+    """
+    Generate smooth curve waypoints using quadratic Bezier curve algorithm.
+    
+    Args:
+        from_pos: Starting position {x, y}
+        curve_point: Control point where direction changes {x, y}
+        to_pos: Ending position {x, y}
+        num_waypoints: Number of waypoints to generate (default: 5)
+        
+    Returns:
+        List of waypoint coordinates creating a smooth curve
+    """
+    waypoints = []
+    
+    # Generate waypoints using quadratic Bezier curve formula
+    # B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
+    # where P0=from, P1=curve_point, P2=to, t goes from 0 to 1
+    
+    for i in range(1, num_waypoints + 1):
+        t = i / (num_waypoints + 1)  # Distribute evenly between 0 and 1
+        
+        # Quadratic Bezier formula
+        x = ((1 - t) ** 2) * from_pos["x"] + \
+            2 * (1 - t) * t * curve_point["x"] + \
+            (t ** 2) * to_pos["x"]
+            
+        y = ((1 - t) ** 2) * from_pos["y"] + \
+            2 * (1 - t) * t * curve_point["y"] + \
+            (t ** 2) * to_pos["y"]
+        
+        waypoints.append({"x": round(x, 1), "y": round(y, 1)})
+    
+    return waypoints
+
+def map_movement_path_with_llm(
+    movement: Dict[str, Any],
+    players: List[Dict[str, Any]],
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Simplified movement mapping with LLM for realistic paths and waypoints.
+    
+    Args:
+        movement: Movement data with from_pos, to_pos, type, etc.
+        players: List of players for context
+        session_id: Session ID for logging
+        
+    Returns:
+        Mapping result with waypoints and refined coordinates
+    """
+    try:
+        # Load OpenAI client
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            log_with_session(session_id, "warning", "⚠️ OPENAI_API_KEY not set, skipping waypoint generation")
+            return {"error": "OPENAI_API_KEY not set"}
+        
+        client = OpenAI(api_key=api_key)
+        
+        # Create simplified prompt for movement path generation
+        system_prompt = f"""You are a hockey movement path generator. Generate realistic skating paths with waypoints for hockey movements.
+
+HOCKEY COORDINATE SYSTEM:
+- X-axis: -100 (defensive goal) to +100 (offensive goal)
+- Y-axis: -42.5 (bottom boards) to +42.5 (top boards)
+- Center ice: (0, 0)
+
+MOVEMENT TYPES:
+- pass: Straight or curved path for puck movement
+- shot: Usually straight but can curve for deflections
+- skate: Curved skating paths avoiding obstacles
+- carry: Puck-carrying with realistic skating curves
+- drop_pass: Backward pass with continuation
+- backward: Skating backward with wider curves
+- lateral: Side-to-side movement
+- pressure: Aggressive forechecking path
+
+Generate 2-4 waypoints for curved movements. For straight movements (like shots), use 0 waypoints.
+Consider hockey physics: players skate in curves, avoid obstacles, use efficient paths.
+
+Return ONLY valid JSON in this format:
+{{
+    "movement": {{
+        "from_pos": {{"x": float, "y": float}},
+        "to_pos": {{"x": float, "y": float}},
+        "waypoints": [
+            {{"x": float, "y": float}},
+            {{"x": float, "y": float}}
+        ],
+        "reasoning": "Brief explanation of path choice",
+        "confidence": 0.0-1.0
+    }}
+}}"""
+
+        user_prompt = f"""Generate realistic movement path:
+- Type: {movement['type']}
+- From: {movement['from_desc']} at ({movement['from_pos']['x']}, {movement['from_pos']['y']})
+- To: {movement['to_desc']} at ({movement['to_pos']['x']}, {movement['to_pos']['y']})
+- With puck: {movement['with_puck']}
+- Style: {movement['style']}
+
+Current players on ice:
+{json.dumps([{'id': p.get('id'), 'position': p.get('coordinates')} for p in players[:5]], indent=2)}
+
+Generate waypoints for a realistic hockey movement path."""
+
+        log_with_session(session_id, "debug", f"🤖 LLM movement mapping for {movement['type']}")
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.3,
+            max_tokens=500
+        )
+
+        response_text = response.choices[0].message.content.strip()
+        
+        # Parse JSON response
+        if response_text.startswith("```json"):
+            response_text = response_text.split("```json")[1].split("```")[0].strip()
+        elif response_text.startswith("```"):
+            response_text = response_text.split("```")[1].strip()
+        
+        result = json.loads(response_text)
+        
+        log_with_session(session_id, "info", f"✨ LLM generated movement path with {len(result.get('movement', {}).get('waypoints', []))} waypoints")
+        return result
+        
+    except Exception as e:
+        log_with_session(session_id, "error", f"❌ Movement path mapping failed: {str(e)}")
+        return {"error": str(e)}
+
+@mcp.tool("add_movement")
+def add_movement(
+    spec: Dict[str, Any],
+    movement_type: str,
+    from_desc: str,
+    to_desc: str,
+    curve_point: Optional[str] = None,
+    style: str = "solid",
+    with_puck: bool = False,
+    label: Optional[str] = None,
+    movement_id: Optional[str] = None,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Add a movement (pass, shot, skate, carry) to the diagram spec with intelligent positioning.
+    
+    Args:
+        spec: Current diagram specification
+        movement_type: "pass", "shot", "skate", "carry", "drop_pass", "backward", "lateral", "pressure"
+        from_desc: Start position description - can reference player ID or position like "center ice"
+        to_desc: End position description - can reference player ID or position like "net", "corner"
+        curve_point: Optional curve control point - where direction changes (e.g., "neutral zone", "D1")
+        style: Movement style - "solid", "dashed", "dotted", "wavy" (default: "solid")
+        with_puck: Whether movement involves the puck (default: False)
+        label: Optional label for the movement
+        movement_id: Custom ID (auto-generates M1, M2, M3)
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with new movement added
+    """
+    # Session-aware logging
+    log_with_session(session_id, "info", f"🏒 Adding {movement_type} movement from '{from_desc}' to '{to_desc}'")
+    
+    # Update session tracking
+    if session_id and session_id in active_sessions:
+        active_sessions[session_id]["steps_completed"].append(f"add_movement:{movement_id or 'auto'}")
+        active_sessions[session_id]["current_step"] = "building_movements"
+    
+    try:
+        # Auto-generate movement ID if not provided
+        if not movement_id:
+            existing_ids = [m.get("id", "") for m in spec.get("movements", [])]
+            num = 1
+            while f"M{num}" in existing_ids:
+                num += 1
+            movement_id = f"M{num}"
+            log_with_session(session_id, "debug", f"Auto-generated ID: {movement_id}")
+        
+        # Validate movement type
+        valid_types = ["pass", "shot", "skate", "carry", "drop_pass", "backward", "lateral", "pressure"]
+        if movement_type.lower() not in valid_types:
+            return {
+                "status": "error", 
+                "error": f"Invalid movement type '{movement_type}'. Must be one of: {', '.join(valid_types)}",
+                "spec": spec
+            }
+        
+        # Validate style
+        valid_styles = ["solid", "dashed", "dotted", "wavy"]
+        if style.lower() not in valid_styles:
+            return {
+                "status": "error",
+                "error": f"Invalid style '{style}'. Must be one of: {', '.join(valid_styles)}",
+                "spec": spec
+            }
+        
+        # Load centralized coordinates
+        coordinates_data = load_centralized_coordinates()
+        
+        # Resolve FROM position
+        from_pos = None
+        from_confidence = 0.0
+        
+        # First check if it's a player ID reference
+        from_desc_lower = from_desc.lower().strip()
+        existing_players = {p.get("id", "").lower(): p for p in spec.get("players", [])}
+        
+        if from_desc_lower in existing_players:
+            # Reference to existing player
+            player = existing_players[from_desc_lower]
+            from_pos = player.get("position", {"x": 0, "y": 0})
+            from_confidence = 0.95
+            log_with_session(session_id, "info", f"📍 FROM resolved to player {player.get('id')} at ({from_pos['x']}, {from_pos['y']})")
+        else:
+            # Try to resolve as position description using centralized coordinates
+            # Check all zones for the position
+            for zone_name, zone_positions in coordinates_data.get("zone_positions", {}).items():
+                if from_desc_lower in zone_positions:
+                    from_pos = zone_positions[from_desc_lower]
+                    from_confidence = 0.9
+                    log_with_session(session_id, "info", f"📍 FROM mapped to {zone_name} position: ({from_pos['x']}, {from_pos['y']})")
+                    break
+            
+            # If still not found, use LLM for complex position
+            if not from_pos:
+                log_with_session(session_id, "info", f"🤖 Using LLM for complex FROM position: {from_desc}")
+                # Create fake player entry for LLM mapping
+                temp_player = {"id": "temp_from", "type": "player", "position_desc": from_desc}
+                mapping_result = map_positions_with_llm([temp_player], "neutral")  # Default neutral zone
+                
+                if mapping_result and not mapping_result.get("error"):
+                    players_mapped = mapping_result.get("players_mapped", [])
+                    if players_mapped and players_mapped[0].get("coordinates"):
+                        from_pos = players_mapped[0].get("coordinates")
+                        from_confidence = 0.7
+                        log_with_session(session_id, "info", f"✨ LLM mapped FROM to ({from_pos['x']}, {from_pos['y']})")
+        
+        if not from_pos:
+            return {
+                "status": "error",
+                "error": f"Could not resolve FROM position '{from_desc}'",
+                "suggestions": [
+                    "Use player ID from existing players",
+                    "Use landmark positions: 'center ice', 'blue line', 'corner'",
+                    "Use relative positions: 'slot', 'high slot', 'behind net'"
+                ],
+                "spec": spec
+            }
+        
+        # Resolve TO position (similar logic)
+        to_pos = None
+        to_confidence = 0.0
+        
+        to_desc_lower = to_desc.lower().strip()
+        
+        if to_desc_lower in existing_players:
+            # Reference to existing player
+            player = existing_players[to_desc_lower]
+            to_pos = player.get("position", {"x": 0, "y": 0})
+            to_confidence = 0.95
+            log_with_session(session_id, "info", f"📍 TO resolved to player {player.get('id')} at ({to_pos['x']}, {to_pos['y']})")
+        else:
+            # Try to resolve as position description
+            for zone_name, zone_positions in coordinates_data.get("zone_positions", {}).items():
+                if to_desc_lower in zone_positions:
+                    to_pos = zone_positions[to_desc_lower]
+                    to_confidence = 0.9
+                    log_with_session(session_id, "info", f"📍 TO mapped to {zone_name} position: ({to_pos['x']}, {to_pos['y']})")
+                    break
+            
+            # If still not found, use LLM for complex position
+            if not to_pos:
+                log_with_session(session_id, "info", f"🤖 Using LLM for complex TO position: {to_desc}")
+                temp_player = {"id": "temp_to", "type": "player", "position_desc": to_desc}
+                mapping_result = map_positions_with_llm([temp_player], "neutral")
+                
+                if mapping_result and not mapping_result.get("error"):
+                    players_mapped = mapping_result.get("players_mapped", [])
+                    if players_mapped and players_mapped[0].get("coordinates"):
+                        to_pos = players_mapped[0].get("coordinates")
+                        to_confidence = 0.7
+                        log_with_session(session_id, "info", f"✨ LLM mapped TO to ({to_pos['x']}, {to_pos['y']})")
+        
+        if not to_pos:
+            return {
+                "status": "error",
+                "error": f"Could not resolve TO position '{to_desc}'",
+                "suggestions": [
+                    "Use player ID from existing players", 
+                    "Use landmark positions: 'net', 'corner', 'blue line'",
+                    "Use relative positions: 'slot', 'high slot', 'behind net'"
+                ],
+                "spec": spec
+            }
+        
+        # Determine waypoint generation strategy
+        waypoints = None
+        curve_pos = None
+        
+        # Resolve curve_point position if provided
+        if curve_point:
+            log_with_session(session_id, "info", f"📐 Resolving curve point: {curve_point}")
+            
+            # Check if it's a player ID reference
+            curve_point_lower = curve_point.lower().strip()
+            if curve_point_lower in existing_players:
+                player = existing_players[curve_point_lower]
+                curve_pos = player.get("position", None)
+                log_with_session(session_id, "info", f"📍 Curve point resolved to player {player.get('id')} at ({curve_pos['x']}, {curve_pos['y']})")
+            else:
+                # Try to resolve as position description
+                for zone_name, zone_positions in coordinates_data.get("zone_positions", {}).items():
+                    if curve_point_lower in zone_positions:
+                        curve_pos = zone_positions[curve_point_lower]
+                        log_with_session(session_id, "info", f"📍 Curve point mapped to {zone_name} position: ({curve_pos['x']}, {curve_pos['y']})")
+                        break
+                
+                # If still not found, use LLM for complex position
+                if not curve_pos:
+                    log_with_session(session_id, "info", f"🤖 Using LLM for curve point: {curve_point}")
+                    temp_player = {"id": "temp_curve", "type": "player", "position_desc": curve_point}
+                    mapping_result = map_positions_with_llm([temp_player], "neutral")
+                    
+                    if mapping_result and not mapping_result.get("error"):
+                        players_mapped = mapping_result.get("players_mapped", [])
+                        if players_mapped and players_mapped[0].get("coordinates"):
+                            curve_pos = players_mapped[0].get("coordinates")
+                            log_with_session(session_id, "info", f"✨ LLM mapped curve point to ({curve_pos['x']}, {curve_pos['y']})")
+        
+        # Generate waypoints based on movement type and curve_point
+        if curve_pos:
+            # Use mathematical curve generation when curve_point is provided
+            log_with_session(session_id, "info", f"📐 Generating smooth curve through control point")
+            
+            # Determine number of waypoints based on distance and movement type
+            distance = ((to_pos["x"] - from_pos["x"])**2 + (to_pos["y"] - from_pos["y"])**2) ** 0.5
+            
+            if movement_type.lower() in ["shot", "pass"] and distance < 30:
+                num_waypoints = 2  # Fewer waypoints for short passes/shots
+            elif movement_type.lower() in ["skate", "carry", "backward"]:
+                num_waypoints = 4  # More waypoints for skating movements
+            else:
+                num_waypoints = 3  # Default
+            
+            waypoints = generate_smooth_curve_waypoints(from_pos, curve_pos, to_pos, num_waypoints)
+            log_with_session(session_id, "info", f"✅ Generated {len(waypoints)} waypoints for smooth curve")
+            
+        elif movement_type.lower() in ["shot", "pass"] and not curve_point:
+            # Straight line for shots and passes without curve_point
+            log_with_session(session_id, "info", f"➡️ Using straight line for {movement_type}")
+            waypoints = None  # No waypoints means straight line
+            
+        elif movement_type.lower() in ["skate", "carry", "backward", "lateral", "pressure"]:
+            # Use LLM for complex curved movements without explicit curve_point
+            log_with_session(session_id, "info", f"🤖 Using LLM for complex {movement_type} path")
+            
+            movement_for_mapping = {
+                "id": movement_id,
+                "type": movement_type.lower(),
+                "from_desc": from_desc,
+                "to_desc": to_desc,
+                "from_pos": from_pos,
+                "to_pos": to_pos,
+                "style": style.lower(),
+                "with_puck": with_puck
+            }
+            
+            movement_mapping_result = map_movement_path_with_llm(
+                movement_for_mapping,
+                spec.get("players", []),
+                session_id
+            )
+            
+            if movement_mapping_result and not movement_mapping_result.get("error"):
+                mapped_movement = movement_mapping_result.get("movement")
+                if mapped_movement:
+                    waypoints = mapped_movement.get("waypoints")
+                    # Use LLM-suggested path improvements
+                    from_pos = mapped_movement.get("from_pos", from_pos)
+                    to_pos = mapped_movement.get("to_pos", to_pos)
+                    log_with_session(session_id, "info", 
+                                   f"✨ LLM generated {len(waypoints) if waypoints else 0} waypoints")
+            else:
+                log_with_session(session_id, "warning", f"⚠️ LLM failed, using straight line")
+        else:
+            # Default to straight line
+            log_with_session(session_id, "info", f"➡️ Using straight line for movement")
+            waypoints = None
+        
+        # Create movement object matching the spec format
+        new_movement = {
+            "id": movement_id,
+            "type": movement_type.lower(),
+            "from_pos": from_pos,
+            "to_pos": to_pos,
+            "style": style.lower(),
+            "with_puck": with_puck,
+            "label": label,
+            "from_desc": from_desc,  # Keep original descriptions for reference
+            "to_desc": to_desc
+        }
+        
+        # Add waypoints if generated
+        if waypoints:
+            new_movement["waypoints"] = waypoints
+        
+        # Validate movement path
+        validation_warnings = []
+        path_intersections = []
+        
+        # Create path points for validation (from -> waypoints -> to)
+        path_points = [from_pos]
+        if waypoints:
+            path_points.extend(waypoints)
+        path_points.append(to_pos)
+        
+        # Check path intersections with entities (5-unit collision detection)
+        collision_threshold = 5.0
+        
+        # Check intersections with players
+        for player in spec.get("players", []):
+            if "coordinates" in player:
+                player_pos = player["coordinates"]
+                for i in range(len(path_points) - 1):
+                    if path_intersects_circle(path_points[i], path_points[i+1], player_pos, collision_threshold):
+                        path_intersections.append(f"player:{player['id']}")
+                        validation_warnings.append(f"Path intersects player {player['id']}")
+                        log_with_session(session_id, "warning", f"⚠️ Movement path intersects player {player['id']}")
+                        break
+        
+        # Check intersections with equipment
+        for equipment in spec.get("equipment", []):
+            if "coordinates" in equipment:
+                equip_pos = equipment["coordinates"]
+                for i in range(len(path_points) - 1):
+                    if path_intersects_circle(path_points[i], path_points[i+1], equip_pos, collision_threshold):
+                        path_intersections.append(f"equipment:{equipment['id']}")
+                        validation_warnings.append(f"Path intersects equipment {equipment['id']}")
+                        log_with_session(session_id, "warning", f"⚠️ Movement path intersects equipment {equipment['id']}")
+                        break
+        
+        # Check boundary violations (rink limits: x: -100 to 100, y: -42.5 to 42.5)
+        boundary_violations = []
+        for point in path_points:
+            if point["x"] < -100 or point["x"] > 100:
+                boundary_violations.append(f"x-boundary at ({point['x']}, {point['y']})")
+            if point["y"] < -42.5 or point["y"] > 42.5:
+                boundary_violations.append(f"y-boundary at ({point['x']}, {point['y']})")
+        
+        if boundary_violations:
+            validation_warnings.extend([f"Path violates {v}" for v in boundary_violations])
+            log_with_session(session_id, "warning", f"⚠️ Movement path violates boundaries: {boundary_violations}")
+        
+        # Distance validation
+        total_distance = 0
+        for i in range(len(path_points) - 1):
+            dx = path_points[i+1]["x"] - path_points[i]["x"]
+            dy = path_points[i+1]["y"] - path_points[i]["y"]
+            total_distance += (dx**2 + dy**2) ** 0.5
+        
+        # Movement type distance validation
+        distance_warnings = []
+        if movement_type.lower() == "shot" and total_distance > 50:
+            distance_warnings.append(f"Shot distance ({total_distance:.1f}) unusually long")
+        elif movement_type.lower() == "pass" and total_distance > 80:
+            distance_warnings.append(f"Pass distance ({total_distance:.1f}) very long")
+        elif movement_type.lower() in ["skate", "carry"] and total_distance < 5:
+            distance_warnings.append(f"Skating movement ({total_distance:.1f}) very short")
+        
+        if distance_warnings:
+            validation_warnings.extend(distance_warnings)
+            log_with_session(session_id, "warning", f"⚠️ Distance validation: {distance_warnings}")
+        
+        # Add to spec
+        if "movements" not in spec:
+            spec["movements"] = []
+        spec["movements"].append(new_movement)
+        
+        # Log success
+        log_with_session(session_id, "info", 
+                        f"✅ Successfully added {movement_type} movement {movement_id}")
+        log_with_session(session_id, "info", "-" * 40)
+        
+        return {
+            "spec": spec,
+            "added_movement": {
+                "id": movement_id,
+                "type": movement_type,
+                "from_pos": from_pos,
+                "to_pos": to_pos,
+                "waypoints": waypoints,
+                "from_confidence": from_confidence,
+                "to_confidence": to_confidence,
+                "style": style,
+                "with_puck": with_puck,
+                "has_waypoints": waypoints is not None and len(waypoints) > 0
+            },
+            "status": "success",
+            "message": f"Added {movement_type} movement from {from_desc} to {to_desc}",
+            "validation": {
+                "movement_type_valid": movement_type.lower() in valid_types,
+                "style_valid": style.lower() in valid_styles,
+                "from_resolved": from_confidence > 0,
+                "to_resolved": to_confidence > 0,
+                "position_confidence": min(from_confidence, to_confidence),
+                "path_check": "warning" if validation_warnings else "pass",
+                "path_intersections": path_intersections if path_intersections else None,
+                "boundary_violations": boundary_violations if boundary_violations else None,
+                "validation_warnings": validation_warnings if validation_warnings else None,
+                "total_path_distance": round(total_distance, 1)
+            }
+        }
+        
+    except Exception as e:
+        log_with_session(session_id, "error", f"❌ Failed to add movement: {str(e)}")
         return {
             "status": "error",
             "error": str(e),
