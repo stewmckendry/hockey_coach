@@ -45,8 +45,9 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
+        logging.FileHandler(log_file)
+        # Removed StreamHandler - it interferes with MCP's JSON communication over stdout
+        # All logs still go to file for debugging
     ]
 )
 logger = logging.getLogger(__name__)
