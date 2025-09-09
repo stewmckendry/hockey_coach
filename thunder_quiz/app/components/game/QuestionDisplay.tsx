@@ -80,7 +80,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
   const getTimeColor = () => {
     if (timeLeft > 30) return 'text-green-600';
     if (timeLeft > 15) return 'text-yellow-600';
-    return 'text-red-600 animate-pulse';
+    return 'text-red-600';
   };
 
   const questionNumber = state.currentQuestion + 1;
@@ -93,7 +93,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
         <div className="flex justify-between items-center">
           <div className="text-xl font-bold text-gray-900">
             {isOvertime ? (
-              <span className="text-thunder-red animate-pulse text-2xl">🚨 OVERTIME 🚨</span>
+              <span className="text-thunder-red text-2xl">🚨 OVERTIME 🚨</span>
             ) : (
               <div className="flex items-center gap-3">
                 <span className="text-gray-700 font-semibold">Period {state.currentPeriod}</span>
@@ -174,7 +174,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
                 onClick={() => setSelectedAnswer(true)}
                 className={`flex-1 p-8 rounded-3xl border-4 font-black text-2xl transition-all transform hover:scale-105 ${
                   selectedAnswer === true
-                    ? 'border-green-500 bg-gradient-to-r from-green-400 to-green-500 text-white shadow-2xl animate-pulse-glow scale-105'
+                    ? 'border-green-500 bg-gradient-to-r from-green-400 to-green-500 text-white shadow-2xl scale-105'
                     : 'border-green-300 bg-gradient-to-r from-green-50 to-white hover:border-green-400 hover:from-green-100'
                 }`}
               >
@@ -187,7 +187,7 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
                 onClick={() => setSelectedAnswer(false)}
                 className={`flex-1 p-8 rounded-3xl border-4 font-black text-2xl transition-all transform hover:scale-105 ${
                   selectedAnswer === false
-                    ? 'border-red-500 bg-gradient-to-r from-red-400 to-red-500 text-white shadow-2xl animate-pulse-glow scale-105'
+                    ? 'border-red-500 bg-gradient-to-r from-red-400 to-red-500 text-white shadow-2xl scale-105'
                     : 'border-red-300 bg-gradient-to-r from-red-50 to-white hover:border-red-400 hover:from-red-100'
                 }`}
               >

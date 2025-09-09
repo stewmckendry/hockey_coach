@@ -133,7 +133,10 @@ button:focus-visible {
   outline-offset: 0;
 }
 
-/* Animations */
+/* Animations - Disabled for better UX */
+/* Keeping definitions but not using them to avoid visual strain */
+
+/*
 @keyframes goal-celebration {
   0%, 100% { transform: scale(1) rotate(0deg); }
   25% { transform: scale(1.2) rotate(10deg); }
@@ -190,6 +193,7 @@ button:focus-visible {
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+*/
 
 /* Animation delays */
 .delay-100 { animation-delay: 100ms; }
