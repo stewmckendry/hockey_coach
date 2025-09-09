@@ -340,7 +340,10 @@ def initialize_diagram(
         },
         "instructions": (
             f"IMPORTANT: Pass session_id='{session_id}' to ALL subsequent tool calls "
-            "for proper logging and tracing."
+            "for proper logging and tracing.\n"
+            "CRITICAL: Store the returned 'spec' in your memory or a temp file and update it "
+            "after EACH atomic tool call. Always pass the current updated spec to the next tool. "
+            "This prevents drift and ensures consistency across all operations."
         ),
         "status": "ready"
     }
@@ -361,26 +364,29 @@ def initialize_diagram(
             else:  # full
                 return base_features + ["offensive_zone", "defensive_zone", "neutral_zone", "goals", "goal_creases"]
         
-        # Create annotated empty spec
+        # Create annotated empty spec with proper structure
         result["spec"] = {
-            "title": title or description,
-            "description": description,
+            "metadata": {
+                "title": title or description,
+                "description": description,
+                "type": diagram_type or "drill",
+                "view": view,  # Store view in metadata for reference
+                "created_at": timestamp,
+                "version": "1.0.0"
+            },
             "rink": {
-                "view": view,  # "full", "offensive", "defensive", or "neutral"
-                "features": get_rink_features_for_view(view)
+                "type": view,  # This matches the rink type (full, offensive, etc.)
+                "view": view,  # REQUIRED: view must be in rink object for validation
+                "zones": {
+                    "offensive": {"color": "rgba(255, 0, 0, 0.1)"},
+                    "neutral": {"color": "rgba(128, 128, 128, 0.1)"},
+                    "defensive": {"color": "rgba(0, 0, 255, 0.1)"}
+                }
             },
             "players": [],  # Will be populated with add_player()
             "movements": [],  # Will be populated with add_movement()
-            "zones": [],  # Highlighted areas, equipment zones
-            "annotations": [],  # Text labels and notes
             "equipment": [],  # Cones, pylons, tires, etc.
-            "metadata": {
-                "created": timestamp,
-                "session_id": session_id,
-                "diagram_type": diagram_type or "drill",
-                "build_method": "incremental",
-                "version": "1.0.0"
-            }
+            "annotations": []  # Text labels and notes
         }
         
         # Add spec structure hints
@@ -4454,6 +4460,16 @@ def add_player(
         log_with_session(session_id, "info", 
                         f"📍 Mapped '{position_desc}' to ({coordinates['x']}, {coordinates['y']})")
         
+        # Validate boundaries (rink limits: x: -100 to 100, y: -40 to 40)
+        # Using y: -40 to 40 for stricter validation to keep players within visible ice
+        if abs(coordinates['x']) > 100:
+            log_with_session(session_id, "warning", f"⚠️ X coordinate {coordinates['x']} exceeds rink bounds, clamping to ±100")
+            coordinates['x'] = max(-100, min(100, coordinates['x']))
+        
+        if abs(coordinates['y']) > 40:
+            log_with_session(session_id, "warning", f"⚠️ Y coordinate {coordinates['y']} exceeds rink bounds, clamping to ±40")
+            coordinates['y'] = max(-40, min(40, coordinates['y']))
+        
         # Check for overlaps with all entities
         overlap_threshold = 5.0
         overlapping_entities = []
@@ -5253,14 +5269,25 @@ def add_movement(
         
         # First check if it's a player ID reference
         from_desc_lower = from_desc.lower().strip()
-        existing_players = {p.get("id", "").lower(): p for p in spec.get("players", [])}
+        existing_players = {}
+        for p in spec.get("players", []):
+            if isinstance(p, dict) and "id" in p:
+                existing_players[p["id"].lower()] = p
         
         if from_desc_lower in existing_players:
             # Reference to existing player
             player = existing_players[from_desc_lower]
-            from_pos = player.get("position", {"x": 0, "y": 0})
-            from_confidence = 0.95
-            log_with_session(session_id, "info", f"📍 FROM resolved to player {player.get('id')} at ({from_pos['x']}, {from_pos['y']})")
+            if isinstance(player, dict):
+                from_pos = player.get("coordinates", {"x": 0, "y": 0})
+                from_confidence = 0.95
+                log_with_session(session_id, "info", f"📍 FROM resolved to player {player.get('id')} at ({from_pos['x']}, {from_pos['y']})")
+            else:
+                log_with_session(session_id, "error", f"Player {from_desc_lower} is not a dict: {type(player)}")
+                return {
+                    "status": "error",
+                    "error": f"Invalid player data structure for {from_desc_lower}",
+                    "spec": spec
+                }
         else:
             # Try to resolve as position description using centralized coordinates
             # Check all zones for the position
@@ -5306,9 +5333,17 @@ def add_movement(
         if to_desc_lower in existing_players:
             # Reference to existing player
             player = existing_players[to_desc_lower]
-            to_pos = player.get("position", {"x": 0, "y": 0})
-            to_confidence = 0.95
-            log_with_session(session_id, "info", f"📍 TO resolved to player {player.get('id')} at ({to_pos['x']}, {to_pos['y']})")
+            if isinstance(player, dict):
+                to_pos = player.get("coordinates", {"x": 0, "y": 0})  # Fixed: was "position", should be "coordinates"
+                to_confidence = 0.95
+                log_with_session(session_id, "info", f"📍 TO resolved to player {player.get('id')} at ({to_pos['x']}, {to_pos['y']})")
+            else:
+                log_with_session(session_id, "error", f"Player {to_desc_lower} is not a dict: {type(player)}")
+                return {
+                    "status": "error",
+                    "error": f"Invalid player data structure for {to_desc_lower}",
+                    "spec": spec
+                }
         else:
             # Try to resolve as position description
             for zone_name, zone_positions in coordinates_data.get("zone_positions", {}).items():
