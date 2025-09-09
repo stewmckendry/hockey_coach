@@ -270,8 +270,12 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
         {/* Score Preview */}
         <div className="mt-4 flex justify-center gap-3">
           <div className="bg-white rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
-            <span className="text-xs text-gray-500">Score:</span>
-            <span className="font-bold text-thunder-red">{state.score}</span>
+            <span className="text-xs text-gray-500">You:</span>
+            <span className="font-bold text-thunder-red">{state.playerGoals}</span>
+          </div>
+          <div className="bg-white rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
+            <span className="text-xs text-gray-500">Opponent:</span>
+            <span className="font-bold text-gray-600">{state.opponentGoals}</span>
           </div>
           <div className="bg-white rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm">
             <span className="text-xs text-gray-500">Streak:</span>

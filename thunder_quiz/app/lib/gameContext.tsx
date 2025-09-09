@@ -28,6 +28,9 @@ const initialState: GameState = {
   answers: [],
   isOvertime: false,
   gameStatus: 'not-started',
+  correctStreak: 0,
+  correctAnswers: 0,
+  totalQuestions: 15,
 };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -43,6 +46,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         startTime: new Date(),
         currentPeriod: 1,
         currentQuestion: 0,
+        correctStreak: 0,
+        correctAnswers: 0,
+        totalQuestions: action.payload.length,
       };
 
     case 'ANSWER_QUESTION':
@@ -52,12 +58,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ? state.playerGoals + (answer.usedHint ? 0.5 : 1)
         : state.playerGoals;
       const opponentGoals = !answer.isCorrect ? state.opponentGoals + 1 : state.opponentGoals;
+      const correctStreak = answer.isCorrect ? state.correctStreak + 1 : 0;
+      const correctAnswers = answer.isCorrect ? state.correctAnswers + 1 : state.correctAnswers;
 
       return {
         ...state,
         answers: updatedAnswers,
         playerGoals,
         opponentGoals,
+        correctStreak,
+        correctAnswers,
       };
 
     case 'NEXT_QUESTION':
