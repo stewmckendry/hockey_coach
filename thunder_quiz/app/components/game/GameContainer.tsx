@@ -31,13 +31,30 @@ export default function GameContainer() {
 
   const startGame = async () => {
     try {
+      // Get recently used questions from session storage
+      const recentlyUsedJSON = sessionStorage.getItem('recentlyUsedQuestions');
+      const recentlyUsed = recentlyUsedJSON ? JSON.parse(recentlyUsedJSON) : [];
+      
       const response = await fetch('/api/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: 15 }),
+        body: JSON.stringify({ 
+          count: 15,
+          recentlyUsedIds: recentlyUsed.slice(0, 60) // Keep last 60 questions in memory
+        }),
       });
       const data = await response.json();
-      dispatch({ type: 'START_GAME', payload: data.questions });
+      
+      // Update recently used questions in session storage
+      const newQuestions = data.questions;
+      const updatedRecentlyUsed = [
+        ...newQuestions.map((q: Question) => q.id),
+        ...recentlyUsed
+      ].slice(0, 75); // Keep max 75 questions (5 games worth)
+      
+      sessionStorage.setItem('recentlyUsedQuestions', JSON.stringify(updatedRecentlyUsed));
+      
+      dispatch({ type: 'START_GAME', payload: newQuestions });
     } catch (error) {
       console.error('Error starting game:', error);
       alert('Failed to load questions. Please try again.');
@@ -194,22 +211,22 @@ export default function GameContainer() {
 
   if (state.gameStatus === 'finished' || showLeaderboard) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-12">
-        <div className="max-w-2xl mx-auto space-y-8">
-          {/* Final Score - matching leaderboard width */}
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-            <div className="text-center py-10 px-8">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6 tracking-tight">Game Over!</h1>
-              <div className="text-3xl font-bold text-gray-900 mb-4">
-                Final Score: {state.playerGoals} - {state.opponentGoals}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
+        <div className="max-w-md mx-auto space-y-4">
+          {/* Final Score - matching other cards width */}
+          <div className="modern-card">
+            <div className="text-center">
+              <h1 className="text-2xl font-black text-gray-900 mb-4">Game Over!</h1>
+              <div className="text-3xl font-bold text-gray-900 mb-3">
+                {state.playerGoals} - {state.opponentGoals}
               </div>
-              <div className="text-xl text-gray-600 font-medium mb-3">
+              <div className="text-lg text-gray-600 font-semibold mb-2">
                 {state.playerGoals > state.opponentGoals ? '🏆 You Win!' : 
                  state.playerGoals < state.opponentGoals ? '💪 Better luck next time!' : 
                  '🤝 It\'s a tie!'}
               </div>
               {state.nickname && (
-                <div className="text-lg text-gray-500 font-medium">
+                <div className="text-sm text-gray-500 font-medium">
                   Playing as: <span className="font-bold text-thunder-red">{state.nickname}</span>
                 </div>
               )}
@@ -219,15 +236,13 @@ export default function GameContainer() {
           {/* Leaderboard component */}
           <Leaderboard key={Date.now()} currentPlayer={state.nickname} />
           
-          {/* Play Again button with better styling */}
-          <div className="text-center">
-            <button
-              onClick={playAgain}
-              className="w-full max-w-md mx-auto px-12 py-5 bg-gradient-to-r from-thunder-red to-red-700 hover:from-red-700 hover:to-red-800 text-white text-2xl font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              Play Again 🏒
-            </button>
-          </div>
+          {/* Play Again button */}
+          <button
+            onClick={playAgain}
+            className="w-full py-4 bg-gradient-to-r from-thunder-red to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+          >
+            Play Again 🏒
+          </button>
         </div>
       </div>
     );
@@ -241,13 +256,25 @@ export default function GameContainer() {
         <ScoreDisplay />
         
         {feedback.show ? (
-          <div className={`text-center py-16`}>
-            <div className={`text-6xl mb-6`}>
-              {feedback.correct ? '🚨' : '❌'}
+          <div className="w-full max-w-md mx-auto px-4">
+            <div className={`modern-card-sm text-center ${
+              feedback.correct 
+                ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200' 
+                : 'bg-gradient-to-br from-red-50 to-pink-50 border-red-200'
+            }`}>
+              <p className={`text-lg font-bold ${
+                feedback.correct ? 'text-green-700' : 'text-red-700'
+              }`}>
+                {feedback.message}
+              </p>
+              {feedback.correct && (
+                <div className="mt-3 flex justify-center gap-2">
+                  <span className="text-xl">⭐</span>
+                  <span className="text-xl">⭐</span>
+                  <span className="text-xl">⭐</span>
+                </div>
+              )}
             </div>
-            <p className={`text-3xl font-bold ${feedback.correct ? 'text-green-600' : 'text-red-600'}`}>
-              {feedback.message}
-            </p>
           </div>
         ) : currentQuestion ? (
           <QuestionDisplay

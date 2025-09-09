@@ -7,9 +7,9 @@ export default function ScoreDisplay() {
   const { state } = useGame();
 
   return (
-    <div className="w-full max-w-3xl mx-auto mb-12">
+    <div className="w-full max-w-md mx-auto mb-8 px-4">
       {/* Hockey Rink Visual Score Display */}
-      <div className="relative bg-white rounded-3xl shadow-xl p-10 border border-gray-100 overflow-hidden">
+      <div className="relative bg-white rounded-3xl shadow-xl p-6 border border-gray-100 overflow-hidden">
         {/* Ice texture effect */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-x-0 top-1/2 h-0.5 bg-red-500 transform -translate-y-1/2"></div>
@@ -24,9 +24,9 @@ export default function ScoreDisplay() {
               <span className="text-sm font-semibold text-thunder-grey">YOU</span>
             </div>
             <div className="relative">
-              <div className="text-5xl font-bold text-thunder-black">
+              <div className="text-4xl font-bold text-thunder-black">
                 {state.playerGoals % 1 !== 0 ? (
-                  <span>{Math.floor(state.playerGoals)}<sup className="text-2xl text-thunder-red">½</sup></span>
+                  <span>{Math.floor(state.playerGoals)}<sup className="text-xl text-thunder-red">½</sup></span>
                 ) : (
                   state.playerGoals
                 )}
@@ -38,9 +38,9 @@ export default function ScoreDisplay() {
           </div>
 
           {/* VS Divider */}
-          <div className="px-4">
-            <div className="w-16 h-16 rounded-full bg-thunder-red flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">VS</span>
+          <div className="px-3">
+            <div className="w-12 h-12 rounded-full bg-thunder-red flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-sm">VS</span>
             </div>
           </div>
 
@@ -49,7 +49,7 @@ export default function ScoreDisplay() {
             <div className="mb-2">
               <span className="text-sm font-semibold text-thunder-grey">OPPONENT</span>
             </div>
-            <div className="text-5xl font-bold text-thunder-black">
+            <div className="text-4xl font-bold text-thunder-black">
               {state.opponentGoals}
             </div>
             <div className="mt-2">
@@ -69,41 +69,15 @@ export default function ScoreDisplay() {
               {[1, 2, 3].map((period) => (
                 <div
                   key={period}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    period === state.currentPeriod
-                      ? 'bg-thunder-red text-white'
-                      : period < state.currentPeriod
-                      ? 'bg-thunder-black text-white'
-                      : 'bg-thunder-lightGrey text-thunder-grey'
+                  className={`w-2 h-2 rounded-full ${
+                    period <= state.currentPeriod
+                      ? 'bg-thunder-red'
+                      : 'bg-gray-300'
                   }`}
-                >
-                  P{period}
-                </div>
+                />
               ))}
             </div>
           )}
-        </div>
-
-        {/* Goal Celebration Animation Placeholder */}
-        {state.answers.length > 0 && state.answers[state.answers.length - 1]?.isCorrect && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <span className="text-6xl">🚨</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Stats Bar */}
-      <div className="mt-4 flex justify-center gap-6 text-sm">
-        <div className="text-thunder-grey">
-          <span className="font-semibold">Questions:</span> {state.answers.length}/15
-        </div>
-        <div className="text-thunder-grey">
-          <span className="font-semibold">Accuracy:</span>{' '}
-          {state.answers.length > 0
-            ? Math.round((state.answers.filter(a => a.isCorrect).length / state.answers.length) * 100)
-            : 0}%
         </div>
       </div>
     </div>

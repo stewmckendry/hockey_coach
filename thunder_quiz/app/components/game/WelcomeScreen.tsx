@@ -45,139 +45,142 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-red-50 p-12 relative overflow-hidden">
-      {/* Ice rink pattern background (will be added as image) */}
-      <div className="absolute inset-0 opacity-5 bg-repeat" style={{ backgroundImage: 'url(/ice-pattern.png)', backgroundSize: '400px' }}></div>
-      
-      <div className="max-w-xl w-full relative z-10">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-gray-100 transform hover:scale-[1.02] transition-transform duration-300">
-          {/* Header with Thunder Logo - More vibrant */}
-          <div className="bg-gradient-to-b from-white to-gray-50 text-center py-12 px-8 relative">
-            {/* Static logo container */}
-            <div className="w-32 h-32 mx-auto mb-8 relative">
+    <div className="min-h-screen p-4 md:p-6">
+      {/* Mobile-first single column layout */}
+      <div className="max-w-md mx-auto space-y-4">
+        
+        {/* Main Game Card */}
+        <div className="modern-card">
+          {/* Thunder Logo and Title */}
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 mx-auto mb-4 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-thunder-red/20 to-red-600/20 rounded-2xl blur-xl"></div>
               <Image
                 src="/thunder-logo.png"
                 alt="Thunder Logo"
-                width={128}
-                height={128}
-                className="object-contain drop-shadow-lg"
+                width={80}
+                height={80}
+                className="relative object-contain drop-shadow-lg"
                 priority
               />
             </div>
-            <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-thunder-red to-red-800 mb-4">
-              Thunder Hockey Quiz
+            <span className="inline-block px-3 py-1 bg-thunder-red/10 text-thunder-red text-xs font-bold rounded-full mb-3">
+              HOCKEY QUIZ
+            </span>
+            <h1 className="text-2xl font-black text-gray-900 mb-1">
+              Thunder Challenge
             </h1>
-            <p className="text-xl text-gray-700 font-bold">
-              ⚡ Test your hockey knowledge! ⚡
-            </p>
+            <p className="text-sm text-gray-500">Test your hockey knowledge</p>
           </div>
 
-          <div className="px-16 py-12 space-y-12">
-            {/* Game Format Info - More playful */}
-            <div className="bg-gradient-to-r from-blue-50 to-red-50 rounded-2xl p-8 border-2 border-blue-200">
-              <h2 className="text-2xl font-black text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-red-600">
-                🎮 How to Play 🎮
-              </h2>
-              <div className="grid grid-cols-2 gap-6 text-base">
-                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
-                  <span className="text-3xl">🏒</span>
-                  <span className="text-gray-800 font-bold">15 questions total</span>
-                </div>
-                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
-                  <span className="text-3xl">⏱️</span>
-                  <span className="text-gray-800 font-bold">60 seconds each</span>
-                </div>
-                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
-                  <span className="text-3xl">🚨</span>
-                  <span className="text-gray-800 font-bold">Score goals!</span>
-                </div>
-                <div className="flex items-center gap-3 transform hover:scale-105 transition-transform">
-                  <span className="text-3xl">🏆</span>
-                  <span className="text-gray-800 font-bold">Beat the leaderboard</span>
-                </div>
-              </div>
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="bg-gray-50 rounded-xl p-3 text-center">
+              <p className="text-xl font-bold text-thunder-red">15</p>
+              <p className="text-xs text-gray-500">Questions</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3 text-center">
+              <p className="text-xl font-bold text-thunder-red">60s</p>
+              <p className="text-xs text-gray-500">Per Question</p>
+            </div>
+          </div>
+
+          {/* Nickname Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="nickname" className="block text-sm font-semibold text-gray-700 mb-2">
+                Enter Your Nickname
+              </label>
+              <input
+                type="text"
+                id="nickname"
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value);
+                  setError('');
+                }}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 focus:bg-white transition-all text-sm font-medium"
+                placeholder="ThunderBolt99"
+                maxLength={15}
+                autoFocus
+              />
+              {error && (
+                <p className="mt-2 text-xs text-red-600 font-medium">{error}</p>
+              )}
+              {!error && nickname.length > 0 && (
+                <p className="mt-2 text-xs text-gray-500">
+                  {15 - nickname.length} characters remaining
+                </p>
+              )}
             </div>
 
-            {/* Top Scores Preview */}
-            {topScores.length > 0 && (
-              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-2xl p-8 border-2 border-yellow-300">
-                <h2 className="text-xl font-black text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">
-                  🏆 Top Thunder Players 🏆
-                </h2>
-                <div className="space-y-3">
-                  {topScores.map((player, index) => (
-                    <div key={index} className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border-2 border-yellow-200">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-black text-yellow-600">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                        </span>
-                        <span className="font-bold text-gray-800">{player.nickname}</span>
-                      </div>
-                      <span className="font-black text-xl text-thunder-red">{player.score} pts</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <button
+              type="submit"
+              disabled={nickname.length === 0}
+              className="w-full py-4 bg-gradient-to-r from-thunder-red to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+            >
+              Start Playing
+            </button>
+          </form>
+        </div>
 
-            {/* Nickname Form - More playful */}
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="relative">
-                <label htmlFor="nickname" className="block text-xl font-black text-gray-900 mb-4 text-center">
-                  ⭐ Choose Your Nickname ⭐
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="nickname"
-                    value={nickname}
-                    onChange={(e) => {
-                      setNickname(e.target.value);
-                      setError('');
-                    }}
-                    className="w-full px-8 py-5 text-2xl font-bold border-4 border-blue-300 rounded-3xl focus:outline-none focus:border-thunder-red focus:ring-4 focus:ring-red-100 transition-all bg-gradient-to-r from-blue-50 to-white placeholder-gray-400"
-                    placeholder="ThunderBolt99"
-                    maxLength={15}
-                    autoFocus
-                  />
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-3xl">
-                    {nickname.length > 0 && '⚡'}
+        {/* Game Format Card */}
+        <div className="modern-card-sm">
+          <h3 className="font-bold text-gray-900 mb-3">How to Play</h3>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
+              <span className="text-lg">⚡</span>
+              <span className="text-xs text-gray-700">Answer quickly to earn more points</span>
+            </div>
+            <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
+              <span className="text-lg">💡</span>
+              <span className="text-xs text-gray-700">Use hints if stuck (half points)</span>
+            </div>
+            <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
+              <span className="text-lg">🎯</span>
+              <span className="text-xs text-gray-700">Build streaks for bonus points</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Leaderboard Preview */}
+        {topScores.length > 0 && (
+          <div className="modern-card-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-gray-900">Top Players</h3>
+              <span className="text-xl">🏆</span>
+            </div>
+            <div className="space-y-2">
+              {topScores.map((player, index) => (
+                <div
+                  key={index}
+                  className={`p-2.5 rounded-lg flex items-center justify-between ${
+                    index === 0 
+                      ? 'bg-gradient-to-r from-yellow-50 to-yellow-100' 
+                      : 'bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    </span>
+                    <span className="text-sm font-medium text-gray-800">{player.nickname}</span>
                   </div>
+                  <span className="text-sm font-bold text-thunder-red">{player.score}</span>
                 </div>
-                {error && (
-                  <p className="mt-3 text-base text-red-600 font-bold text-center">
-                    ❌ {error}
-                  </p>
-                )}
-                {!error && nickname.length > 0 && (
-                  <p className="mt-3 text-base text-green-600 font-bold text-center">
-                    ✅ Great nickname!
-                  </p>
-                )}
-                {!error && nickname.length === 0 && (
-                  <p className="mt-3 text-sm text-gray-500 text-center">
-                    3-15 characters, letters and numbers only
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-6 px-8 bg-gradient-to-r from-thunder-red to-red-700 hover:from-red-700 hover:to-red-800 text-white text-2xl font-black rounded-3xl transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 border-4 border-red-800"
-              >
-                <span className="flex items-center justify-center gap-3">
-                  <span>Start Game</span>
-                  <span className="text-3xl">🏒</span>
-                </span>
-              </button>
-            </form>
-
-            {/* Footer - Match the style you like */}
-            <div className="mt-10 pt-8 border-t border-gray-200 text-center">
-              <p className="text-lg font-semibold text-gray-900">U10A Ted Reeve Thunder</p>
-              <p className="text-base text-gray-600 mt-2 font-medium">Have fun, work hard, be a great teammate!</p>
+              ))}
             </div>
           </div>
+        )}
+
+        {/* Footer */}
+        <div className="text-center pt-2">
+          <p className="text-xs text-gray-500">
+            Ted Reeve Thunder U10A
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Have fun, work hard, be a great teammate!
+          </p>
         </div>
       </div>
     </div>
