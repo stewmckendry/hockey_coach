@@ -86,7 +86,7 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </div>
 
           {/* Nickname Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 mt-8">
             <div>
               <label htmlFor="nickname" className="block text-sm font-semibold text-gray-700 mb-2">
                 Enter Your Nickname
