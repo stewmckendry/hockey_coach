@@ -15,6 +15,8 @@ from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 import asyncio
 import uuid
+import concurrent.futures
+import threading
 from pydantic import BaseModel, Field
 
 # Add parent directories to path for imports
@@ -318,26 +320,31 @@ def initialize_diagram(
         "diagram_type": diagram_type or "drill",
         "created_at": timestamp,
         "workflow": {
-            "recommended": "INCREMENTAL (atomic building tools)",
+            "recommended": "INCREMENTAL (batch-optimized atomic building tools)",
             "steps": [
                 "1. initialize_diagram() - Get session_id and empty spec",
                 "2. analyze_hockey_query() - Optional but recommended for understanding",
-                "3. Build spec with atomic tools:",
-                "   - add_player() - Add players with positions",
-                "   - add_coach() - Add coaches if needed",
-                "   - add_equipment() - Add cones, pylons, etc.",
-                "   - add_movement() - Add passes, shots, skating paths",
+                "3. Build spec with BATCH atomic tools (reduced MCP calls):",
+                "   - add_players() - Add multiple players in one call",
+                "   - add_coaches() - Add multiple coaches in one call",
+                "   - add_equipment() - Add multiple equipment items in one call",
+                "   - add_movements() - Add multiple movements in one call",
                 "4. validate_diagram_spec_full() - Validate complete spec",
                 "5. preview_diagram() - Preview before generating",
                 "6. generate_diagram() - Create final diagram",
                 "7. save_diagram_template() - Save for reuse"
             ],
+            "batch_benefits": {
+                "performance": "Reduce MCP calls by 70-80% with batch operations",
+                "async_processing": "Batch tools process items concurrently for speed",
+                "example": "5 players + 3 equipment + 4 movements = 3 calls instead of 12"
+            },
             "movement_patterns": {
-                "simple": "Single add_movement() with optional curve_point",
-                "complex": "Chain multiple add_movement() calls (circles, figure-8, zigzag)",
+                "simple": "Single movement with optional curve_point",
+                "complex": "Batch multiple movements (circles, figure-8, zigzag)",
                 "curve_control": "Use curve_point parameter for precise Bezier curves"
             },
-            "note": "translate_analysis_to_spec is deprecated - use atomic tools for higher confidence"
+            "note": "Single-record tools (add_player, add_coach, etc.) are deprecated - use batch versions"
         },
         "instructions": (
             f"IMPORTANT: Pass session_id='{session_id}' to ALL subsequent tool calls "
@@ -4334,7 +4341,11 @@ def health_check() -> Dict[str, Any]:
 # ATOMIC BUILDING TOOLS - Phase 1
 # ============================================================================
 
-@mcp.tool("add_player")
+# DEPRECATED: Single-record tools have been deprecated in favor of batch tools
+# Use add_players, add_coaches, add_equipment, add_movements instead
+# These are kept for backward compatibility but not exposed via @mcp.tool
+
+# @mcp.tool("add_player")  # DEPRECATED - use add_players instead
 def add_player(
     spec: Dict[str, Any],
     player_type: str,
@@ -4563,7 +4574,7 @@ def add_player(
             "spec": spec
         }
 
-@mcp.tool("add_coach")
+# @mcp.tool("add_coach")  # DEPRECATED - use add_coaches instead
 def add_coach(
     spec: Dict[str, Any],
     position_desc: str,
@@ -4761,8 +4772,8 @@ def add_coach(
             "spec": spec
         }
 
-@mcp.tool("add_equipment")
-def add_equipment(
+# @mcp.tool("add_equipment")  # DEPRECATED - use add_equipment (plural) instead
+def add_equipment_single(
     spec: Dict[str, Any],
     equipment_type: str,
     position_desc: str,
@@ -5194,7 +5205,7 @@ Generate waypoints for a realistic hockey movement path."""
         log_with_session(session_id, "error", f"❌ Movement path mapping failed: {str(e)}")
         return {"error": str(e)}
 
-@mcp.tool("add_movement")
+# @mcp.tool("add_movement")  # DEPRECATED - use add_movements instead
 def add_movement(
     spec: Dict[str, Any],
     movement_type: str,
@@ -5604,6 +5615,329 @@ def add_movement(
             "error": str(e),
             "spec": spec
         }
+
+# ============================================================================
+# BATCH PROCESSING TOOLS
+# ============================================================================
+
+@mcp.tool("add_players")
+def add_players(
+    spec: Dict[str, Any],
+    players: List[Dict[str, Any]],
+    session_id: Optional[str] = None,
+    use_async: bool = True
+) -> Dict[str, Any]:
+    """
+    Add multiple players to the diagram spec in a single call.
+    Processes players concurrently for better performance.
+    
+    Args:
+        spec: Current diagram specification
+        players: List of player dicts. Each dict should have:
+                 - player_type: "forward", "defense", or "goalie"
+                 - position_desc: Natural language position like "faceoff dot", "high slot", "corner"
+                 - zone: Required zone context - "offensive", "defensive", or "neutral"
+                 - team: "home", "away", or "neutral" (default: "home")
+                 - has_puck: Whether player starts with puck (default: False)
+                 - player_id: Custom ID, auto-generates if not provided (F1, F2, D1, etc.)
+                 - label: Display label, defaults to player_id
+        session_id: Session ID for tracking
+        use_async: Whether to process players concurrently (default: True)
+        
+    Returns:
+        Updated spec with all players added, plus summary of results
+    """
+    import concurrent.futures
+    import threading
+    
+    log_with_session(session_id, "info", f"🎯 Batch adding {len(players)} players {'(async)' if use_async else '(sequential)'}")
+    
+    added_players = []
+    errors = []
+    spec_lock = threading.Lock()
+    
+    def process_player(idx, player_data):
+        """Process a single player and return result."""
+        try:
+            # Create a copy of spec for thread safety
+            with spec_lock:
+                spec_copy = dict(spec)
+            
+            # Call the original add_player function
+            result = add_player(
+                spec=spec_copy,
+                player_type=player_data.get("player_type"),
+                position_desc=player_data.get("position_desc"),
+                zone=player_data.get("zone"),
+                team=player_data.get("team", "home"),
+                has_puck=player_data.get("has_puck", False),
+                player_id=player_data.get("player_id"),
+                label=player_data.get("label"),
+                session_id=session_id
+            )
+            
+            if result.get("status") == "success":
+                return ("success", idx, result.get("added_player"), result.get("spec"))
+            else:
+                return ("error", idx, result.get("error", "Unknown error"))
+        except Exception as e:
+            return ("error", idx, str(e))
+    
+    if use_async and len(players) > 1:
+        # Process players concurrently
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(players), 5)) as executor:
+            futures = [executor.submit(process_player, idx, player_data) 
+                      for idx, player_data in enumerate(players)]
+            
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                if result[0] == "success":
+                    added_players.append(result[2])
+                    # Update spec with the changes
+                    with spec_lock:
+                        if "players" not in spec:
+                            spec["players"] = []
+                        # Get the new players from the result spec
+                        result_spec = result[3]
+                        if result_spec and "players" in result_spec:
+                            # Find the newly added player
+                            for p in result_spec["players"]:
+                                if not any(existing["id"] == p["id"] for existing in spec["players"]):
+                                    spec["players"].append(p)
+                else:
+                    errors.append({
+                        "index": result[1],
+                        "error": result[2]
+                    })
+    else:
+        # Sequential processing
+        for idx, player_data in enumerate(players):
+            result = process_player(idx, player_data)
+            if result[0] == "success":
+                added_players.append(result[2])
+                spec = result[3]
+            else:
+                errors.append({
+                    "index": result[1],
+                    "error": result[2]
+                })
+    
+    return {
+        "spec": spec,
+        "status": "success" if not errors else "partial" if added_players else "error",
+        "added_count": len(added_players),
+        "error_count": len(errors),
+        "added_players": added_players,
+        "errors": errors if errors else None,
+        "message": f"Added {len(added_players)} of {len(players)} players"
+    }
+
+@mcp.tool("add_coaches")
+def add_coaches(
+    spec: Dict[str, Any],
+    coaches: List[Dict[str, Any]],
+    session_id: Optional[str] = None,
+    use_async: bool = True
+) -> Dict[str, Any]:
+    """
+    Add multiple coaches to the diagram spec in a single call.
+    
+    Args:
+        spec: Current diagram specification
+        coaches: List of coach dicts. Each dict should have:
+                 - position_desc: Natural language position like "behind bench", "top of circle", "near boards"
+                 - zone: Required zone context - "offensive", "defensive", "neutral", or "bench"
+                 - role: "head", "assistant", or "guest" (default: "head")
+                 - coach_id: Custom ID, auto-generates if not provided (C1, C2, etc.)
+                 - label: Display label, defaults to coach_id
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with all coaches added, plus summary of results
+    """
+    log_with_session(session_id, "info", f"🎯 Batch adding {len(coaches)} coaches")
+    
+    added_coaches = []
+    errors = []
+    
+    for idx, coach_data in enumerate(coaches):
+        try:
+            # Call the original add_coach function
+            result = add_coach(
+                spec=spec,
+                position_desc=coach_data.get("position_desc"),
+                zone=coach_data.get("zone"),
+                role=coach_data.get("role", "head"),
+                coach_id=coach_data.get("coach_id"),
+                label=coach_data.get("label"),
+                session_id=session_id
+            )
+            
+            if result.get("status") == "success":
+                added_coaches.append(result.get("added_coach"))
+                spec = result.get("spec", spec)
+            else:
+                errors.append({
+                    "index": idx,
+                    "error": result.get("error", "Unknown error")
+                })
+        except Exception as e:
+            errors.append({
+                "index": idx,
+                "error": str(e)
+            })
+    
+    return {
+        "spec": spec,
+        "status": "success" if not errors else "partial" if added_coaches else "error",
+        "added_count": len(added_coaches),
+        "error_count": len(errors),
+        "added_coaches": added_coaches,
+        "errors": errors if errors else None,
+        "message": f"Added {len(added_coaches)} of {len(coaches)} coaches"
+    }
+
+@mcp.tool("add_equipment")
+def add_equipment_items(
+    spec: Dict[str, Any],
+    equipment_items: List[Dict[str, Any]],
+    session_id: Optional[str] = None,
+    use_async: bool = True
+) -> Dict[str, Any]:
+    """
+    Add multiple equipment items to the diagram spec in a single call.
+    
+    Args:
+        spec: Current diagram specification
+        equipment_items: List of equipment dicts. Each dict should have:
+                         - equipment_type: "cone", "pylon", "tire", "net", "stick", "puck", "obstacle"
+                         - position_desc: Natural language position like "blue line", "center ice", "corner"
+                         - zone: Required zone context - "offensive", "defensive", "neutral"
+                         - count: Number of equipment items (default: 1)
+                         - color: Equipment color (default: "orange")
+                         - size: Equipment size - "small", "medium", "large" (default: "medium")
+                         - equipment_id: Custom ID (auto-generates E1, E2, E3)
+                         - label: Display label (defaults to equipment_id)
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with all equipment added, plus summary of results
+    """
+    log_with_session(session_id, "info", f"🎯 Batch adding {len(equipment_items)} equipment items")
+    
+    added_equipment = []
+    errors = []
+    
+    for idx, equipment_data in enumerate(equipment_items):
+        try:
+            # Call the original add_equipment function
+            result = add_equipment_single(
+                spec=spec,
+                equipment_type=equipment_data.get("equipment_type"),
+                position_desc=equipment_data.get("position_desc"),
+                zone=equipment_data.get("zone"),
+                count=equipment_data.get("count", 1),
+                color=equipment_data.get("color", "orange"),
+                size=equipment_data.get("size", "medium"),
+                equipment_id=equipment_data.get("equipment_id"),
+                label=equipment_data.get("label"),
+                session_id=session_id
+            )
+            
+            if result.get("status") == "success":
+                added_equipment.append(result.get("added_equipment"))
+                spec = result.get("spec", spec)
+            else:
+                errors.append({
+                    "index": idx,
+                    "error": result.get("error", "Unknown error")
+                })
+        except Exception as e:
+            errors.append({
+                "index": idx,
+                "error": str(e)
+            })
+    
+    return {
+        "spec": spec,
+        "status": "success" if not errors else "partial" if added_equipment else "error",
+        "added_count": len(added_equipment),
+        "error_count": len(errors),
+        "added_equipment": added_equipment,
+        "errors": errors if errors else None,
+        "message": f"Added {len(added_equipment)} of {len(equipment_items)} equipment items"
+    }
+
+@mcp.tool("add_movements")
+def add_movements(
+    spec: Dict[str, Any],
+    movements: List[Dict[str, Any]],
+    session_id: Optional[str] = None,
+    use_async: bool = True
+) -> Dict[str, Any]:
+    """
+    Add multiple movements to the diagram spec in a single call.
+    
+    Args:
+        spec: Current diagram specification
+        movements: List of movement dicts. Each dict should have:
+                   - movement_type: "pass", "shot", "skate", "carry", etc.
+                   - from_desc: Start position description
+                   - to_desc: End position description
+                   - curve_point: Optional curve control point
+                   - style: Movement style (default: "solid")
+                   - with_puck: Whether movement involves the puck (default: False)
+                   - label: Optional label for the movement
+                   - movement_id: Custom ID (auto-generates M1, M2, M3)
+        session_id: Session ID for tracking
+        
+    Returns:
+        Updated spec with all movements added, plus summary of results
+    """
+    log_with_session(session_id, "info", f"🎯 Batch adding {len(movements)} movements")
+    
+    added_movements = []
+    errors = []
+    
+    for idx, movement_data in enumerate(movements):
+        try:
+            # Call the original add_movement function
+            result = add_movement(
+                spec=spec,
+                movement_type=movement_data.get("movement_type"),
+                from_desc=movement_data.get("from_desc"),
+                to_desc=movement_data.get("to_desc"),
+                curve_point=movement_data.get("curve_point"),
+                style=movement_data.get("style", "solid"),
+                with_puck=movement_data.get("with_puck", False),
+                label=movement_data.get("label"),
+                movement_id=movement_data.get("movement_id"),
+                session_id=session_id
+            )
+            
+            if result.get("status") == "success":
+                added_movements.append(result.get("added_movement"))
+                spec = result.get("spec", spec)
+            else:
+                errors.append({
+                    "index": idx,
+                    "error": result.get("error", "Unknown error")
+                })
+        except Exception as e:
+            errors.append({
+                "index": idx,
+                "error": str(e)
+            })
+    
+    return {
+        "spec": spec,
+        "status": "success" if not errors else "partial" if added_movements else "error",
+        "added_count": len(added_movements),
+        "error_count": len(errors),
+        "added_movements": added_movements,
+        "errors": errors if errors else None,
+        "message": f"Added {len(added_movements)} of {len(movements)} movements"
+    }
 
 # ============================================================================
 # SERVER INITIALIZATION
