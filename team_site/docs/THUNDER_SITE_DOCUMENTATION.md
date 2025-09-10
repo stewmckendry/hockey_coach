@@ -1,5 +1,5 @@
 # ⚡ THUNDER HOCKEY TEAM SITE - MASTER DOCUMENTATION
-*Version 1.3 - January 7, 2025*
+*Version 1.4 - January 8, 2025*
 
 ## 🎯 Overview
 This document serves as the single source of truth for the Ted Reeve Thunder U10A team Notion site. All parallel development sessions should reference this document to maintain consistency.
@@ -139,6 +139,63 @@ Relations:
 - Related to Drills (Relation to Drills DB)
 - Related to Systems (Relation to Systems DB)
 ```
+
+---
+
+## 🎮 THUNDER HOCKEY QUIZ CHALLENGE
+
+### Overview
+The Thunder Hockey Quiz Challenge is an interactive quiz application embedded directly in the team's Notion site, designed to help U10A players learn hockey systems, rules, and team concepts through gamified learning.
+
+### Access
+- **Notion Page**: https://www.notion.so/Thunder-Hockey-Quiz-Challenge-2680cdbf4977803a8a18f1655dc8be53
+- **Embedded App URL**: https://thunder-quiz.vercel.app (or custom domain)
+- **Database ID** (for leaderboard): `2680cdbf-4977-8119-89fc-fba3dd92f096`
+
+### Key Features
+- **94 Question Bank**: Comprehensive questions across 9 categories
+- **Progressive Difficulty**: Questions get harder through 3 periods
+- **AI-Powered Validation**: OpenAI GPT-4o-mini validates answers and generates hints
+- **Dual Leaderboard System**: 
+  - Primary: Notion database for coach/parent visibility
+  - Fallback: Vercel KV/local storage
+- **Hockey Theme**: 3 periods × 5 questions, score displayed on rink visual
+- **Kid-Friendly**: Grade 4 reading level, 60-second timer, encouraging feedback
+
+### Question Categories (94 Total)
+1. **Hockey Rules & Penalties** (25 questions)
+2. **Team Systems** (22 questions) - Thunder-specific plays
+3. **NHL Knowledge** (12 questions)
+4. **Team Tactics** (11 questions)
+5. **Skills & Fundamentals** (11 questions)
+6. **Equipment & Safety** (6 questions)
+7. **Sportsmanship** (4 questions)
+8. **Practice & Drills** (2 questions)
+9. **Fun Facts** (1 question)
+
+### Technical Stack
+- **Framework**: Next.js 15.5.2 with TypeScript
+- **Styling**: Tailwind CSS with Thunder colors
+- **AI Service**: OpenAI API for answer validation
+- **Primary Database**: Notion API for leaderboard
+- **Deployment**: Vercel
+- **Embedding**: iframe in Notion page
+
+### Embedding in Notion
+```html
+<iframe src="https://thunder-quiz.vercel.app" 
+        width="100%" 
+        height="700" 
+        frameborder="0"
+        allowfullscreen>
+</iframe>
+```
+
+### Success Metrics
+- 80% team participation within first week
+- 70% game completion rate
+- 50% monthly retention
+- Measurable improvement in system knowledge
 
 ---
 
@@ -423,6 +480,17 @@ The following planning documents have been archived and should NOT be used for n
 ---
 
 ## 📋 CHANGELOG
+
+### Version 1.4 - January 8, 2025
+- Added Thunder Hockey Quiz Challenge section
+  - Documented the embedded quiz application
+  - 94 questions across 9 categories with progressive difficulty
+  - AI-powered answer validation using OpenAI GPT-4o-mini
+  - Dual leaderboard system (Notion primary, Vercel KV fallback)
+  - Technical stack and embedding instructions
+  - Kid-friendly design for U10A players (ages 9-10)
+  - Success metrics and engagement tracking
+- Updated documentation to reflect the interactive learning component of the site
 
 ### Version 1.3 - January 7, 2025
 - Added Thunder Code - Team Guidelines database
