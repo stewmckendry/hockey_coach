@@ -1,0 +1,156 @@
+{
+  "description": "Centralized hockey rink coordinate reference for all position mapping",
+  "coordinate_system": {
+    "x_axis": "-100 (left/defensive end) to +100 (right/offensive end)",
+    "y_axis": "-42.5 (bottom) to +42.5 (top)",
+    "center_ice": {"x": 0, "y": 0}
+  },
+  "key_landmarks": {
+    "blue_lines": {
+      "offensive": {"x": 69, "y": 0},
+      "defensive": {"x": -69, "y": 0}
+    },
+    "goal_lines": {
+      "offensive": {"x": 89, "y": 0},
+      "defensive": {"x": -89, "y": 0}
+    },
+    "red_line": {"x": 0, "y": 0},
+    "side_boards": {
+      "top": {"y": 42.5},
+      "bottom": {"y": -42.5}
+    },
+    "end_boards": {
+      "offensive": {"x": 100},
+      "defensive": {"x": -100}
+    },
+    "top_of_circles": {
+      "offensive": {"x": 79, "y": 0},
+      "defensive": {"x": -79, "y": 0},
+      "note": "Circles extend ~10 units past blue lines"
+    }
+  },
+  "faceoff_dots": {
+    "offensive_zone": {
+      "right_faceoff_dot": {"x": 69, "y": -22.5},
+      "left_faceoff_dot": {"x": 69, "y": 22.5}
+    },
+    "defensive_zone": {
+      "right_faceoff_dot": {"x": -69, "y": -22.5},
+      "left_faceoff_dot": {"x": -69, "y": 22.5}
+    },
+    "neutral_zone": {
+      "center_faceoff_dot": {"x": 0, "y": 0},
+      "right_offensive_neutral_dot": {"x": 20, "y": -22.5},
+      "left_offensive_neutral_dot": {"x": 20, "y": 22.5},
+      "right_defensive_neutral_dot": {"x": -20, "y": -22.5},
+      "left_defensive_neutral_dot": {"x": -20, "y": 22.5}
+    }
+  },
+  "nets": {
+    "offensive_net": {"x": 89, "y": 0},
+    "defensive_net": {"x": -89, "y": 0}
+  },
+  "zone_positions": {
+    "offensive": {
+      "right faceoff dot": {"x": 69, "y": -22.5},
+      "left faceoff dot": {"x": 69, "y": 22.5},
+      "right circle": {"x": 69, "y": -22.5},
+      "left circle": {"x": 69, "y": 22.5},
+      "faceoff dot": {"x": 69, "y": 22.5, "note": "Default to left"},
+      "top of circle": {"x": 79, "y": 0, "note": "Circle extends ~10 units past blue line"},
+      "slot": {"x": 75, "y": 0},
+      "high slot": {"x": 65, "y": 0},
+      "right point": {"x": 54, "y": -38},
+      "left point": {"x": 54, "y": 38},
+      "net front": {"x": 85, "y": 0},
+      "net": {"x": 89, "y": 0, "note": "Goalie net position"},
+      "behind net": {"x": 92, "y": 0},
+      "right corner": {"x": 89, "y": -36},
+      "left corner": {"x": 89, "y": 36},
+      "right half wall": {"x": 75, "y": -38},
+      "left half wall": {"x": 75, "y": 38},
+      "blue line": {"x": 25, "y": 0, "note": "Offensive zone entry line"},
+      "blue line center": {"x": 25, "y": 0, "note": "Center of offensive blue line"},
+      "offensive blue line center": {"x": 25, "y": 0, "note": "Offensive blue line at center ice"},
+      "blue line left": {"x": 25, "y": 20, "note": "Left side of offensive blue line"},
+      "blue line right": {"x": 25, "y": -20, "note": "Right side of offensive blue line"},
+      "corner": {"x": 89, "y": 36, "note": "Default to left corner"},
+      "goal line": {"x": 89, "y": 0}
+    },
+    "defensive": {
+      "right faceoff dot": {"x": -69, "y": -22.5},
+      "left faceoff dot": {"x": -69, "y": 22.5},
+      "right circle": {"x": -69, "y": -22.5},
+      "left circle": {"x": -69, "y": 22.5},
+      "faceoff dot": {"x": -69, "y": 22.5, "note": "Default to left"},
+      "top of circle": {"x": -79, "y": 0, "note": "Circle extends ~10 units past blue line"},
+      "slot": {"x": -75, "y": 0},
+      "high slot": {"x": -65, "y": 0},
+      "right point": {"x": -54, "y": -38},
+      "left point": {"x": -54, "y": 38},
+      "net front": {"x": -85, "y": 0},
+      "net": {"x": -89, "y": 0, "note": "Goalie net position"},
+      "behind net": {"x": -92, "y": 0},
+      "right corner": {"x": -89, "y": -36},
+      "left corner": {"x": -89, "y": 36},
+      "right half wall": {"x": -75, "y": -38},
+      "left half wall": {"x": -75, "y": 38},
+      "blue line": {"x": -69, "y": 0},
+      "blue line center": {"x": -69, "y": 0},
+      "corner": {"x": -89, "y": 36, "note": "Default to left corner"},
+      "goal line": {"x": -89, "y": 0}
+    },
+    "neutral": {
+      "center ice": {"x": 0, "y": 0},
+      "center": {"x": 0, "y": 0},
+      "red line": {"x": 0, "y": 0},
+      "center faceoff dot": {"x": 0, "y": 0},
+      "right offensive neutral dot": {"x": 20, "y": -22.5, "note": "Near offensive blue line"},
+      "left offensive neutral dot": {"x": 20, "y": 22.5, "note": "Near offensive blue line"},
+      "right defensive neutral dot": {"x": -20, "y": -22.5, "note": "Near defensive blue line"},
+      "left defensive neutral dot": {"x": -20, "y": 22.5, "note": "Near defensive blue line"},
+      "near offensive blue": {"x": 34, "y": 0},
+      "near defensive blue": {"x": -34, "y": 0}
+    },
+    "bench": {
+      "behind home bench": {"x": -50, "y": 42},
+      "behind away bench": {"x": -50, "y": -42},
+      "home bench": {"x": -50, "y": 42},
+      "away bench": {"x": -50, "y": -42},
+      "bench": {"x": -50, "y": 42, "note": "Default to home"},
+      "penalty box": {"x": 0, "y": -42}
+    }
+  },
+  "relative_positioning_guide": {
+    "halfway_between": "Calculate (A.x + B.x) / 2, (A.y + B.y) / 2",
+    "distance_mapping": "1 foot ≈ 1 unit in coordinate system",
+    "near_boards": "y should be close to ±42.5",
+    "in_front_of": "Typically 5-10 units towards center from reference point",
+    "behind": "Add units away from center"
+  },
+  "examples": {
+    "halfway_between_blue_line_and_top_of_circle": {
+      "offensive": {"x": 74, "y": 0, "calculation": "(69 + 79) / 2 = 74"},
+      "defensive": {"x": -74, "y": 0, "calculation": "(-69 + -79) / 2 = -74"}
+    },
+    "between_blue_line_and_red_line": {
+      "offensive": {"x": 34.5, "calculation": "(69 + 0) / 2 = 34.5"},
+      "defensive": {"x": -34.5, "calculation": "(-69 + 0) / 2 = -34.5"}
+    }
+  },
+  "ambiguity_resolution": {
+    "left_right_interpretation": {
+      "wing_positions_y_axis": {
+        "right": -22.5,
+        "left": 22.5,
+        "description": "Wing positions like 'right wing', 'right side', 'right boards'"
+      },
+      "zone_progression_x_axis": {
+        "right": "positive x (towards offensive end)",
+        "left": "negative x (towards defensive end)",
+        "description": "Zone context like 'right side of neutral zone'"
+      }
+    },
+    "default_interpretation": "Single word 'right/left' → Wing position (Y-axis)"
+  }
+}
