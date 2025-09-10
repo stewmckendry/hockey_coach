@@ -1,26 +1,82 @@
 # Video Demo Scripts for Blog Post
 
-## Demo 1: Claude Code Development Flow (2 minutes)
-**Location:** Terminal with Claude Code
+## Demo 1: Claude Code with MCP Tools (90 seconds)
+**Location:** Warp Terminal with Claude Code
+**Purpose:** Show the power of Claude + MCP tools for rapid development
 
-### Script:
-1. Open terminal, show Claude Code interface
-2. Type: "Help me search for passing drills in my hockey knowledge base"
-3. Show Claude generating the MCP search function
-4. Show real-time file creation and editing
-5. Run the search, show results
-6. Ask Claude to "add a filter for U10 age group"
-7. Show instant code modification
-8. End with working search returning specific drills
+### Script (with timing):
 
-### Key Points:
-- Natural conversation to working code
-- No context switching
-- Immediate testing and iteration
+**0:00-0:10** - Opening shot
+```bash
+$ claude "Build a shot tracking feature for our hockey app using 
+Airtable for storage and Playwright for testing"
+```
+
+**0:10-0:20** - Plan Mode (show briefly, then fast-forward)
+```
+Claude: Creating development plan...
+[Show plan mode briefly]
+✓ GitHub Issue #127 created
+✓ Feature branch created
+✓ Architecture defined
+```
+
+**0:20-0:35** - MCP Tools in Action (key highlight)
+```
+Claude: Using MCP tools to set up infrastructure...
+
+[Airtable MCP] Creating Shot_Tracking table...
+✓ Table created with 6 fields
+
+[Hockey-KB MCP] Finding best practices for shot metrics...
+✓ Found NHL analytics patterns
+
+[Fast-forward through actual queries]
+```
+
+**0:35-0:50** - Parallel Development (speed up 4x)
+```
+Launching parallel agents:
+- Agent 1: Building API layer
+- Agent 2: Creating React components  
+- Agent 3: Writing Playwright tests
+
+[Show split screen with files being created rapidly]
+[Speed up 4x with counter showing "12 files created"]
+```
+
+**0:50-0:70** - Playwright Testing (real-time highlight)
+```
+Claude: Running automated UI tests...
+
+[Show browser opening automatically]
+[Tests running through the app]
+✓ All 8 E2E tests passing
+✓ 100% code coverage
+```
+
+**0:70-0:85** - Final Result
+```
+COMPLETE: Shot tracking feature ready
+- GitHub PR created
+- Tests passing
+- Deployed to staging
+- Time elapsed: 18 minutes
+```
+
+**0:85-0:90** - Closing
+Show live app with shot tracking working
+
+### Key Moments:
+- MCP tools working together (Airtable, Hockey-KB, Playwright)
+- Parallel agents developing simultaneously 
+- Automated testing with Playwright
+- 18 minutes from idea to deployed feature
 
 ---
 
 ## Demo 2: Knowledge Base Search (90 seconds)
+**Note:** Will be done in Claude Desktop for better UI
 **Location:** Terminal running hockey_mcp
 
 ### Script:
@@ -44,6 +100,7 @@
 ---
 
 ## Demo 3: Diagram Generation Workflow (2 minutes)
+**Note:** Will be done in Claude Desktop for better UI
 **Location:** Split screen - Terminal and SVG output
 
 ### Script:
@@ -153,44 +210,55 @@
 
 ---
 
-## Screenshot List
+## Essential Screenshots & Images (10 Key Visuals)
 
-1. **Claude Code Terminal Session**
-   - Show conversation and code generation side-by-side
-   - Include file tree showing project structure
+### Must-Have Images:
 
-2. **Hockey Diagram Examples**
-   - Grid of 6 different diagrams (forechecks, breakouts, drills)
-   - Before/after comparison with hand-drawn versions
+1. **n8n Workflow Canvas** (CRITICAL)
+   - Full TeamSnap → OpenAI → Notion workflow
+   - Show all nodes connected with data flow
+   - Include one close-up of AI enhancement node
 
-3. **Airtable Dashboard**
-   - Practice planning calendar view
-   - Player development heat map
-   - Drill library with filters
+2. **Claude Code with MCP Tools**
+   - Warp terminal showing MCP tools in action
+   - Split view: command and response
+   - Show "✓ Tests passing" prominently
 
-4. **n8n Workflow Canvas**
-   - Complete TeamSnap to Notion workflow
-   - Node configuration panels
-   - Execution history
+3. **Hockey Diagram Comparison**
+   - Side-by-side: Whiteboard sketch vs Clean SVG
+   - Same play in both formats
+   - Shows transformation quality
 
-5. **Notion Team Site**
-   - Homepage with upcoming events
-   - Embedded calendar
-   - Team playbook section
-   - Parent resources
+4. **Airtable Practice Dashboard**
+   - Calendar view with drill success rates
+   - Clean, data-rich interface
+   - Mobile view in corner
 
-6. **Quiz App Interface**
-   - Question screen with visual aids
-   - Hint interaction
-   - Leaderboard
-   - Coach analytics dashboard
+5. **Notion Team Playbook**
+   - Homepage with embedded videos/diagrams
+   - Show quiz leaderboard integration
+   - Kid-friendly design
 
-7. **System Architecture Diagram**
-   - All tools and connections
+6. **Quiz App in Action**
+   - Question with Socratic hint visible
+   - Leaderboard showing engagement
+   - Clean, playful UI
+
+7. **Before/After Time Comparison**
+   - Simple graphic: "3 hours → 20 minutes"
+   - Show task: "Create practice plan with diagrams"
+
+8. **System Architecture**
+   - Clean diagram showing all tools connected
+   - MCP at the center
    - Data flow arrows
-   - Color-coded by function
 
-8. **Before/After Comparison**
-   - Split screen: Old way (PDFs, emails) vs New way (integrated system)
-   - Time investment comparison
-   - Output quality comparison
+9. **Playwright Testing**
+   - Browser automating test
+   - Green checkmarks for passed tests
+   - "100% Coverage" badge
+
+10. **Mobile Experience**
+    - Phone showing Notion site
+    - Parent-friendly schedule view
+    - Professional but accessible

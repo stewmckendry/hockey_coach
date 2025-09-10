@@ -87,3 +87,4 @@ outputs/**/*_20[0-9][0-9][0-1][0-9][0-3][0-9]_*.*
 n8n/workflows/drill_images/
 n8n/workflows/test_*.png
 n8n/workflows/drill_diagram_*.png
+*.mov
