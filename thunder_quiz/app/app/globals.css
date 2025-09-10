@@ -1,0 +1,231 @@
+@import "tailwindcss";
+
+:root {
+  --thunder-red: #DC2626;
+  --thunder-red-light: #FEE2E2;
+  --thunder-red-pastel: #FECACA;
+  --thunder-black: #1F2937;
+  --thunder-grey: #6B7280;
+  --thunder-white: #FFFFFF;
+  --thunder-light-grey: #F9FAFB;
+  --thunder-bg: #F8FAFC;
+  
+  --background: #F8FAFC;
+  --foreground: #1F2937;
+  --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-thunder-red: var(--thunder-red);
+  --color-thunder-black: var(--thunder-black);
+  --color-thunder-grey: var(--thunder-grey);
+  --color-thunder-white: var(--thunder-white);
+  --color-thunder-light-grey: var(--thunder-light-grey);
+  --font-sans: Inter, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  color: var(--foreground);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', Arial, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Notion-style typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: rgb(55, 53, 47);
+}
+
+h1 { font-size: 2.5rem; font-weight: 700; line-height: 1.2; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+
+p {
+  color: rgb(55, 53, 47);
+  line-height: 1.7;
+}
+
+/* Modern card styles */
+.modern-card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.modern-card:hover {
+  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-4px);
+}
+
+.modern-card-sm {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 24px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+}
+
+/* Notion-style callouts */
+.notion-callout {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px;
+  border-radius: 8px;
+  background: rgb(241, 241, 239);
+  margin: 20px 0;
+  gap: 12px;
+}
+
+.notion-callout-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.notion-callout-red {
+  background: rgba(255, 235, 238, 0.8);
+  border-left: 3px solid var(--thunder-red);
+}
+
+.notion-callout-yellow {
+  background: rgba(251, 243, 219, 0.8);
+  border-left: 3px solid #F59E0B;
+}
+
+/* Thunder specific styles */
+.thunder-gradient {
+  background: linear-gradient(135deg, var(--thunder-red) 0%, var(--thunder-black) 100%);
+}
+
+.thunder-text-gradient {
+  background: linear-gradient(135deg, var(--thunder-red) 0%, var(--thunder-black) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Improved buttons with Notion style */
+button {
+  font-weight: 500;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+  /* Explicitly no transform transitions to prevent scaling */
+  transform: none !important;
+}
+
+/* Better focus states - softer and less harsh */
+*:focus-visible {
+  outline: 2px solid #E5E7EB;
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+button:focus-visible {
+  outline: 2px solid #9CA3AF;
+  outline-offset: 0;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+/* Animations - Disabled for better UX */
+/* Keeping definitions but not using them to avoid visual strain */
+
+/*
+@keyframes goal-celebration {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.2) rotate(10deg); }
+  50% { transform: scale(1.3) rotate(-10deg); }
+  75% { transform: scale(1.2) rotate(10deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(220, 38, 38, 0.6); }
+}
+
+.animate-goal-celebration {
+  animation: goal-celebration 1s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+*/
+
+/* Animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }

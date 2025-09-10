@@ -1,0 +1,541 @@
+# ⚡ THUNDER HOCKEY TEAM SITE - MASTER DOCUMENTATION
+*Version 1.4 - January 8, 2025*
+
+## 🎯 Overview
+This document serves as the single source of truth for the Ted Reeve Thunder U10A team Notion site. All parallel development sessions should reference this document to maintain consistency.
+
+---
+
+## 🏗️ CURRENT SITE STRUCTURE
+
+### Home Page (Root)
+- **ID**: `2660cdbf-4977-8099-a6bb-ccfc949f854b`
+- **Name**: "⚡ Ted Reeve Thunder U10A"
+- **Contains**: All four core databases
+
+### Core Databases
+
+#### 1. ⚡ Thunder Hockey Systems
+- **Database ID**: `2660cdbf-4977-81ec-8ef1-e798971e7ae9`
+- **Purpose**: Hockey systems/plays teaching defensive and offensive formations
+- **Current Entries**: 6
+  - Defensive Zone Coverage (ID: `2620cdbf-4977-818b-9ea4-c1a77f79eae2`)
+  - Corner Battles (ID: `2660cdbf-4977-8133-8b26-cea12011f35a`)
+  - Breakouts (ID: `2660cdbf-4977-816e-a626-dec2b49b6f33`)
+  - Offensive Zone Entries (ID: `2660cdbf-4977-810d-8124-c7e0f738075e`)
+  - Offensive Forecheck (ID: `2660cdbf-4977-8165-bbb4-c7551803bf8e`)
+  - Win the Blue Lines (ID: `2670cdbf-4977-8161-8f86-d74f4fed4291`)
+- **View**: Gallery view with card layout
+
+#### 2. ⚡ Thunder Drills  
+- **Database ID**: `2660cdbf-4977-81b5-bc45-ec0d2a06b3dc`
+- **Purpose**: Individual practice drills and exercises
+- **Current Entries**: 3 (Dynamic Warm-Up, D-Zone Assignments & Coverage, 3v3 Battle)
+- **View**: Table/Gallery hybrid
+
+#### 3. 📅 Thunder Practice Plans
+- **Database ID**: `2660cdbf-4977-8180-8f6e-ccdfc379025c`
+- **Purpose**: Complete practice session plans
+- **Current Entries**: 1 (September 2, 2025 practice)
+- **View**: Calendar/Table view
+
+#### 4. ⚡ Thunder Code - Team Guidelines
+- **Database ID**: `2670cdbf-4977-812f-8265-ec5be833871a`
+- **Purpose**: Team expectations, guidelines, and development resources for players, parents, and coaches
+- **Current Entries**: 6
+  - Player Expectations - Be a Thunder Champion (ID: `2670cdbf-4977-81f9-b610-e084ccb2a01f`)
+  - Parent Expectations - Thunder Support Squad (ID: `2670cdbf-4977-8103-81de-fcb1679c582d`)
+  - Coach Expectations - Leading Thunder (ID: `2670cdbf-4977-814b-a7eb-d7438edd407b`)
+  - Nutrition & Hydration - Fuel the Storm (ID: `2670cdbf-4977-812c-b261-cfde69d99f7b`)
+  - Game Day Preparation - Ready to Strike (ID: `2670cdbf-4977-8144-8fce-fb49166d11f9`)
+  - Training at Home - Thunder Never Stops (ID: `2670cdbf-4977-8149-a286-f9acb963292b`)
+- **View**: Gallery/Table view
+
+---
+
+## 📊 DATABASE SCHEMAS
+
+### Hockey Systems Database (14 Properties)
+```
+Core Properties:
+- Card Title (Title) - Primary identifier
+- Card Number (Number) - Sequential ordering
+- Play Nickname (Rich Text) - Fun team name like "Thunder Box"
+- One Big Idea (Rich Text) - Core concept in one sentence
+- Hero Image (Files) - Main diagram
+- Zone (Select) - Defensive/Neutral/Offensive
+- Play Type (Multi-select) - Coverage/Breakout/Forecheck/etc
+- Complexity (Select) - ⚡ Basic, ⚡⚡ Intermediate, ⚡⚡⚡ Advanced
+- Tags (Multi-select) - Searchable tags
+- Video Links (URL) - YouTube tutorials
+- Files & Media (Files) - Additional resources
+- Additional Images (Files) - Extra diagrams
+
+Relations:
+- Related to Thunder Drills (Relation)
+- Related to Practice Plans (Relation)
+```
+
+### Drills Database (16 Properties)
+```
+Core Properties:
+- Drill Name (Title)
+- Duration - mins (Number)
+- Drill Type (Multi-select) - Skating/Passing/Shooting/Systems/Battle/etc
+- Difficulty (Select) - ⚡ Easy, ⚡⚡ Medium, ⚡⚡⚡ Hard
+- Players Required (Select) - 1-3/4-6/7-10/Full Team
+- Positions Required (Multi-select) - Forward/Defense/Goalie/All Skaters
+- Equipment Needed (Multi-select) - Pucks/Cones/Tires/Nets/Pylons
+- Coaches Required (Number)
+- Fun Factor (Select) - 😐 Okay, 😊 Fun, 🤩 Super Fun!
+- Station Based (Checkbox)
+- Last Used (Date)
+- Video URL (URL)
+- Media Preview (Files)
+
+Relations:
+- Related Systems (Relation to Systems DB)
+- Related to Practice Plans (Relation)
+```
+
+### Practice Plans Database (17 Properties)
+```
+Core Properties:
+- Practice Name (Title)
+- Practice Date (Date)
+- Location (Rich Text) - Arena/facility name
+- Start Time (Rich Text) - Practice start time
+- Duration - mins (Number)
+- Practice Type (Select) - Regular/Game Day -1/Skills Only
+- Season Phase (Select) - Preseason/Regular Season/Playoffs
+- Status (Select) - Planned/Completed/Cancelled
+- Focus Areas (Select) - Systems/Skills/Conditioning/Fun/Mixed
+- Ice Zones Used (Multi-select) - Full Ice/Half Ice/Cross Ice/Stations
+- Theme (Rich Text) - Practice theme/focus
+- Coach Lead (Select) - Coach Stewart/Miro/Daniel/Dan
+- 3rd Party Instructor (Checkbox)
+- Notes (Rich Text)
+- Additional Practice Media (Files)
+
+Relations:
+- Systems Covered (Relation to Systems DB)
+- Drills (Relation to Drills DB)
+```
+
+### Thunder Code Database (11 Properties)
+```
+Core Properties:
+- Guideline Title (Title) - Primary identifier
+- Category (Select) - Player/Parent/Coach Expectations, Nutrition & Hydration, Game Preparation, Home Training, Team Culture
+- Priority (Select) - ⚡ Essential, ⚡⚡ Important, ⚡⚡⚡ Good to Know
+- Age Appropriate (Checkbox) - Content suitable for U10
+- One Big Idea (Rich Text) - Core concept in one sentence
+- Hero Image (Files) - Main visual/banner
+- Video Resources (URL) - Supporting video links
+- Tags (Multi-select) - Nutrition/Hydration/Preparation/Training/Expectations/Team Culture/Safety/Development/Fun
+- Implementation Tips (Rich Text) - How to apply guidelines
+
+Relations:
+- Related to Drills (Relation to Drills DB)
+- Related to Systems (Relation to Systems DB)
+```
+
+---
+
+## 🎮 THUNDER HOCKEY QUIZ CHALLENGE
+
+### Overview
+The Thunder Hockey Quiz Challenge is an interactive quiz application embedded directly in the team's Notion site, designed to help U10A players learn hockey systems, rules, and team concepts through gamified learning.
+
+### Access
+- **Notion Page**: https://www.notion.so/Thunder-Hockey-Quiz-Challenge-2680cdbf4977803a8a18f1655dc8be53
+- **Embedded App URL**: https://thunder-quiz.vercel.app (or custom domain)
+- **Database ID** (for leaderboard): `2680cdbf-4977-8119-89fc-fba3dd92f096`
+
+### Key Features
+- **94 Question Bank**: Comprehensive questions across 9 categories
+- **Progressive Difficulty**: Questions get harder through 3 periods
+- **AI-Powered Validation**: OpenAI GPT-4o-mini validates answers and generates hints
+- **Dual Leaderboard System**: 
+  - Primary: Notion database for coach/parent visibility
+  - Fallback: Vercel KV/local storage
+- **Hockey Theme**: 3 periods × 5 questions, score displayed on rink visual
+- **Kid-Friendly**: Grade 4 reading level, 60-second timer, encouraging feedback
+
+### Question Categories (94 Total)
+1. **Hockey Rules & Penalties** (25 questions)
+2. **Team Systems** (22 questions) - Thunder-specific plays
+3. **NHL Knowledge** (12 questions)
+4. **Team Tactics** (11 questions)
+5. **Skills & Fundamentals** (11 questions)
+6. **Equipment & Safety** (6 questions)
+7. **Sportsmanship** (4 questions)
+8. **Practice & Drills** (2 questions)
+9. **Fun Facts** (1 question)
+
+### Technical Stack
+- **Framework**: Next.js 15.5.2 with TypeScript
+- **Styling**: Tailwind CSS with Thunder colors
+- **AI Service**: OpenAI API for answer validation
+- **Primary Database**: Notion API for leaderboard
+- **Deployment**: Vercel
+- **Embedding**: iframe in Notion page
+
+### Embedding in Notion
+```html
+<iframe src="https://thunder-quiz.vercel.app" 
+        width="100%" 
+        height="700" 
+        frameborder="0"
+        allowfullscreen>
+</iframe>
+```
+
+### Success Metrics
+- 80% team participation within first week
+- 70% game completion rate
+- 50% monthly retention
+- Measurable improvement in system knowledge
+
+---
+
+## 🎨 UX STYLE GUIDE
+
+### Visual Identity
+- **Primary Colors**: Red (#DC2626), Black (#000000), Gray/Silver (#6B7280)
+- **Team Identity**: "We bring the storm every shift, every game!"
+- **Logo**: Red "T" with Thunder text on black circle with silver accents
+
+### Emojis & Icons
+```
+Standard Usage:
+⚡ - Thunder/Lightning (team identity, appears in all DB titles)
+🔴 - Red (team color highlights)
+⚫ - Black (team color accents)
+🏒 - Hockey/Skills content
+🥅 - Goal/Net references
+🛡️ - Defense positioning
+📅 - Schedule/Practice plans
+🎯 - Objectives/Targets
+🏆 - Achievement/Success
+⭐ - Ratings/Levels
+😊🤩 - Fun factor ratings
+```
+
+### Language Guidelines
+- **Reading Level**: Grade 3-4 vocabulary
+- **Sentence Length**: 10 words or less for instructions
+- **Instructions**: Maximum 3 numbered steps per section
+- **Tone**: Encouraging, positive, action-oriented
+- **Thunder Phrases**: "Bring the storm!", "Thunder strikes!", "Lightning fast!"
+
+### Content Hierarchy
+1. **Visual First**: Large diagrams/images at top
+2. **One Big Idea**: Bold, simple concept statement
+3. **Position-Specific**: Separated by role (Forwards/Defense/Goalie)
+4. **Progressive Levels**: Game-like progression system
+5. **Tips & Don'ts**: Clear do/don't format
+
+---
+
+## 📝 CONTENT CREATION INSTRUCTIONS
+
+### Creating a New System (Play Card)
+1. **Duplicate Existing Entry**: Use "Defensive Zone Coverage" as template
+2. **Required Elements**:
+   - Hero diagram (Cloudinary hosted)
+   - "One Big Idea" in 1 sentence
+   - Position-specific instructions (3 points max each)
+   - Thunder Tips for each position
+   - Practice progression levels
+   - When to use scenarios (3-4 checkboxes)
+   - Coach's key points (3 max)
+
+3. **Page Structure**:
+```markdown
+[Hero Image]
+# SYSTEM NAME
+## "Fun Nickname"
+🎯 ONE BIG IDEA: [Single sentence]
+
+## 📺 WATCH FIRST
+[Video embed if available]
+
+## 🏒 YOUR JOB (Pick Your Position)
+### ⚡ FORWARDS
+### 🛡️ DEFENSE  
+### 🥅 GOALIE
+
+## 🎮 PRACTICE LEVELS
+- Level 1-5 progression
+
+## 🎯 WHEN TO USE
+- Game situation checkboxes
+
+## 🏆 COACH'S KEY POINTS
+- 3 key reminders
+```
+
+### Creating a New Drill
+1. **Required Properties**:
+   - Duration (5-20 minutes typical)
+   - Drill Type (multi-select)
+   - Equipment needed
+   - Fun Factor rating
+   - Difficulty level
+
+2. **Page Content Structure**:
+```markdown
+## Drill Overview/Setup
+- Time and objective
+
+## Drill Diagram
+[Image required]
+
+## Setup
+- Bullet points for setup
+
+## Execution/How It Works
+- Step by step instructions
+
+## Key Points/Coaching Points
+- Important reminders
+
+## Variations (optional)
+- Ways to modify drill
+```
+
+### Creating a New Practice Plan
+1. **Required Info**:
+   - Date, Location, Start Time
+   - Duration (typically 60 mins)
+   - Link to drills (usually 3-4)
+   - Link to systems covered
+   - Theme/focus
+
+2. **Content Structure**:
+```markdown
+## Date | Time | Location
+
+## Practice Theme
+[Brief description]
+
+## Drill Sequence
+### Drill 1: [Name] (X mins)
+[Full drill content or link]
+
+### Drill 2: [Name] (X mins)
+[Full drill content or link]
+
+### Drill 3: [Name] (X mins)
+[Full drill content or link]
+
+## Equipment Needed
+## Notes
+```
+
+---
+
+## 🚧 COMING SOON - PLANNED DATABASES & PAGES
+
+### 1. 📅 Game Schedule
+**Purpose**: Track all games, tournaments, exhibitions
+**Key Properties**:
+- Game Date/Time
+- Home/Away
+- Opponent
+- Arena/Location
+- Game Type (Regular/Playoff/Tournament)
+- Result
+- Game Notes
+- Related Practice Plans
+
+### 2. 📢 Team Announcements
+**Purpose**: News, updates, important information
+**Key Properties**:
+- Announcement Title
+- Date Posted
+- Category (News/Event/Reminder/Alert)
+- Priority Level
+- Content
+- Attachments
+- Author
+
+### 3. 🏒 Games Database
+**Purpose**: Game summaries, stats, highlights
+**Key Properties**:
+- Game Date
+- Opponent
+- Score
+- Game Summary
+- Stars of the Game
+- Systems Used
+- What Worked Well
+- Areas to Improve
+- Photos/Videos
+- Related Practice Plans
+
+### 4. 🏠 Enhanced Home Page
+**Layout Plans**:
+- Welcome banner with team logo
+- Quick links to all databases
+- Upcoming games widget
+- Recent announcements
+- This week's practice
+- Team calendar embed
+- Quick stats/standings
+
+---
+
+## 📁 ARCHIVED DOCUMENTATION
+The following planning documents have been archived and should NOT be used for new development:
+
+### Archived Files (Reference Only)
+```
+/team_site/docs/archived/
+├── hockey_systems_database_plan.md (ARCHIVED - Initial planning)
+├── thunder_play_card_system.md (ARCHIVED - V1 design)
+├── notion_page_template_implementation.md (ARCHIVED - Old template approach)
+├── notion_hockey_systems_database_schema.md (ARCHIVED - 40+ property version)
+└── notion_defensive_zone_coverage_validation.md (ARCHIVED - Test page)
+```
+
+**⚠️ IMPORTANT**: These files contain outdated approaches. Only reference them for historical context.
+
+---
+
+## 🔄 WORKFLOW BEST PRACTICES
+
+### For Parallel Development Sessions
+
+1. **Before Starting**:
+   - Read this entire document
+   - Check current entry counts in each database
+   - Use existing entries as templates
+
+2. **Naming Conventions**:
+   - Systems: "Play Type + Formation" (e.g., "Defensive Zone Coverage")
+   - Drills: "Action + Skill" (e.g., "Dynamic Warm-Up")
+   - Practices: "Thunder Practice - [Date]"
+
+3. **Image Hosting**:
+   - Use Cloudinary for all diagrams
+   - Path format: `/hockey_diagrams/` or `/hockey_drills/`
+   - Include date in filename when relevant
+
+4. **Relations**:
+   - Always link drills to related systems
+   - Always link practices to drills used
+   - Always link practices to systems covered
+
+5. **Quality Checks**:
+   - Verify all position instructions are present
+   - Check reading level (Grade 3-4)
+   - Ensure Thunder branding throughout
+   - Test mobile view compatibility
+
+---
+
+## 🎯 SUCCESS METRICS
+
+### Content Goals
+- **Systems**: 20-25 total play cards by season end
+- **Drills**: 40-50 drill library
+- **Practices**: Full season of plans (30-40)
+
+### Engagement Tracking
+- Page views per entry
+- Most used drills
+- System mastery progression
+- Parent/player feedback
+
+---
+
+## 📞 KEY CONTACTS & RESOURCES
+
+### Notion Integration
+- **Integration Token**: Available in Notion settings
+- **Workspace ID**: Check Notion URL structure
+
+### Development Resources
+- **MCP Tools**: Use for all Notion API operations
+- **Cloudinary**: For image hosting
+- **YouTube**: For video examples
+
+---
+
+## 🔐 MAINTENANCE NOTES
+
+### Version Control
+- This is Version 1.1 (January 6, 2025)
+- Update version number with major changes
+- Keep changelog at bottom of document
+
+### Regular Updates Needed
+- Entry counts in database inventory
+- New properties added to schemas
+- New pages/databases created
+- Workflow improvements discovered
+
+---
+
+## 📋 CHANGELOG
+
+### Version 1.4 - January 8, 2025
+- Added Thunder Hockey Quiz Challenge section
+  - Documented the embedded quiz application
+  - 94 questions across 9 categories with progressive difficulty
+  - AI-powered answer validation using OpenAI GPT-4o-mini
+  - Dual leaderboard system (Notion primary, Vercel KV fallback)
+  - Technical stack and embedding instructions
+  - Kid-friendly design for U10A players (ages 9-10)
+  - Success metrics and engagement tracking
+- Updated documentation to reflect the interactive learning component of the site
+
+### Version 1.3 - January 7, 2025
+- Added Thunder Code - Team Guidelines database
+  - New database for team expectations and development guidelines
+  - 6 comprehensive pages covering player, parent, and coach expectations
+  - Added nutrition & hydration guidelines tailored for U10 athletes
+  - Created game day preparation checklist
+  - Included home training exercises and daily habits
+  - Database includes priority levels, categories, and implementation tips
+- Updated site structure to include 4 core databases
+- Added Thunder Code database schema documentation
+
+### Version 1.2 - January 7, 2025
+- Added Offensive Zone Entries system page
+  - Wide entry pattern with net drive and high support
+  - Variations including button curl and cycle/drop pass
+  - Focus on speed, space creation, and net drive
+- Added Offensive Forecheck system page  
+  - Batman & Robin pressure system with Spider-Man support
+  - Quick strike offense after turnovers
+  - Position flexibility based on proximity to puck
+- Added Win the Blue Lines system page
+  - Smart decisions at both blue lines to reduce turnovers
+  - Defensive blue line exit strategies (chip vs carry)
+  - Offensive blue line entry options and D pinching techniques
+- Updated entry count to 6 total systems
+
+### Version 1.1 - January 6, 2025
+- Added Corner Battles system page (defensive zone specific)
+  - Contains vs Attack concept based on seeing opponent's eyes
+  - Position-specific responsibilities for D-zone corners
+  - 3-level practice progression
+- Added Breakouts system page
+  - 3 breakout routes with diagrams (Up the Boards, Wheel, Push the Pace)
+  - When to use each route
+  - Position-specific execution instructions
+- Updated database relations linking systems to drills and practice plans
+
+### Version 1.0 - January 5, 2025
+- Initial documentation created
+- Captured current state of 3 databases
+- Documented UX guidelines and creation instructions
+- Added future database plans
+- Archived old planning documents
+
+---
+
+*END OF DOCUMENTATION - Use this as your single source of truth for Thunder site development*
