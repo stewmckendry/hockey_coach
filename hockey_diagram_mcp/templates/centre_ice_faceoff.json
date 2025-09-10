@@ -1,0 +1,181 @@
+{
+  "id": "centre_ice_faceoff",
+  "name": "Centre Ice Faceoff",
+  "description": "Standard centre ice faceoff formation with all 12 players including both goalies. Wingers positioned on the faceoff circle perimeter with same x-axis separation as centers.",
+  "tags": [
+    "faceoff",
+    "centre_ice",
+    "formation",
+    "neutral_zone",
+    "standard_positions",
+    "full_teams",
+    "game_start"
+  ],
+  "created_at": "2025-09-05T12:03:17.446081",
+  "spec": {
+    "title": "Centre Ice Faceoff Formation",
+    "description": "All players in standard positions for a centre ice faceoff, including both goalies",
+    "rink": {
+      "view": "full",
+      "showDots": true,
+      "showNets": true,
+      "showCreases": true,
+      "showCircles": true,
+      "showLines": true
+    },
+    "players": [
+      {
+        "id": "F1",
+        "type": "forward",
+        "position": "F1",
+        "team": "home",
+        "coordinates": {
+          "x": -3,
+          "y": 0
+        },
+        "label": "C"
+      },
+      {
+        "id": "F2",
+        "type": "forward",
+        "position": "F2",
+        "team": "home",
+        "coordinates": {
+          "x": -3,
+          "y": 15
+        },
+        "label": "LW"
+      },
+      {
+        "id": "F3",
+        "type": "forward",
+        "position": "F3",
+        "team": "home",
+        "coordinates": {
+          "x": -3,
+          "y": -15
+        },
+        "label": "RW"
+      },
+      {
+        "id": "D1",
+        "type": "defense",
+        "position": "D1",
+        "team": "home",
+        "coordinates": {
+          "x": -30,
+          "y": 15
+        },
+        "label": "LD"
+      },
+      {
+        "id": "D2",
+        "type": "defense",
+        "position": "D2",
+        "team": "home",
+        "coordinates": {
+          "x": -30,
+          "y": -15
+        },
+        "label": "RD"
+      },
+      {
+        "id": "G",
+        "type": "goalie",
+        "position": "G",
+        "team": "home",
+        "coordinates": {
+          "x": -82,
+          "y": 0
+        },
+        "label": "G"
+      },
+      {
+        "id": "F4",
+        "type": "forward",
+        "position": "F4",
+        "team": "away",
+        "coordinates": {
+          "x": 3,
+          "y": 0
+        },
+        "label": "OC"
+      },
+      {
+        "id": "F5",
+        "type": "forward",
+        "position": "F5",
+        "team": "away",
+        "coordinates": {
+          "x": 3,
+          "y": 15
+        },
+        "label": "OLW"
+      },
+      {
+        "id": "F6",
+        "type": "forward",
+        "position": "F6",
+        "team": "away",
+        "coordinates": {
+          "x": 3,
+          "y": -15
+        },
+        "label": "ORW"
+      },
+      {
+        "id": "D3",
+        "type": "defense",
+        "position": "D3",
+        "team": "away",
+        "coordinates": {
+          "x": 30,
+          "y": 15
+        },
+        "label": "OLD"
+      },
+      {
+        "id": "D4",
+        "type": "defense",
+        "position": "D4",
+        "team": "away",
+        "coordinates": {
+          "x": 30,
+          "y": -15
+        },
+        "label": "ORD"
+      },
+      {
+        "id": "G2",
+        "type": "goalie",
+        "position": "G2",
+        "team": "away",
+        "coordinates": {
+          "x": 82,
+          "y": 0
+        },
+        "label": "OG"
+      }
+    ],
+    "movements": [],
+    "annotations": [
+      {
+        "text": "Centre Ice Faceoff Formation",
+        "position": {
+          "x": 0,
+          "y": -48
+        },
+        "size": "large",
+        "style": {
+          "bold": true
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "players_count": 12,
+    "movements_count": 0,
+    "has_zones": false,
+    "has_annotations": true
+  }
+}

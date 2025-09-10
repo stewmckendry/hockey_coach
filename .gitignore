@@ -2,6 +2,9 @@ __pycache__/
 *.pyc
 *.csv
 *.json
+# Exception: Track hockey diagram config files
+!hockey_diagram_mcp/config/**/*.json
+!hockey_diagram_mcp/templates/**/*.json
 .env
 .env.production
 .env.development
