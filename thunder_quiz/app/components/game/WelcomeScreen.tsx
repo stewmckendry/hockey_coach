@@ -85,11 +85,12 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
             </div>
           </div>
 
-          {/* Nickname Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 mt-8">
+          {/* Nickname Form - Emphasized */}
+          <form onSubmit={handleSubmit} className="space-y-4 mt-8 p-5 bg-gradient-to-br from-thunder-red/5 to-red-50/30 rounded-2xl border-2 border-thunder-red/20">
             <div>
-              <label htmlFor="nickname" className="block text-sm font-semibold text-gray-700 mb-2">
-                Enter Your Nickname
+              <label htmlFor="nickname" className="block text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="text-lg">👤</span>
+                Enter Your Nickname to Start
               </label>
               <input
                 type="text"
@@ -99,7 +100,7 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
                   setNickname(e.target.value);
                   setError('');
                 }}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 focus:bg-white transition-all text-sm font-medium"
+                className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-thunder-red focus:bg-white transition-all text-base font-medium shadow-sm"
                 placeholder="ThunderBolt99"
                 maxLength={15}
                 autoFocus
@@ -117,9 +118,10 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
             <button
               type="submit"
               disabled={nickname.length === 0}
-              className="w-full py-4 bg-gradient-to-r from-thunder-red to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+              className="w-full py-4 bg-gradient-to-r from-thunder-red to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-2"
             >
-              Start Playing
+              <span>Start Playing</span>
+              <span className="text-xl">→</span>
             </button>
           </form>
         </div>
