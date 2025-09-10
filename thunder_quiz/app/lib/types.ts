@@ -34,6 +34,9 @@ export interface GameState {
   gameStatus: "not-started" | "in-progress" | "finished";
   startTime?: Date;
   endTime?: Date;
+  correctStreak: number;
+  correctAnswers: number;
+  totalQuestions: number;
 }
 
 export interface Answer {

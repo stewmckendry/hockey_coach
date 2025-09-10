@@ -86,7 +86,7 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </div>
 
           {/* Nickname Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 mt-8">
             <div>
               <label htmlFor="nickname" className="block text-sm font-semibold text-gray-700 mb-2">
                 Enter Your Nickname
@@ -130,15 +130,15 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
           <div className="space-y-2">
             <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
               <span className="text-lg">⚡</span>
-              <span className="text-xs text-gray-700">Answer quickly to earn more points</span>
+              <span className="text-sm text-gray-700">Answer quickly to earn more points</span>
             </div>
             <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
               <span className="text-lg">💡</span>
-              <span className="text-xs text-gray-700">Use hints if stuck (half points)</span>
+              <span className="text-sm text-gray-700">Use hints if stuck (half points)</span>
             </div>
             <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
               <span className="text-lg">🎯</span>
-              <span className="text-xs text-gray-700">Build streaks for bonus points</span>
+              <span className="text-sm text-gray-700">Build streaks for bonus points</span>
             </div>
           </div>
         </div>
