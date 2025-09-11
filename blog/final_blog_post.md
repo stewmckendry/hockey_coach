@@ -87,8 +87,6 @@ Most volunteer coaches track nothing, use a notebook that gets coffee-stained, o
 
 Enter Airtable with the MCP integration. Now tracking isn't a chore—it's a conversation. After practice, I tell Claude what happened and it updates everything. Which drills worked (that 2v2 battle drill? "Great"). Which ones didn't (the 3v3? "Fix it"—kids weren't ready). Who's struggling with what concepts. What to try next time.
 
-![Airtable Practice Dashboard](images/airtable_practice_dashboard.png)
-
 Here's the magic—using the Airtable MCP in Claude Code:
 
 ```bash
@@ -110,7 +108,7 @@ Now when planning next practice, I ask "What defensive drills have worked best?"
 
 We get 2-3 hours of ice time per week. That's it. Meanwhile, kids need to understand defensive zone coverage, forechecking patterns, breakout plays—complex concepts that take repetition to stick. Telling them once at practice doesn't cut it.
 
-I built two things with the goal of helping kids become students of the game in a fun, engaging way. First, a Notion team site that's our living playbook—embedded videos, diagrams, systems explained in Grade 4 language. Second, a quiz app designed to turn learning into competition (nothing should motivate 9-year-olds more than beating their friends on a leaderboard).
+I built two things with the goal of helping kids become students of the game in a fun, engaging way. First, a Notion team site (Notion is like Google Docs meets a database—perfect for building interactive team wikis) that's our living playbook—embedded videos, diagrams, systems explained in Grade 4 language. Second, a quiz app designed to turn learning into competition (nothing should motivate 9-year-olds more than beating their friends on a leaderboard).
 
 The quiz design is what I'm most excited about. It doesn't just mark answers wrong—it teaches through Socratic questioning:
 
