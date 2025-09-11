@@ -236,12 +236,12 @@ export default function QuestionDisplay({ question, onAnswer, onTimeout }: Quest
           {/* Hint Card */}
           {showHint && (
             <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
-              <div className="flex items-start gap-2">
-                <span className="text-lg">💡</span>
+              <div className="flex items-start gap-3">
+                <span className="text-xl">💡</span>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm text-gray-900 mb-1">Hint</p>
-                  <p className="text-xs text-gray-700">{hintMessage}</p>
-                  <p className="text-xs text-gray-500 mt-1">Try again for half points!</p>
+                  <p className="font-semibold text-base text-gray-900 mb-1">Hint</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{hintMessage}</p>
+                  <p className="text-sm text-gray-500 mt-2">Try again for half points!</p>
                 </div>
               </div>
             </div>
