@@ -10,10 +10,10 @@ cd .. && source spacy_env/bin/activate && cd thunder_playbook
 Hockey Coach AI Assistant platform using MCP servers, ChromaDB, and Next.js.
 
 ### Core Services
-- **MCP Server** (`servers/hockey_mcp.py`): Port 8000
-- **Hockey Diagram MCP** (`servers/hockey_diagram_mcp/`): Programmatic tactical diagrams
-- **Direct API** (`servers/hockey_mcp_direct_api.py`): Port 3003
-- **Web App** (`web_app/`): Next.js, Port 3000
+- **MCP Server** (`services/hockey_kb_mcp.py`): Port 8000
+- **Hockey Diagram MCP** (`services/hockey_diagram/`): Programmatic tactical diagrams
+- **Direct API** (`services/hockey_mcp_direct_api.py`): Port 3003
+- **Web App** (`apps/web/`): Next.js, Port 3000
 - **ChromaDB**: 8 hockey knowledge collections
 
 ### Quick Start
@@ -22,17 +22,17 @@ Hockey Coach AI Assistant platform using MCP servers, ChromaDB, and Next.js.
 python start_services.py
 
 # Or individually:
-python servers/hockey_mcp.py &
-python servers/hockey_mcp_direct_api.py &
-cd web_app && npm run dev
+python services/hockey_kb_mcp.py &
+python services/hockey_mcp_direct_api.py &
+cd apps/web && npm run dev
 ```
 
 ## 📁 Key Locations
 - Virtual env: `../spacy_env`
-- Data models: `models/`
-- Hockey data: `chroma_load/`
-- Diagrams: `servers/hockey_diagram_mcp/`
-- Web app: `web_app/`
+- Data models: `shared/models/`
+- Hockey data: `data/loaders/chroma_load/`
+- Diagrams: `services/hockey_diagram/`
+- Web app: `apps/web/`
 
 ## 🧪 Testing
 ```bash
@@ -40,7 +40,7 @@ cd web_app && npm run dev
 python -m pytest tests/ -v
 
 # Web app
-cd web_app
+cd apps/web
 npm run lint
 npm run type-check
 npm run build
@@ -74,6 +74,7 @@ chroma run --host localhost --port 8000 --no-auth &
 - `/merge-worktree <url> <pr>` - Complete workflow
 
 ## 📝 Current Work Context
-- **Worktree**: issue-109 (n8n workflow for hockey diagrams)
-- **Focus**: Token optimization and MCP configuration
-- **n8n Workflow ID**: NLSGnPWngNkvkxqs
+- **Reorganized**: Project structure for clarity
+- **Services**: `services/` for backend services
+- **Apps**: `apps/` for frontend applications
+- **Shared**: `shared/` for common code

@@ -40,7 +40,7 @@ def main():
     # Start the main hockey MCP server
     hockey_mcp = start_service(
         "Hockey MCP Server", 
-        "servers/hockey_mcp.py", 
+        "services/hockey_kb_mcp.py", 
         8000
     )
     
@@ -51,7 +51,7 @@ def main():
     # Start the direct API
     direct_api = start_service(
         "Hockey Direct API", 
-        "servers/hockey_mcp_direct_api.py", 
+        "services/hockey_mcp_direct_api.py", 
         3003
     )
     
@@ -62,7 +62,7 @@ def main():
     # Start the hockey diagram agent server
     diagram_agent = start_service(
         "Hockey Diagram Agent", 
-        "servers/hockey_diagram_agent_server.py", 
+        "services/hockey_diagram/servers/hockey_diagram_agent_server.py", 
         8002
     )
     
@@ -74,7 +74,7 @@ def main():
     print(f"🏒 Hockey MCP Server: http://localhost:8000")
     print(f"🔗 Direct API: http://localhost:3003")
     print(f"🎨 Diagram Agent: http://localhost:8002")
-    print(f"🌐 Web App: cd web_app && npm run dev")
+    print(f"🌐 Web App: cd apps/web && npm run dev")
     print("\n💡 Press Ctrl+C to stop all services")
     
     try:
